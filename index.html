@@ -437,8 +437,8 @@
         .zm-suggest-toggle { display: inline; margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--text2); }
         .zm-add-head { cursor: pointer; display: flex; }
         #modal:not(.zm-suggest-open) #industryAsk, /* 업종 묻기는 펼쳤을 때만 (글자 칠 땐 추천만) */
-        #modal:not(.zm-suggest-open):not(.zm-filtering) #itemList,
-        #modal:not(.zm-suggest-open):not(.zm-filtering) #zmMoreSuggest { display: none !important; }
+        #modal:not(.zm-suggest-open) #itemList,
+        #modal:not(.zm-suggest-open) #zmMoreSuggest { display: none !important; }
         /* 🔎 찾기만 화면: 검색창 하나 + 답 한 줄 + 사진. 나머지는 ⋯ 메뉴 안에 */
         .simple-more, #simpleAnswer, #simpleMenu { display: none; }
         body.hero-search-active:not(.hero-search-focused) .simple-more { display: flex; position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, calc(50% - 300px)); z-index: 1065; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font-size: 24px; align-items: center; justify-content: center; cursor: pointer; }
@@ -1898,6 +1898,30 @@
         .zm-put-hint { margin: 9px 2px 0; font-size: 12.5px; color: var(--text2); }
         .zm-put-hint b { color: var(--text); font-weight: 600; }
         .zm-put-hint:empty { display: none; }
+        /* ⌨️ 치는 동안 몰아 보기: 키보드가 화면 절반을 먹으니 이 칸 물건은 한 줄로, 안내는 숨기고, 아래 [완료]는 테두리만 */
+        .zm-mini, .zm-type-hint, .zm-save-typing { display: none; }
+        #modal.zm-typing .zm-mini { display: flex; align-items: center; gap: 6px; margin: 0 2px 10px; font-size: 13.5px; color: var(--text2); white-space: nowrap; overflow: hidden; }
+        .zm-mini b { color: var(--text); font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+        .zm-mini .is-new { flex: none; padding: 3px 9px; border-radius: 12px; background: rgb(var(--accent-rgb)); color: #fff; font-weight: 700; }
+        #modal.zm-typing .zm-type-hint { display: block; margin: 8px 2px 0; font-size: 12.5px; color: var(--text2); }
+        #modal.zm-typing.zm-filtering .zm-type-hint { display: none; }
+        #modal.zm-typing > .zm-body > .zm-section-head:first-child, #modal.zm-typing #zmPicked, #modal.zm-typing .zm-picked-hint,
+        #modal.zm-typing .zm-put-head, #modal.zm-typing .zm-put-hint, #modal.zm-typing .zm-add-head { display: none !important; }
+        #modal.zm-typing .zm-find-top { margin-top: 0; padding-top: 0; border-top: 0; }
+        #modal.zm-typing .zm-save { background: var(--card); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+        #modal.zm-typing .zm-save .ti { display: none; }
+        #modal.zm-typing .zm-save-full { display: none; } #modal.zm-typing .zm-save-typing { display: inline; }
+        /* 칠 때 추천: 진한 [넣기] 하나 + 이미 있는 비슷한 것 */
+        .zm-sg[hidden] { display: none; }
+        .zm-sg-put { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin-top: 10px; border: 0; border-radius: 24px; background: var(--accent); color: var(--on-accent); font: inherit; font-size: 15.5px; font-weight: 800; cursor: pointer; }
+        .zm-sg-put[disabled] { background: var(--bg); color: var(--text2); font-weight: 600; cursor: default; }
+        .zm-sg-list { margin-top: 8px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+        .zm-sg-list:empty { display: none; }
+        .zm-sg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 10px 14px; font-size: 14.5px; }
+        .zm-sg-row + .zm-sg-row { border-top: 1px solid var(--border); }
+        .zm-sg-row small { display: block; margin-top: 2px; font-size: 12px; color: var(--text2); }
+        .zm-sg-row mark { background: var(--accent-soft); color: inherit; border-radius: 3px; }
+        .zm-sg-row button { flex: none; border: 0; border-radius: 14px; padding: 7px 11px; background: var(--accent-soft); color: var(--accent-text); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
         .zm-find-top .zm-status { text-align: left; margin-top: 6px; }
         .zm-find-top .zm-status:empty { display: none; }
         .zm-find-top .zm-add-new { margin-top: 8px; }
@@ -2445,16 +2469,18 @@
         <!-- 넣기: 입력칸 하나 + 동그라미 마이크 하나 (첫 화면과 같은 모양) -->
         <div class="zm-find-top">
             <div class="zm-section-head zm-put-head"><span>넣기</span></div>
+            <div class="zm-mini" id="zmMini"></div>
             <div class="zm-put-row">
                 <div class="search-input-wrap zm-find">
-                    <i class="ti ti-plus"></i>
-                    <input type="text" id="newItemInput" placeholder="물건 이름 쓰기" autocomplete="off" enterkeyhint="done" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
+                    <input type="text" id="newItemInput" placeholder="물건 이름 쓰기" autocomplete="off" enterkeyhint="done" onfocus="zmTyping(true)" onblur="setTimeout(() => { if (document.activeElement !== this) zmTyping(false); }, 120)" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
                     <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
                 </div>
                 <!-- 📷 추후 OCR 버튼도 이 줄에: 인식 결과는 openImportReview({ source: 'ocr', candidates: [{ name, comment }] })로 넘기면 확인 목록이 그대로 재사용된다 -->
                 <button type="button" id="voiceItemBtn" class="zm-mic" onclick="startVoiceItemEntry(this)" title="말로 넣기 (여러 개도 한 번에)" aria-label="말로 넣기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.5"/></svg></button>
             </div>
             <p class="zm-put-hint" id="zmPutHint"></p>
+            <p class="zm-type-hint" id="zmTypeHint">쓰고 키보드의 [완료]를 누르면 바로 들어가요</p>
+            <div class="zm-sg" id="zmSuggest" hidden></div>
             <div id="voiceItemStatus" class="zm-status" role="status" aria-live="polite"></div>
             <button type="button" id="zmAddRow" class="zm-add-new" onclick="addNewItem()" hidden>
                 <span class="zm-add-new-icon"><i class="ti ti-plus"></i></span><span id="zmAddRowText"></span>
@@ -2484,7 +2510,7 @@
     </div>
 
     <div class="zm-foot">
-        <button type="button" class="btn-base btn-primary zm-save" onclick="saveZone()"><i class="ti ti-check"></i> 완료</button>
+        <button type="button" class="btn-base btn-primary zm-save" onclick="saveZone()"><i class="ti ti-check"></i> <span class="zm-save-full">완료</span><span class="zm-save-typing">완료 · 저장하고 닫기</span></button>
         <button type="button" class="btn-base btn-primary zm-memo-done" onpointerdown="event.preventDefault()" onclick="document.activeElement && document.activeElement.blur()"><i class="ti ti-check"></i> 다 적었어요</button>
     </div>
 
@@ -4036,6 +4062,8 @@
         { const tg = document.querySelector('#modal .zm-suggest-toggle'); if (tg) tg.textContent = '펼치기 ›'; }
         closeImportReview();
         syncPutHint(z);
+        zmJustAdded = []; document.getElementById('modal').classList.remove('zm-typing'); renderZmSuggest('');
+        { const h = document.getElementById('zmTypeHint'); if (h) h.textContent = '쓰고 키보드의 [완료]를 누르면 바로 들어가요'; }
         zmShowAllSuggest = false;
         closeImportReview();
         syncIndustryAsk();
@@ -5215,12 +5243,7 @@
     // (예전엔 그대로 사라졌다. 이미 있는 이름을 친 경우는 찾기로 보고 묻지 않는다)
     function saveZone() {
         const q = document.getElementById('newItemInput').value.trim();
-        if (q && !document.getElementById('zmAddRow').hidden) {
-            document.getElementById('pendingAddTitle').textContent = `'${q}'${josa(q, '을', '를').slice(q.length)} 추가할까요?`;
-            document.getElementById('pendingAddBackdrop').style.display = 'block';
-            document.getElementById('pendingAdd').style.setProperty('display', 'block', 'important');
-            return;
-        }
+        if (q) addNewItem(); // 입력칸에 쓴 채로 [완료]를 누르면 넣고 저장 (전엔 그냥 닫혀 쓴 게 사라졌다)
         commitZoneModal(true); closeModal();
     }
     function closePendingAdd() {
@@ -5304,11 +5327,45 @@
         const existing = [...document.querySelectorAll('#modal .zm-body .cb')].find(cb => normalizeForSearch(cb.value) === normalizeForSearch(val));
         const name = existing ? existing.value : val;
         if (!existing && !baseItems.includes(name)) { baseItems.unshift(name); saveData(); } // 직접 넣은 물건은 앞에 (뒤에 두면 [더보기] 속에 숨었다)
-        input.value = '';
+        input.value = ''; document.getElementById('modal').classList.remove('zm-filtering');
         renderZoneItems(true);
         checkZoneItem(name);
-        const row = findZoneItemRow(name); if (row) row.scrollIntoView({ block: 'nearest' });
+        zmMarkAdded(name);
+        if (!document.getElementById('modal').classList.contains('zm-typing')) { const row = findZoneItemRow(name); if (row) row.scrollIntoView({ block: 'nearest' }); }
     }
+    // 치는 동안 몰아 보기
+    let zmJustAdded = [];
+    function zmTyping(on) { const m = document.getElementById('modal'); m.classList.toggle('zm-typing', on); if (on) renderZmMini(); }
+    function renderZmMini() {
+        const el = document.getElementById('zmMini'); if (!el) return;
+        const names = [...document.querySelectorAll('#zmPicked .cb:checked')].map(cb => cb.value);
+        const fresh = zmJustAdded.filter(n => names.includes(n)), rest = names.filter(n => !fresh.includes(n));
+        const shown = rest.slice(0, fresh.length ? 2 : 3), more = rest.length - shown.length;
+        el.innerHTML = names.length ? `이 칸 ${fresh.map(n => `<span class="is-new">+ ${escapeHtml(n)}</span>`).join('')} <b>${shown.map(escapeHtml).join(' · ')}</b>${more > 0 ? ` 외 ${more}개` : ''}` : '이 칸은 아직 비어 있어요';
+    }
+    function zmMarkAdded(name) {
+        zmJustAdded = [name, ...zmJustAdded.filter(n => n !== name)].slice(0, 1);
+        renderZmMini();
+        const h = document.getElementById('zmTypeHint'); if (h) h.textContent = `✓ ${name}${josa(name, '을', '를').slice(name.length)} 넣었어요 · 다음 물건을 쓰세요`;
+    }
+    // 칠 때 추천: '○○' 이 칸에 넣기 + 다른 칸에 있는 비슷한 것 + 자주 쓰는 물건 중 맞는 것
+    function renderZmSuggest(q) {
+        const box = document.getElementById('zmSuggest'); if (!box) return;
+        if (!q) { box.hidden = true; box.innerHTML = ''; return; }
+        const nq = normalizeForSearch(q), here = new Set([...document.querySelectorAll('#zmPicked .cb:checked')].map(cb => cb.value));
+        const inHere = [...here].some(n => normalizeForSearch(n) === nq);
+        const hl = (n) => { const r = findMatchRange(n, q); return r ? escapeHtml(n.slice(0, r[0])) + '<mark>' + escapeHtml(n.slice(r[0], r[1])) + '</mark>' + escapeHtml(n.slice(r[1])) : escapeHtml(n); };
+        const rows = [], seen = new Set(here);
+        imageList.filter(d => d.id !== 'dummy_root').forEach(d => d.zones.forEach(z => { if (z === activeZone) return; z.items.forEach(it => {
+            if (rows.length >= 3 || seen.has(it.name) || !findMatchRange(it.name, q)) return; seen.add(it.name);
+            rows.push(`<div class="zm-sg-row"><span>${hl(it.name)}<small>${escapeHtml(d.title || '')} ${escapeHtml(z.name || '')}에 있어요</small></span><button type="button" onpointerdown="event.preventDefault()" onclick="zmPutName(this.dataset.n)" data-n="${escapeHtml(it.name)}">이 칸에도</button></div>`);
+        }); }));
+        baseItems.forEach(n => { if (rows.length >= 4 || seen.has(n) || !findMatchRange(n, q)) return; seen.add(n);
+            rows.push(`<div class="zm-sg-row"><span>${hl(n)}<small>자주 쓰는 물건</small></span><button type="button" onpointerdown="event.preventDefault()" onclick="zmPutName(this.dataset.n)" data-n="${escapeHtml(n)}">넣기</button></div>`); });
+        box.innerHTML = (inHere ? `<button type="button" class="zm-sg-put" disabled>이미 이 칸에 있어요</button>` : `<button type="button" class="zm-sg-put" onpointerdown="event.preventDefault()" onclick="addNewItem()">'${escapeHtml(q)}' 이 칸에 넣기</button>`) + `<div class="zm-sg-list">${rows.join('')}</div>`;
+        box.hidden = false;
+    }
+    function zmPutName(name) { const input = document.getElementById('newItemInput'); input.value = name; addNewItem(); renderZmSuggest(''); }
     function findZoneItemRow(name) { const cb = [...document.querySelectorAll('#modal .zm-body .cb')].find(el => el.value === name); return cb ? cb.closest('.zm-item') : null; }
     function checkZoneItem(name, comment) {
         const row = findZoneItemRow(name); if (!row) return false;
@@ -5335,7 +5392,7 @@
         });
         document.getElementById('zmMoreSuggest').hidden = !cut;
         const addRow = document.getElementById('zmAddRow');
-        addRow.hidden = !q || exact;
+        addRow.hidden = true; renderZmSuggest(q); // 칠 때는 진한 [넣기] + 이미 있는 비슷한 것
         document.getElementById('zmAddRowText').textContent = `'${q}' 새로 추가`;
     }
 
@@ -5489,7 +5546,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.18';
+    const APP_VERSION = '베타 2026.11.01.19';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
