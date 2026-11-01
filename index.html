@@ -626,7 +626,7 @@
         .search-input-wrap .voice-bars { order: -1; }
         /* 전역 input[type="text"] 테두리/배경/패딩 규칙보다 우선하도록 타입 선택자를 더해 명시도를 높임
            (그렇지 않으면 알약 안에 입력칸이 한 번 더 박스로 둘러싸여 보임) */
-        .search-input-wrap input[type="text"] {
+        .search-input-wrap input[type="text"], .search-input-wrap input[type="search"] {
             flex: 1; min-width: 0; width: auto; height: 100%; padding: 0;
             border: none; border-radius: 0; background: transparent; box-shadow: none;
             font-size: 14px; color: var(--text); outline: none;
@@ -634,6 +634,10 @@
         .search-input-wrap input::placeholder { color: var(--text3); }
         /* 전역 input:focus 규칙(각진 box-shadow)이 각진 모서리로 다시 끼어드는 것을 차단.
            포커스 표시는 .search-input-wrap:focus-within의 알약 모양 글로우 하나로만 보여준다. */
+        /* 검색칸(type=search): 크롬 자동 채우기 줄(열쇠·카드·주소)이 덜 뜨게. 브라우저 기본 모양·지우기 단추는 숨긴다 */
+        .search-input-wrap input[type="search"] { -webkit-appearance: none; appearance: none; outline: none; }
+        .search-input-wrap input[type="search"]::-webkit-search-cancel-button, .search-input-wrap input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+        .search-input-wrap input[type="search"]:focus { border: none; background: transparent; box-shadow: none; }
         .search-input-wrap input[type="text"]:focus { border: none; background: transparent; box-shadow: none; }
 
         /* 폰을 가로로 눕히면 화면 높이가 낮아서, 위에 붙어 있던 검색창이 사진을 많이 가렸다 → 맨 위에서만 보이고 내리면 같이 올라간다 */
@@ -2044,7 +2048,7 @@
             .fab-btn { width: 40px; height: 40px; font-size: 16px; }
             #mainModeBtn { height: 40px; font-size: 12px; }
             .icon-btn { width: 38px; height: 38px; }
-            input[type="text"], select, .search-input-wrap input[type="text"] { font-size: 16px; }
+            input[type="text"], select, .search-input-wrap input[type="text"], .search-input-wrap input[type="search"] { font-size: 16px; }
             .search-dropdown-item { min-height: 60px; }
             .search-chip { height: 36px; }
             .search-chip-del { width: 28px; height: 28px; }
@@ -2237,7 +2241,7 @@
     <p class="simple-sub">쓰거나 말하면 어디 있는지 알려 드려요</p>
     <div class="hero-summary" id="heroSummary"></div>
     <div class="search-input-wrap">
-        <input type="text" id="searchBox" placeholder="찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)" oninput="integratedSearch(false)" onfocus="this.select()">
+        <input type="search" autocomplete="off" id="searchBox" placeholder="찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)" oninput="integratedSearch(false)" onfocus="this.select()">
         <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
         <i class="ti ti-search"></i>
         <button id="micBtn" class="icon-btn" onclick="startVoiceRecognition()" title="말로 검색" aria-label="말로 검색">
@@ -2484,7 +2488,7 @@
             <div class="zm-mini" id="zmMini"></div>
             <div class="zm-put-row">
                 <div class="search-input-wrap zm-find">
-                    <input type="text" id="newItemInput" placeholder="물건 이름 쓰기" autocomplete="off" enterkeyhint="done" onfocus="zmTyping(true)" onblur="setTimeout(() => { if (document.activeElement !== this) zmTyping(false); }, 120)" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
+                    <input type="search" id="newItemInput" placeholder="물건 이름 쓰기" autocomplete="off" enterkeyhint="done" onfocus="zmTyping(true)" onblur="setTimeout(() => { if (document.activeElement !== this) zmTyping(false); }, 120)" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
                     <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
                 </div>
                 <!-- 📷 추후 OCR 버튼도 이 줄에: 인식 결과는 openImportReview({ source: 'ocr', candidates: [{ name, comment }] })로 넘기면 확인 목록이 그대로 재사용된다 -->
@@ -5560,7 +5564,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.22';
+    const APP_VERSION = '베타 2026.11.01.23';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
