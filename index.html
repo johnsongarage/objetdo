@@ -27,8 +27,12 @@
         }
         // 화면 테마: 페인트 전에 적용해서 기본 테마가 잠깐 보였다 바뀌는 깜빡임을 막는다
         // 처음 방문(고른 적 없음)은 모노(흑백)가 기본. 직접 고른 테마는 그대로 유지 (없어진 블랙 테마들은 기본으로)
-        let t = 'mono';
-        try { t = localStorage.getItem('uiTheme') || 'mono'; } catch (e) {}
+        // 쓰는 곳: 집·정리수납(home) / 매장·창고(store). 주소에 ?mode=home 이 붙어 오면 그걸로 정한다 (정리 전문가께 보내는 링크)
+        let m = 'store';
+        try { const q = new URLSearchParams(location.search).get('mode'); if (q === 'home' || q === 'store') localStorage.setItem('useMode', q); m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store'; } catch (e) {}
+        document.documentElement.dataset.mode = m;
+        let t = m === 'home' ? 'calm' : 'mono';
+        try { t = localStorage.getItem('uiTheme') || t; } catch (e) {}
         if (t === 'dark' || t === 'redblack' || t === 'gold') t = 'mono';
         if (t !== 'default') document.documentElement.dataset.theme = t;
     </script>
@@ -285,6 +289,101 @@
             --notice-text: #8a3a55;
             --danger-soft: #fbe0e0;
         }
+
+        /* 🌿 정돈 테마 (집·정리 모드 기본): 따뜻한 흰 바탕 + 먹색 버튼 + 세이지 초록 포인트 하나. 그림자·테두리를 줄인다 */
+        :root[data-theme="calm"] {
+            --bg: #f7f5f1;
+            --card: #ffffff;
+            --border: #e6e1d8;
+            --accent: #33322f;
+            --accent2: #6f8f7d;
+            --text: #2b2a28;
+            --text2: #6f6b64;
+            --text3: #a7a299;
+            --search-hl: #e3ece6;
+            --zone-border: rgba(95,125,108,0.9);
+            --ivory-bg: rgba(255,255,255,0.94);
+            --ivory-border: #e6e1d8;
+            --charcoal: #33322f;
+            --ivory-text: #ffffff;
+            --charcoal-mute: #6f6b64;
+            --shadow-focus: 0 0 0 4px rgba(95,125,108,0.22);
+            --accent-hover: #1f1e1c;
+            --accent-soft: #e6ede8;
+            --accent-rgb: 95, 125, 108;
+            --accent-dark-rgb: 51, 50, 47;
+            --on-accent2: #ffffff;
+            --on-accent: #ffffff;
+            --header-bg: rgba(247,245,241,0.94);
+            --header-text: #2b2a28;
+            --badge-bg: #5f7d6c;
+            --badge-text: #ffffff;
+            --active-zone-bg: #e6ede8;
+            --active-zone-bar: #5f7d6c;
+            --zone-stroke: #9cc5ae;
+            --zone-fill-rgb: 95, 125, 108;
+            --zone-fill-alpha: 0.12;
+            --hero-bg: #f7f5f1;
+            --hero-text: #2b2a28;
+            --hero-text2: #7b776f;
+            --hero-chip-bg: #ffffff;
+            --hero-chip-border: #e6e1d8;
+            --notice-bg: #eef2ee;
+            --notice-border: #dfe6e0;
+            --notice-text: #3d5246;
+            --danger-soft: #f6e5e2;
+            --accent-text: #3d5246;
+            --editbar-bg: #33322f;
+            --editbar-text: #ffffff;
+            --editbar-line: #33322f;
+            --editbar-done-bg: #ffffff;
+            --editbar-done-text: #33322f;
+            --edit-frame: #5f7d6c;
+        }
+        :root[data-theme="calm"] .hero-voice-btn { background: #2b2a28; color: #fff; box-shadow: none; }
+        :root[data-theme="calm"] .hero-voice-btn > .ti { background: rgba(255,255,255,0.16); }
+        :root[data-theme="calm"] body.hero-search-active .search-bar .search-input-wrap { border: 1px solid #e6e1d8; box-shadow: none; }
+
+        /* 🏠 집·정리 모드: 핵심만 (사진 지도 · 검색 · 말로 찾기/넣기 · 인쇄). 꺼진 기능은 지우지 않고 숨긴다 */
+        .hero-ask, .hero-spaces { display: none; }
+        html[data-mode="home"] body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
+        html[data-mode="home"] body.hero-search-active:not(.hero-search-focused) .hero-spaces { display: grid; }
+        html[data-mode="home"] body.hero-search-active .hero-beta { display: none; }
+        html[data-mode="home"] body.hero-search-active .app-brand { font-size: 15px; }
+        .hero-ask { margin: -4px 0 2px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--hero-text); text-align: left; }
+        .hero-spaces { gap: 10px; margin-top: 4px; }
+        .hero-spaces-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 700; color: var(--hero-text); }
+        .hero-spaces-head small { font-size: 12px; font-weight: 500; color: var(--hero-text2); }
+        .hero-space { display: grid; grid-template-columns: 72px 1fr 14px; gap: 14px; align-items: center; padding: 10px; border: 1px solid var(--hero-chip-border); border-radius: 18px; background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; text-align: left; cursor: pointer; }
+        .hero-space img { width: 72px; height: 54px; border-radius: 12px; object-fit: cover; display: block; background: var(--bg); }
+        .hero-space b { display: block; font-size: 15px; }
+        .hero-space small { font-size: 12.5px; color: var(--hero-text2); }
+        .hero-space i { font-style: normal; color: var(--hero-text2); font-size: 18px; }
+        .hero-space-add { min-height: 48px; border: 1.5px dashed var(--hero-chip-border); border-radius: 18px; background: none; color: var(--hero-text2); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        html[data-mode="home"] .hero-map-row .hero-map-btn:first-child { display: none; } /* 공간 카드가 [창고 지도 보기]를 대신한다 */
+        /* 사진 위: 쪽지 없이 번호만. 찾은 칸만 쪽지가 열린다 */
+        html[data-mode="home"] .zone-note:not(.is-focus) { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }
+        html[data-mode="home"] .zone-note:not(.is-focus) > :not(.zone-num) { display: none !important; }
+        /* 구역 창: '자주 쓰는 물건'은 접어 두고, 눌러서 펼치거나 위에서 찾을 때만 보인다 */
+        .zm-suggest-toggle { display: none; }
+        html[data-mode="home"] .zm-suggest-toggle { display: inline; margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--text2); }
+        html[data-mode="home"] .zm-add-head { cursor: pointer; display: flex; }
+        html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #industryAsk,
+        html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #itemList,
+        html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #zmMoreSuggest { display: none !important; }
+        /* 기능 끄기 */
+        html[data-f-brief="0"] #heroSummary { display: none !important; }
+        html[data-f-exp="0"] #stockExpTab, html[data-f-exp="0"] #stockField [data-field="exp"], html[data-f-exp="0"] .ic-exp-sec { display: none !important; }
+        /* 설정: 쓰는 곳·쓰는 기능 */
+        .use-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .use-mode button { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+        .use-mode button b { display: block; font-size: 14.5px; }
+        .use-mode button small { display: block; margin-top: 2px; font-size: 12px; color: var(--text2); line-height: 1.35; }
+        .use-mode button[aria-pressed="true"] { border: 2px solid var(--accent2); background: var(--accent-soft); }
+        .feat-sw { margin-left: auto; width: 42px; height: 24px; border-radius: 12px; background: var(--border); position: relative; flex: none; }
+        .feat-sw::after { content: ''; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .15s; }
+        .feat-sw.is-on { background: var(--accent2); }
+        .feat-sw.is-on::after { left: 21px; }
 
         /* 🟡🔵 옐로우 & 네이비 테마: 노란 헤더 + 네이비 주요 버튼 + 노란 강조 */
         :root[data-theme="yellow"] {
@@ -646,6 +745,8 @@
         .zone-num { position: absolute; top: calc(var(--num-off, 6px) * -1); left: calc(var(--num-off, 6px) * -1); min-width: 1.6em; height: 1.6em; padding: 0 0.3em; border-radius: 0.8em; display: inline-flex; align-items: center; justify-content: center; background: #2b2716; color: #fff3a3; font-size: var(--num-fs, 8.5px); font-weight: 800; line-height: 1; text-indent: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .is-empty .zone-num { position: static; background: rgba(43,39,22,0.62); color: #fff; }
         .zone-note.is-focus .zone-num, .is-empty.is-focus .zone-num { background: #d936b8; color: #fff; }
+        html[data-f-fx="0"] .zone-note.is-focus { outline-color: #5f7d6c; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+        html[data-f-fx="0"] .zone-note.is-focus .zone-num, html[data-f-fx="0"] .is-empty.is-focus .zone-num { background: #5f7d6c; }
         .zoom-ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; z-index: 2; }
         /* ✏️ 구역 그리기 도구: 고치기 모드에서 사진 왼쪽 아래 (확대 버튼과 반대편). 눌러 켠 동안만 끌기 = 그리기, 아니면 끌기 = 스크롤 */
         .draw-tool { position: absolute; left: 8px; bottom: 8px; z-index: 2; display: none; align-items: center; gap: 4px; height: 40px; padding: 0 14px 0 11px; border: 1.5px solid rgba(255,255,255,0.8); border-radius: 20px; background: rgba(26,26,24,0.72); color: #fff; font: inherit; font-size: 14px; font-weight: 700; box-shadow: 0 3px 10px rgba(0,0,0,0.3); cursor: pointer; }
@@ -1085,7 +1186,7 @@
         @media (hover: hover) { .settings-row:hover { background: var(--bg); } }
         .settings-row:active { background: var(--bg); }
         /* 🎨 테마 선택: 색 두 개짜리 동그라미 5개를 한 줄로 */
-        .theme-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; } /* 5개를 한 줄로 (4칸이면 파스텔만 아래로 떨어졌다) */
+        .theme-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; } /* 5개를 한 줄로 (4칸이면 파스텔만 아래로 떨어졌다) */
         .theme-option {
             display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 7px 0; min-height: 52px; min-width: 0;
             background: var(--card); border: 2px solid var(--border); border-radius: var(--radius-md);
@@ -1922,6 +2023,7 @@
         </button>
     </div>
     <div class="hero-beta"><span class="beta-pill"><i class="ti ti-flask"></i> 무료 베타</span></div>
+    <h2 class="hero-ask">뭘 찾으세요?</h2>
     <div class="hero-summary" id="heroSummary"></div>
     <div class="search-input-wrap">
         <input type="text" id="searchBox" placeholder="찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)" oninput="integratedSearch(false)" onfocus="this.select()">
@@ -1934,6 +2036,7 @@
     <button type="button" id="heroMicBtn" class="hero-voice-btn" onclick="heroVoiceTap(this)" aria-label="말로 찾기"><i class="ti ti-microphone"></i><span><b id="heroMicLabel">말로 찾기</b><small id="heroMicHint">"건전지 어디 있어" 하고 말해 보세요</small></span></button>
     <div id="searchResultDisplay" class="search-dropdown"></div>
     <div class="hero-quick" id="heroQuick"></div>
+    <div class="hero-spaces" id="heroSpaces"></div>
     <div class="hero-map-row">
         <button type="button" class="hero-map-btn" onclick="deactivateHeroSearch(); window.scrollTo(0, 0);">창고 지도 보기 <i class="ti ti-chevron-down"></i></button>
         <button type="button" class="hero-map-btn" onclick="openPrintPreview()"><i class="ti ti-printer"></i> 인쇄물 보기</button>
@@ -2173,7 +2276,7 @@
         <div class="zm-find-top">
         <!-- 상단 검색창과 같은 모양: 입력(찾기·새로 추가) + 돋보기 + 가져오기 버튼들 -->
             <div class="search-input-wrap zm-find">
-                <input type="text" id="newItemInput" placeholder="물건 찾기 또는 새로 추가" autocomplete="off" enterkeyhint="done" oninput="applyZoneItemFilter()">
+                <input type="text" id="newItemInput" placeholder="물건 찾기 또는 새로 추가" autocomplete="off" enterkeyhint="done" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
                 <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
                 <i class="ti ti-search"></i>
                 <!-- 📷 추후 OCR(창고에 적어둔 라벨·메모 사진에서 가져오기) 버튼을 이 자리에 같은 .icon-btn으로 추가하고,
@@ -2192,7 +2295,7 @@
             <span id="zoneItemCount" class="zm-count"></span>
         </div>
         <div id="zmPicked" class="zm-chips is-picked" data-empty="아직 없어요 · 위에서 찾거나 아래에서 눌러 담아요"></div>
-        <div class="zm-section-head zm-add-head"><span>자주 쓰는 물건</span></div>
+        <div class="zm-section-head zm-add-head" onclick="if (document.documentElement.dataset.mode === 'home') document.getElementById('modal').classList.toggle('zm-suggest-open')"><span>자주 쓰는 물건</span><span class="zm-suggest-toggle">펼치기 ›</span></div>
         <!-- 업종 한 번 묻기: 추천 물건 칸 위에 한 줄로 (예전엔 창 맨 위를 반쯤 차지해 이 구역 물건이 밀려 안 보였다) (고르거나 건너뛰면 다시 안 물음, 설정에서 바꿀 수 있음) -->
         <div id="industryAsk" class="zm-industry" hidden>
             <div class="zm-industry-q"><b>가게 종류</b>를 고르면 아래 추천 물건이 맞춰져요</div>
@@ -2257,7 +2360,7 @@
         <div class="ic-line"><span class="stock-ctl"><button type="button" data-ic="dec" aria-label="하나 빼기">−</button><input type="number" id="icQty" inputmode="numeric" min="0" placeholder="?" aria-label="지금 수량"><button type="button" data-ic="inc" aria-label="하나 더하기">+</button></span>
         <label class="stock-par">최소<input type="number" id="icPar" inputmode="numeric" min="0" placeholder="–" aria-label="최소 수량">개</label></div>
     </div>
-    <div class="ic-sec"><span>유통기한</span>
+    <div class="ic-sec ic-exp-sec"><span>유통기한</span>
         <div class="ic-line ic-exp-line"><input type="date" id="icExp" aria-label="유통기한"><b class="ic-exp-tag" id="icExpTag"></b><button type="button" class="ic-clear" id="icExpClear">지우기</button></div>
     </div>
     <div class="ic-foot"><button type="button" class="zm-pin" id="icPin" aria-pressed="false">☆ 즐겨찾기</button><button type="button" class="zm-remove" id="icRemove">이 구역에서 빼기</button></div>
@@ -2366,6 +2469,21 @@
         <h3><i class="ti ti-settings"></i> 설정</h3>
         <button type="button" class="settings-close" onclick="closeSettingsModal()">닫기 <span aria-hidden="true">✕</span></button>
     </div>
+    <section class="settings-sec">
+        <h4 class="settings-sec-title">어디에 쓰세요?</h4>
+        <div class="use-mode" id="useModeSeg">
+            <button type="button" data-mode="home" onclick="setUseMode('home')"><b>집 · 정리수납</b><small>팬트리, 옷장, 다용도실</small></button>
+            <button type="button" data-mode="store" onclick="setUseMode('store')"><b>매장 · 창고</b><small>재고 점검, 발주, 유통기한까지</small></button>
+        </div>
+        <div class="settings-label" style="margin-top: 14px;">쓰는 기능 <small style="font-weight: 400; color: var(--text3);">끈 기능도 적어 둔 내용은 그대로 있어요</small></div>
+        <div class="settings-list" id="featList">
+            <button class="settings-row" onclick="toggleStockMode()"><i class="ti ti-clipboard-list"></i> 재고 점검 (수량 · 발주 목록) <span class="feat-sw" data-feat="stock"></span></button>
+            <button class="settings-row" onclick="toggleFeat('exp')"><i class="ti ti-calendar-time"></i> 유통기한 <span class="feat-sw" data-feat="exp"></span></button>
+            <button class="settings-row" onclick="toggleFeat('brief')"><i class="ti ti-chart-bar"></i> 첫 화면 숫자 요약 <span class="feat-sw" data-feat="brief"></span></button>
+            <button class="settings-row" onclick="toggleFeat('chips')"><i class="ti ti-star"></i> 즐겨찾기 · 자주 찾는 물건 <span class="feat-sw" data-feat="chips"></span></button>
+            <button class="settings-row" onclick="toggleFeat('fx')"><i class="ti ti-sparkles"></i> 화려한 효과 (네온 · 레이더) <span class="feat-sw" data-feat="fx"></span></button>
+        </div>
+    </section>
     <!-- 설정 순서: 자주 쓰고 중요한 것부터 — 백업 · 매장(재고 세기) · 도움 · 화면(한 번 정하면 끝) · 정보·기타(지우기는 맨 아래) -->
     <section class="settings-sec">
         <h4 class="settings-sec-title">백업</h4>
@@ -2381,9 +2499,7 @@
             <label class="settings-label" for="storeNameInput">매장 이름 <small style="font-weight: 400; color: var(--text3);">인쇄물 머리글·파일 이름에 들어가요</small></label>
             <input type="text" id="storeNameInput" class="store-name-input" maxlength="20" placeholder="예: 다산점 창고" autocomplete="off" oninput="setStoreName(this.value)">
         </div>
-        <div class="settings-list" style="margin: 10px 0 14px;">
-            <button class="settings-row" onclick="toggleStockMode()"><i class="ti ti-clipboard-list"></i> 재고 세기 · 발주 목록 <small id="stockRowText" style="margin-left: auto; color: var(--text3); font-weight: 400;"></small></button>
-        </div>
+        <small id="stockRowText" hidden></small>
         <div class="settings-group">
             <label class="settings-label" for="industrySelect">업종 기본 품목</label>
             <div class="settings-inline">
@@ -2422,6 +2538,9 @@
                 </button>
                 <button type="button" class="theme-option" data-theme-value="pastel" role="radio" onclick="setTheme('pastel')" title="파스텔 핑크">
                     <span class="theme-swatch"><i style="background:#fdf3f6;box-shadow:inset 0 0 0 1px #e3b9c9"></i><i style="background:#b84a72"></i></span><span>핑크</span>
+                </button>
+                <button type="button" class="theme-option" data-theme-value="calm" role="radio" onclick="setTheme('calm')" title="정돈 (따뜻한 흰색 & 세이지)">
+                    <span class="theme-swatch"><i style="background:#f7f5f1;box-shadow:inset 0 0 0 1px #e6e1d8"></i><i style="background:#5f7d6c"></i></span><span>정돈</span>
                 </button>
             </div>
         </div>
@@ -2930,7 +3049,7 @@
         const t = new Date(); t.setHours(0, 0, 0, 0);
         return Math.round((d - t) / 86400000);
     }
-    function expState(it) { const d = expDays(it); return d === null ? null : d < 0 ? 'over' : d <= EXP_SOON_DAYS ? 'soon' : null; }
+    function expState(it) { if (!feat('exp')) return null; const d = expDays(it); return d === null ? null : d < 0 ? 'over' : d <= EXP_SOON_DAYS ? 'soon' : null; }
     function expLabel(it) { const d = expDays(it); return d === null ? '' : d < 0 ? '기한 지남' : d === 0 ? '오늘까지' : `D-${d}`; }
     function zoneExp(z) { let st = null; z.items.forEach(it => { const e = expState(it); if (e === 'over') st = 'over'; else if (e === 'soon' && !st) st = 'soon'; }); return st; }
     function strokeNeon(ctx, z, k, kind) { // kind: 없음=분홍(찾은 칸), true/'low'=주황(부족), 'exp'=빨강(유통기한)
@@ -3027,7 +3146,7 @@
     function startAiScan(data) {
         const stage = data.noteStage, base = data.canvas;
         if (!stage || !base || !base.clientWidth) return null;
-        const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const reduce = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !feat('fx');
         const W = base.clientWidth, H = base.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
         const cv = document.createElement('canvas'); cv.className = 'ai-scan';
         cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
@@ -3732,6 +3851,7 @@
         document.getElementById('zoneNameInput').value = z.name;
         document.getElementById('newItemInput').value = '';
         document.getElementById('voiceItemStatus').textContent = '';
+        document.getElementById('modal').classList.remove('zm-filtering', 'zm-suggest-open');
         zmShowAllSuggest = false;
         closeImportReview();
         syncIndustryAsk();
@@ -4380,6 +4500,7 @@
     function startSearchFlyAnimation(data, zone) {
         searchFlyPending = null;
         if (!data || !data.canvas || !zone) return;
+        if (!feat('fx')) { searchFlyAnim = null; render(data); return; } // 차분하게: 날아오는 연출 없이 찾은 칸만 표시
         const canvas = data.canvas;
         // 목표 구역의 "중심"에 고정한 채로 크기만 줄어드는 순수 줌 방식.
         // 좌우로 이동하지 않으므로 결과가 모서리에 있어도 대각선으로 슬라이딩하는
@@ -4538,7 +4659,7 @@
     function setText(el, t) { if (el.textContent !== t) el.textContent = t; } // 같은 글자면 건드리지 않는다 (DOM 다시 그리기 줄이기)
     function render(data, bounce = 0) {
         if (!data || !data.ctx) return; const { ctx, canvas, img, zones } = data; ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (img && img.src) { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); if (img.width && data.id !== 'dummy_root') warmNeonEdges(data); } else {
+        if (img && img.src) { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); if (img.width && data.id !== 'dummy_root' && feat('fx')) warmNeonEdges(data); } else {
             ctx.fillStyle = themeColors.bg; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#e0dbd0'; ctx.lineWidth = 1;
             const boxX = 20, boxY = 20, boxW = 760, boxH = 410; ctx.beginPath(); drawSafeRoundRect(ctx, boxX, boxY, boxW, boxH, 8); ctx.fill(); ctx.stroke();
             ctx.fillStyle = '#1a1a18'; ctx.font = 'bold 22px sans-serif'; ctx.textAlign = 'center';
@@ -4579,7 +4700,7 @@
                 else { ctx.fillStyle = `rgba(${themeColors.accentRgb}, 0.3)`; ctx.strokeStyle = themeColors.accent2; ctx.lineWidth = 5; }
             }
             else if (isHovered) { ctx.fillStyle = 'rgba(255, 243, 196, 0.35)'; ctx.strokeStyle = '#c8960a'; ctx.lineWidth = 3; }
-            else if (z === activeZone && !flyIntro) { ctx.fillStyle = 'rgba(255, 90, 217, 0.14)'; ctx.strokeStyle = NEON_ZONE; ctx.lineWidth = Math.max(3, 2.5 * displayScale(canvas)); }
+            else if (z === activeZone && !flyIntro) { const fx = feat('fx'); ctx.fillStyle = fx ? 'rgba(255, 90, 217, 0.14)' : 'rgba(95, 125, 108, 0.12)'; ctx.strokeStyle = fx ? NEON_ZONE : '#5f7d6c'; ctx.lineWidth = Math.max(3, 2.5 * displayScale(canvas)); }
             else if (cleanView) { /* 보기 모드 기본: 아래에서 테두리만 그림 */ }
             else { ctx.fillStyle = `rgba(${themeColors.zoneFillRgb}, ${themeColors.zoneFillAlpha})`; ctx.strokeStyle = themeColors.zoneStroke; ctx.lineWidth = 2; }
             if (!hideBox) {
@@ -4613,10 +4734,12 @@
             const hideBox = false; // 찾은 칸은 깜빡여 사라지지 않고 네온으로 맥박치듯 빛난다 (drawSearchFlyOverlay)
             ctx.save();
             ctx.beginPath(); ctx.rect(0, 0, canvas.width, canvas.height); ctx.rect(z.x, z.y, z.w, z.h);
-            ctx.fillStyle = 'rgba(8, 10, 24, 0.6)'; ctx.fill('evenodd');
-            if (data._neonEdgesGlow) { ctx.clip('evenodd'); ctx.globalAlpha = 0.3; ctx.drawImage(data._neonEdgesGlow, 0, 0, canvas.width, canvas.height); } // 어두운 바깥에 물체 테두리가 은은히
+            const fx = feat('fx'); // 효과를 끄면: 살짝만 어둡게, 네온 대신 차분한 초록 테두리
+            ctx.fillStyle = fx ? 'rgba(8, 10, 24, 0.6)' : 'rgba(43, 42, 40, 0.42)'; ctx.fill('evenodd');
+            if (fx && data._neonEdgesGlow) { ctx.clip('evenodd'); ctx.globalAlpha = 0.3; ctx.drawImage(data._neonEdgesGlow, 0, 0, canvas.width, canvas.height); } // 어두운 바깥에 물체 테두리가 은은히
             ctx.restore();
-            if (!hideBox) strokeNeon(ctx, z, k * 1.8);
+            if (!hideBox && fx) strokeNeon(ctx, z, k * 1.8);
+            else if (!hideBox) { ctx.save(); ctx.lineWidth = 4 * k; ctx.strokeStyle = '#ffffff'; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.lineWidth = 2.5 * k; ctx.strokeStyle = '#5f7d6c'; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.restore(); }
         }
         renderZoneNotes(data, cleanView);
 
@@ -5171,7 +5294,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.1';
+    const APP_VERSION = '베타 2026.11.01.2';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5591,6 +5714,12 @@
         const frequent = Object.entries(loadSearchStore(SEARCH_PICKS_KEY, {})).filter(([name]) => has(name)).sort((a, b) => b[1] - a[1]).slice(0, 4);
         const chip = (q, extra = '') => `<button type="button" class="hero-chip" data-q="${escapeHtml(q)}" onclick="applySearchSuggestion(this)">${escapeHtml(q)}${extra}</button>`;
         let html = '';
+        renderHeroSpaces(photos.map(d => loaded.find(x => x.id === d.id) || d));
+        if (!feat('chips')) { // 즐겨찾기·자주 칩을 끄면 '최근'만
+            if (history.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
+            quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
+            return;
+        }
         const pinned = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.filter(i => i.pin).map(i => i.name))))].slice(0, 8);
         if (pinned.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">즐찾</span>${pinned.map(n => `<button type="button" class="hero-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">★ ${escapeHtml(n)}</button>`).join('')}</div>`; // 신입용 고정 물건 (사장님이 정해 둔 것)
         if (history.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
@@ -5598,6 +5727,17 @@
         quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
     }
 
+    // 집·정리 모드 첫 화면: 공간 카드 (사진 · 이름 · 칸 수). 누르면 그 사진 지도로
+    function renderHeroSpaces(photos) {
+        const box = document.getElementById('heroSpaces');
+        if (!box || useMode() !== 'home') return;
+        const cards = photos.map(d => {
+            const url = photoThumbUrl(d);
+            return `<button type="button" class="hero-space" onclick="openHeroSpace('${escapeHtml(String(d.id))}')">${url ? `<img src="${escapeHtml(url)}" alt="">` : '<img alt="">'}<span><b>${escapeHtml(d.title || '이름 없는 공간')}</b><small>칸 ${d.zones.length}개</small></span><i>›</i></button>`;
+        }).join('');
+        box.innerHTML = `<div class="hero-spaces-head">우리 집 공간 <small>${photos.length ? `${photos.length}곳` : ''}</small></div>${cards}<button type="button" class="hero-space-add" onclick="document.getElementById('fileInput').click()">+ 공간 추가 (사진 한 장)</button>`;
+    }
+    function openHeroSpace(id) { deactivateHeroSearch(); const d = imageList.find(x => String(x.id) === id); if (d) showPhoto(d.id, true); }
     // 창고 브리핑 카드: 구역·물건·이번 주 찾음·부족 + 마지막 재고 확인. 숫자는 바뀌었을 때(처음 포함) 0부터 올라간다
     function renderBrief(el, photos, zoneCount, itemCount) {
         if (!photos.length) { el.innerHTML = ''; el.dataset.key = ''; return; }
@@ -7291,7 +7431,31 @@
     let stockTab = 'count', stockSaveTimer = 0;
     let stockField = (v => ['qty', 'par', 'exp'].includes(v) ? v : 'qty')(safeStorage.getItem('stockField')); // 세기에서 지금 적는 것 (기억)
     function setStockField(f) { flushStockSave(); stockField = f; try { safeStorage.setItem('stockField', f); } catch (e) {} const list = document.getElementById('stockList'); renderStock(); list.scrollTop = 0; }
-    function stockOn() { return safeStorage.getItem(STOCK_KEY) !== '0'; } // 기본 기능: 설정에서 끈 사람('0')만 꺼짐
+    // 재고 세기: 매장 모드는 기본 켜짐, 집 모드는 기본 꺼짐. 직접 켜고 끈 값('1'/'0')이 있으면 그대로
+    function stockOn() { const v = safeStorage.getItem(STOCK_KEY); return v === '1' ? true : v === '0' ? false : useMode() !== 'home'; }
+    // 쓰는 곳(모드)과 기능 켜고 끄기: 모드마다 기본값이 있고, 설정에서 직접 바꾼 값이 있으면 그걸 따른다. 꺼도 적어 둔 내용은 지우지 않고 숨기기만 한다
+    function useMode() { return document.documentElement.dataset.mode === 'home' ? 'home' : 'store'; }
+    const FEAT_DEFAULTS = { home: { exp: false, brief: false, chips: false, fx: false }, store: { exp: true, brief: true, chips: true, fx: true } };
+    function feat(k) { const v = safeStorage.getItem('feat_' + k); return v === '1' ? true : v === '0' ? false : FEAT_DEFAULTS[useMode()][k]; }
+    function toggleFeat(k) { safeStorage.setItem('feat_' + k, feat(k) ? '0' : '1'); applyFeatures(); }
+    function setUseMode(m) {
+        if (useMode() === m) return;
+        safeStorage.setItem('useMode', m); document.documentElement.dataset.mode = m;
+        ['exp', 'brief', 'chips', 'fx'].forEach(k => safeStorage.removeItem('feat_' + k)); safeStorage.removeItem(STOCK_KEY); // 모드의 기본값으로
+        setTheme(m === 'home' ? 'calm' : 'mono');
+        applyFeatures();
+        showToast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요', 3000);
+    }
+    function applyFeatures() {
+        const r = document.documentElement;
+        r.dataset.fExp = feat('exp') ? '1' : '0'; r.dataset.fBrief = feat('brief') ? '1' : '0'; r.dataset.fChips = feat('chips') ? '1' : '0'; r.dataset.fFx = feat('fx') ? '1' : '0';
+        document.querySelectorAll('#useModeSeg [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === useMode())));
+        document.querySelectorAll('#featList .feat-sw').forEach(sw => sw.classList.toggle('is-on', sw.dataset.feat === 'stock' ? stockOn() : feat(sw.dataset.feat)));
+        if (typeof stockField !== 'undefined' && stockField === 'exp' && !feat('exp')) stockField = 'qty';
+        syncStockRow();
+        if (document.body.classList.contains('hero-search-active')) renderHeroHome();
+        imageList.forEach(d => { if (d.noteLayer) d.noteLayer.dataset.key = ''; render(d); });
+    }
     const isNum = (v) => typeof v === 'number' && isFinite(v);
     function expBadge(it) { // 구역 목록 칩의 유통기한 (임박·지남만, 여유 있으면 안 보임)
         const st = expState(it); return st ? `<b class="zl-exp${st === 'over' ? ' is-over' : ''}">${expLabel(it)}</b>` : '';
@@ -7313,13 +7477,14 @@
     const mmdd = (ymd) => { const [, m, d] = (ymd || '').split('-'); return m ? `${+m}/${+d}` : ''; };
     function syncStockRow() {
         const el = document.getElementById('stockRowText'); if (el) el.textContent = stockOn() ? '켜짐' : '꺼짐';
-        const fab = document.getElementById('stockFab'); if (fab) { fab.hidden = !(stockOn() || anyExp()); fab.classList.toggle('is-new', safeStorage.getItem('stockSeen') !== '1'); }
+        document.querySelectorAll('#featList .feat-sw[data-feat="stock"]').forEach(sw => sw.classList.toggle('is-on', stockOn()));
+        const fab = document.getElementById('stockFab'); if (fab) { fab.hidden = !(stockOn() || (feat('exp') && anyExp())); fab.classList.toggle('is-new', safeStorage.getItem('stockSeen') !== '1'); }
         syncStockBadge();
     }
     // [점검] 버튼: 주황 숫자 = 발주할 물건, 빨간 숫자 = 유통기한 임박·지남 (저장할 때마다 다시 센다)
     function syncStockBadge() {
         const fab = document.getElementById('stockFab'); if (!fab) return;
-        fab.hidden = !(stockOn() || anyExp());
+        fab.hidden = !(stockOn() || (feat('exp') && anyExp()));
         let em = fab.querySelector('.fab-badge:not(.is-exp)'); if (!em) { em = document.createElement('em'); em.className = 'fab-badge'; fab.appendChild(em); }
         let ex = fab.querySelector('.fab-badge.is-exp'); if (!ex) { ex = document.createElement('em'); ex.className = 'fab-badge is-exp'; fab.appendChild(ex); }
         const n = stockOn() ? stockOrderLines().lines.length : 0, e = expLines().filter(l => l.state).length;
@@ -7329,7 +7494,7 @@
     }
     // 부족 레이더: 모자란 칸마다 주황 고리가 두 번 퍼진다 (사진 위에 잠깐 얹었다 걷는 그림)
     function stockRadar(kind) {
-        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if ((window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !feat('fx')) return;
         const isExp = kind === 'exp', ring = isExp ? '#ff4d5e' : NEON_LOW, flashRgb = isExp ? '255,60,80' : '255,150,40';
         stockPhotos().forEach(d => {
             const low = d.zones.filter(isExp ? zoneExp : zoneLow), base = d.canvas, stage = d.noteStage;
@@ -7400,7 +7565,7 @@
     }
     function toggleStockMode() {
         const on = !stockOn();
-        if (on) safeStorage.removeItem(STOCK_KEY); else safeStorage.setItem(STOCK_KEY, '0');
+        safeStorage.setItem(STOCK_KEY, on ? '1' : '0');
         syncStockRow(); imageList.forEach(d => render(d));
         showToast(on ? '재고 세기를 켰어요. 아래 버튼 줄의 [점검]으로 세요' : '재고 세기를 껐어요. 적어 둔 수량은 그대로 있어요', 3000);
     }
@@ -7606,7 +7771,7 @@
 
     async function startApp() {
         await storageReady;
-        syncStockRow(); syncVoiceButtons();
+        applyFeatures(); syncVoiceButtons();
         loadVisitStats();
         isEditMode = false;
 
@@ -7655,6 +7820,7 @@
             }).then(breathe), Promise.resolve()).then(() => {
                 bootPhotos = null;
                 syncStockBadge();
+                renderHeroSpaces(imageList.filter(d => d.id !== 'dummy_root')); // 사진을 다 붙인 뒤 공간 카드에 썸네일
                 // 첫 화면의 업종별 예시 카드로 들어왔으면 그 사진으로 바로 간다
                 let focus = null; try { focus = sessionStorage.getItem('sampleFocus'); sessionStorage.removeItem('sampleFocus'); } catch (e) {}
                 if (focus && imageList.some(d => String(d.id) === focus)) { deactivateHeroSearch(); setTimeout(() => showPhoto(focus, true), 50); }
