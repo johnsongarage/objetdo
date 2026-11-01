@@ -29,7 +29,11 @@
         // 처음 방문(고른 적 없음)은 모노(흑백)가 기본. 직접 고른 테마는 그대로 유지 (없어진 블랙 테마들은 기본으로)
         // 쓰는 곳: 집·정리수납(home) / 매장·창고(store). 주소에 ?mode=home 이 붙어 오면 그걸로 정한다 (정리 전문가께 보내는 링크)
         let m = 'store';
-        try { const q = new URLSearchParams(location.search).get('mode'); if (q === 'home' || q === 'store') localStorage.setItem('useMode', q); m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store'; } catch (e) {}
+        try {
+            const u = new URLSearchParams(location.search), q = u.get('mode');
+            if (q === 'home' || q === 'store') { localStorage.setItem('useMode', q); u.delete('mode'); history.replaceState(null, '', location.pathname + (u.toString() ? '?' + u : '') + location.hash); } // 주소에서 지워야 나중에 설정에서 바꾼 모드가 새로고침에 되돌아가지 않는다
+            m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store';
+        } catch (e) {}
         document.documentElement.dataset.mode = m;
         try { if (localStorage.getItem('simpleView') === '1') document.documentElement.dataset.simple = '1'; } catch (e) {}
         // 기본 톤: 집은 정돈, 매장은 매장 정돈 (11/1부터 모두). 예전 기본값이던 흑백은 한 번만 매장 정돈으로 옮긴다
@@ -444,6 +448,9 @@
         body.hero-search-active:not(.hero-search-focused) .simple-brand { display: flex; position: fixed; top: max(24px, calc(env(safe-area-inset-top) + 10px)); left: max(22px, calc(50% - 280px)); z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
         .simple-brand i { width: 9px; height: 9px; border-radius: 3px; background: rgb(var(--accent-rgb)); display: block; transform: rotate(45deg); }
         html[data-simple="1"] .simple-brand small { display: none; }
+        /* 위 막대 바탕: 첫 화면을 내리면 글자가 이름·메뉴 밑으로 들어가 겹쳐 보였다 → 같은 색 바탕으로 가린다 */
+        .hero-topbar { display: none; }
+        body.hero-search-active:not(.hero-search-focused) .hero-topbar { display: block; position: fixed; left: 0; right: 0; top: 0; height: calc(64px + env(safe-area-inset-top, 0px)); z-index: 1064; background: var(--hero-bg); pointer-events: none; }
         .simple-brand small { margin-left: 2px; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--border); font-size: 10.5px; font-weight: 700; color: var(--text3); }
         body.hero-search-active .search-bar .app-brand, body.hero-search-active .hero-beta { display: none !important; } /* 이름은 왼쪽 위 작게 (가운데 큰 이름과 왼쪽 질문이 어긋나 보였다) */
         html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-sub, html[data-f-brief="0"] body.hero-search-active:not(.hero-search-focused) .simple-sub { display: block; margin: -6px 0 6px; font-size: 14.5px; line-height: 1.55; color: var(--hero-text2); text-align: left; }
@@ -482,6 +489,7 @@
         .sm-row { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 17px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; text-align: left; cursor: pointer; }
         .sm-row:last-child { border-bottom: 0; }
         .sm-head { display: none; }
+        .search-suggest-tip { margin: 10px 4px 2px; font-size: 12.5px; color: var(--text3); }
         /* PC: 아래에서 올라오는 시트 대신 오른쪽 사이드바 */
         @media (min-width: 769px) {
             #simpleMenu.is-open { background: rgba(43,42,40,0.25); }
@@ -2190,6 +2198,7 @@
     </div>
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
+<div class="hero-topbar" aria-hidden="true"></div>
 <div class="simple-brand"><i></i>창고여지도<small>베타</small></div>
 <button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <div class="simple-foot" id="simpleFoot"></div>
@@ -2286,7 +2295,7 @@
         <p class="welcome-sub">물건 이름만 대면 어느 칸인지 안내해요</p>
         <div class="welcome-actions">
             <button class="btn-base btn-primary btn-lg" onclick="loadSampleData()"><i class="ti ti-player-play"></i> 예시로 먼저 둘러보기</button>
-            <button class="btn-base btn-secondary btn-lg" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
+            <button class="btn-base btn-secondary btn-lg" id="welcomeStartBtn" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
             <p class="revisit-only welcome-revisit-note">지금 쓰던 지도는 그대로 있어요. 예시는 저장하지 않고 미리보기로 열려요.</p>
             <a class="setup-promo" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener" hidden>
                 <i class="ti ti-gift setup-promo-ic" aria-hidden="true"></i>
@@ -2759,7 +2768,8 @@
     try {
         const linkedSample = new URLSearchParams(location.search).get('sample');
         if (linkedSample) {
-            sessionStorage.setItem(SAMPLE_PREVIEW_KEY, linkedSample === 'organizer' ? 'organizer' : '1');
+            let homeMode = false; try { homeMode = localStorage.getItem('useMode') === 'home'; } catch (e) {}
+            sessionStorage.setItem(SAMPLE_PREVIEW_KEY, linkedSample === 'organizer' || (linkedSample !== 'store' && homeMode) ? 'organizer' : '1');
             history.replaceState(null, '', location.pathname + location.hash);
         }
     } catch (e) {}
@@ -3868,11 +3878,14 @@
         document.getElementById('heroMicHint').textContent = inApp ? '말로 찾기는 크롬·사파리에서 돼요' : used ? '' : '처음 한 번만 마이크를 허용해 주세요';
     }
     // 말풍선 예시: 등록한 물건 중 짧은 이름 3개 (최근 찾은 것 먼저). 누르면 그걸로 찾는다
-    function renderVoiceBubbles(photos) {
-        const el = document.getElementById('heroVoiceBubbles'); if (!el) return;
+    function exampleNames(photos) {
         const all = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.map(i => i.name))))].filter(n => n && n.length <= 6 && !/[()]/.test(n)); // 짧은 이름만 (한 줄에 세 개가 들어가게)
         const recent = loadSearchStore(SEARCH_HISTORY_KEY, []).filter(n => all.includes(n));
-        const pick = [...new Set([...recent, ...all.filter((_, i) => i % Math.max(1, Math.floor(all.length / 3)) === 0), ...all])].slice(0, 3);
+        return [...new Set([...recent, ...all.filter((_, i) => i % Math.max(1, Math.floor(all.length / 3)) === 0), ...all])].slice(0, 3);
+    }
+    function renderVoiceBubbles(photos) {
+        const el = document.getElementById('heroVoiceBubbles'); if (!el) return;
+        const pick = exampleNames(photos);
         const key = pick.join('|'); if (el.dataset.key === key) return; el.dataset.key = key;
         el.innerHTML = pick.map((n, i) => `<button type="button" class="hv-bubble" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">${escapeHtml(i === 0 ? `${n} 어디 있어?` : n)}</button>`).join('');
     }
@@ -5439,7 +5452,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.12';
+    const APP_VERSION = '베타 2026.11.01.15';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6224,7 +6237,12 @@
         const frequent = Object.entries(loadSearchStore(SEARCH_PICKS_KEY, {}))
             .filter(([name]) => existsInStore(name))
             .sort((a, b) => b[1] - a[1]).slice(0, 5);
-        if (!history.length && !frequent.length) { display.style.display = 'none'; display.innerHTML = ''; return; }
+        if (!history.length && !frequent.length) { // 처음엔 기록이 없어 빈 화면만 남았다 → 내 물건으로 예시를 보여 준다
+            const ex = exampleNames(imageList.filter(d => d.id !== 'dummy_root'));
+            if (!ex.length) { display.style.display = 'none'; display.innerHTML = ''; return; }
+            display.innerHTML = `<div class="search-suggest-head"><span>이렇게 찾아 보세요</span></div><div class="search-chips">${ex.map(n => `<span class="search-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)"><i class="ti ti-search"></i><span class="search-chip-text">${escapeHtml(n)}</span></span>`).join('')}</div><p class="search-suggest-tip">앞 글자만 쳐도 돼요 · ㅇㅅㅈ → 영수증 용지</p>`;
+            display.style.display = 'block'; return;
+        }
 
         let html = '';
         if (history.length) {
@@ -6591,6 +6609,11 @@
         if (!show) document.body.classList.remove('welcome-revisit');
         const card = document.getElementById('welcomeCard'); if (card) card.style.display = show ? 'flex' : 'none';
         document.body.classList.toggle('welcome-open', show); // 첫 화면에서는 사진용 하단 조작 바를 숨기고 카드를 화면 높이에 맞춘다
+        if (show) {
+            const home = useMode() === 'home', t = document.querySelector('.welcome-title'), st = document.getElementById('welcomeStartBtn');
+            if (t) t.innerHTML = home ? '사진 한 장이<br>우리 집 수납 지도가 돼요' : '사진 한 장이<br>창고 지도가 돼요';
+            if (st) st.innerHTML = home ? '<i class="ti ti-camera"></i> 내 수납장 사진으로 시작' : '<i class="ti ti-camera"></i> 내 창고 사진으로 시작';
+        }
         if (show) { syncIndustryUI(); renderWelcomeShowcase(); document.querySelectorAll('.setup-promo').forEach(a => a.hidden = !setupPromoOn()); } else clearInterval(wsTimer);
         const sampleBtn = document.getElementById('sampleDataBtn'); if (sampleBtn && show) sampleBtn.style.display = 'none';
         const dummy = document.getElementById('section-dummy_root'); if (dummy) dummy.style.display = show ? 'none' : '';
@@ -7598,6 +7621,16 @@
         setTheme(m === 'home' ? 'calm' : 'shop');
         applyFeatures();
         showToast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요', 3000);
+        // 예시를 보고 있었다면 그 모드의 예시로 바꾼다 (집 → 팬트리·옷장, 매장 → 카페 창고)
+        if (isSamplePreview) { // 미리보기는 저장을 안 하므로, 고른 모드만 실제로 남기고 다시 연다
+            try { localStorage.setItem('useMode', m); sessionStorage.setItem(SAMPLE_PREVIEW_KEY, m === 'home' ? 'organizer' : '1'); } catch (e) {}
+            setTimeout(() => location.reload(), 600); return;
+        }
+        if (safeStorage.getItem('isSampleData') === '1') {
+            safeStorage.setItem('savedSystemData', JSON.stringify(sampleSystemData()));
+            safeStorage.setItem('baseItems', JSON.stringify(currentSample().baseItems));
+            setTimeout(reloadAfterSave, 600);
+        }
     }
     // 찾기만 화면: 이 기기에서만 켜진다. 데이터는 그대로, 화면만 검색 하나로
     function simpleOn() { return document.documentElement.dataset.simple === '1'; }
@@ -7622,7 +7655,7 @@
     function closeSimpleAnswer(refocus) {
         const el = document.getElementById('simpleAnswer'); if (!el) return;
         el.classList.remove('is-open');
-        if (refocus) { const box = document.getElementById('searchBox'); box.value = ''; activateHeroSearch(true); box.focus(); integratedSearch(false); }
+        if (refocus) { const box = document.getElementById('searchBox'); box.value = ''; integratedSearch(false); document.body.classList.remove('hero-search-focused'); activateHeroSearch(); window.scrollTo(0, 0); } // 빈 검색창만 남은 휑한 화면 대신 첫 화면으로
     }
     // 찾은 칸을 답 한 줄 + 사진 한 장으로 (지도·목록으로 넘어가지 않는다)
     function showSimpleAnswer(dataId, index) {
