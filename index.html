@@ -482,6 +482,7 @@
         .sm-row { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 17px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; text-align: left; cursor: pointer; }
         .sm-row:last-child { border-bottom: 0; }
         .sm-head { display: none; }
+        .search-suggest-tip { margin: 10px 4px 2px; font-size: 12.5px; color: var(--text3); }
         /* PC: 아래에서 올라오는 시트 대신 오른쪽 사이드바 */
         @media (min-width: 769px) {
             #simpleMenu.is-open { background: rgba(43,42,40,0.25); }
@@ -3868,11 +3869,14 @@
         document.getElementById('heroMicHint').textContent = inApp ? '말로 찾기는 크롬·사파리에서 돼요' : used ? '' : '처음 한 번만 마이크를 허용해 주세요';
     }
     // 말풍선 예시: 등록한 물건 중 짧은 이름 3개 (최근 찾은 것 먼저). 누르면 그걸로 찾는다
-    function renderVoiceBubbles(photos) {
-        const el = document.getElementById('heroVoiceBubbles'); if (!el) return;
+    function exampleNames(photos) {
         const all = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.map(i => i.name))))].filter(n => n && n.length <= 6 && !/[()]/.test(n)); // 짧은 이름만 (한 줄에 세 개가 들어가게)
         const recent = loadSearchStore(SEARCH_HISTORY_KEY, []).filter(n => all.includes(n));
-        const pick = [...new Set([...recent, ...all.filter((_, i) => i % Math.max(1, Math.floor(all.length / 3)) === 0), ...all])].slice(0, 3);
+        return [...new Set([...recent, ...all.filter((_, i) => i % Math.max(1, Math.floor(all.length / 3)) === 0), ...all])].slice(0, 3);
+    }
+    function renderVoiceBubbles(photos) {
+        const el = document.getElementById('heroVoiceBubbles'); if (!el) return;
+        const pick = exampleNames(photos);
         const key = pick.join('|'); if (el.dataset.key === key) return; el.dataset.key = key;
         el.innerHTML = pick.map((n, i) => `<button type="button" class="hv-bubble" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">${escapeHtml(i === 0 ? `${n} 어디 있어?` : n)}</button>`).join('');
     }
@@ -5439,7 +5443,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.12';
+    const APP_VERSION = '베타 2026.11.01.13';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6224,7 +6228,12 @@
         const frequent = Object.entries(loadSearchStore(SEARCH_PICKS_KEY, {}))
             .filter(([name]) => existsInStore(name))
             .sort((a, b) => b[1] - a[1]).slice(0, 5);
-        if (!history.length && !frequent.length) { display.style.display = 'none'; display.innerHTML = ''; return; }
+        if (!history.length && !frequent.length) { // 처음엔 기록이 없어 빈 화면만 남았다 → 내 물건으로 예시를 보여 준다
+            const ex = exampleNames(imageList.filter(d => d.id !== 'dummy_root'));
+            if (!ex.length) { display.style.display = 'none'; display.innerHTML = ''; return; }
+            display.innerHTML = `<div class="search-suggest-head"><span>이렇게 찾아 보세요</span></div><div class="search-chips">${ex.map(n => `<span class="search-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)"><i class="ti ti-search"></i><span class="search-chip-text">${escapeHtml(n)}</span></span>`).join('')}</div><p class="search-suggest-tip">앞 글자만 쳐도 돼요 · ㅇㅅㅈ → 영수증 용지</p>`;
+            display.style.display = 'block'; return;
+        }
 
         let html = '';
         if (history.length) {
@@ -7622,7 +7631,7 @@
     function closeSimpleAnswer(refocus) {
         const el = document.getElementById('simpleAnswer'); if (!el) return;
         el.classList.remove('is-open');
-        if (refocus) { const box = document.getElementById('searchBox'); box.value = ''; activateHeroSearch(true); box.focus(); integratedSearch(false); }
+        if (refocus) { const box = document.getElementById('searchBox'); box.value = ''; integratedSearch(false); document.body.classList.remove('hero-search-focused'); activateHeroSearch(); window.scrollTo(0, 0); } // 빈 검색창만 남은 휑한 화면 대신 첫 화면으로
     }
     // 찾은 칸을 답 한 줄 + 사진 한 장으로 (지도·목록으로 넘어가지 않는다)
     function showSimpleAnswer(dataId, index) {
