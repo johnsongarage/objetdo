@@ -417,6 +417,11 @@
         html[data-mode="home"] body.hero-search-active .hero-beta { display: none; }
         .hero-ask { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.6px; color: var(--hero-text); text-align: left; }
         .hero-spaces { gap: 10px; margin-top: 4px; }
+        /* "뭘 찾으세요?" 타자 효과 + 깜박이는 커서 (기다리고 있다는 느낌) */
+        .ha-caret { margin-left: 2px; font-weight: 700; color: rgb(var(--accent-rgb)); animation: ha-blink 1.05s steps(1) infinite; }
+        .hero-ask.is-typing .ha-caret { animation: none; } /* 치는 동안은 켜 둔다 */
+        @keyframes ha-blink { 50% { opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .ha-caret { animation: none; } }
         .hero-spaces-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 700; color: var(--hero-text); }
         .hero-spaces-head small { font-size: 12px; font-weight: 500; color: var(--hero-text2); }
         .hero-space { display: grid; grid-template-columns: 72px 1fr 14px; gap: 14px; align-items: center; padding: 10px; border: 1px solid var(--hero-chip-border); border-radius: 18px; background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; text-align: left; cursor: pointer; }
@@ -2172,7 +2177,7 @@
         </button>
     </div>
     <div class="hero-beta"><span class="beta-pill"><i class="ti ti-flask"></i> 무료 베타</span></div>
-    <h2 class="hero-ask">뭘 찾으세요?</h2>
+    <h2 class="hero-ask" aria-label="뭘 찾아 드릴까요?"><span class="ha-text" id="heroAskText" aria-hidden="true">뭘 찾아 드릴까요?</span><span class="ha-caret" aria-hidden="true">_</span></h2>
     <p class="simple-sub">쓰거나 말하면 어디 있는지 알려 드려요</p>
     <div class="hero-summary" id="heroSummary"></div>
     <div class="search-input-wrap">
@@ -5452,7 +5457,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.15';
+    const APP_VERSION = '베타 2026.11.01.17';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5932,7 +5937,45 @@
     }
     // 브리핑의 [부족]·유통기한 줄: 홈을 닫고 지도에서 그 칸을 바로 보여 준다
     function briefGo(kind) { deactivateHeroSearch(); showLowOnMap(kind); }
+    // 한글을 치는 것처럼 자모 단위로 (ㅁ → 무 → 뭐 → 뭘)
+    function hangulTypingFrames(text) {
+        const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', BASE = { 9: 8, 10: 8, 11: 8, 14: 13, 15: 13, 16: 13, 19: 18 };
+        const frames = []; let done = '';
+        for (const ch of text) {
+            const c = ch.charCodeAt(0) - 0xAC00;
+            if (c < 0 || c > 11171) { done += ch; frames.push(done); continue; }
+            const cho = Math.floor(c / 588), jung = Math.floor((c % 588) / 28), jong = c % 28, syl = (j, f) => String.fromCharCode(0xAC00 + (cho * 21 + j) * 28 + f);
+            const steps = [CHO[cho]]; if (BASE[jung] !== undefined) steps.push(syl(BASE[jung], 0)); steps.push(syl(jung, 0)); if (jong) steps.push(ch);
+            steps.forEach(x => frames.push(done + x)); done += ch;
+        }
+        return frames;
+    }
+    // 첫 화면 질문: 다정한 말 몇 가지를 한 글자씩 쳤다 지웠다 하며 돌린다 (뒤에 _ 가 깜박이며 기다리는 느낌)
+    const HERO_ASKS = ['뭘 찾아 드릴까요?', '어떤 걸 찾으세요?', '오늘은 뭘 찾을까요?', '무엇이 필요하세요?'];
+    let heroAskTyped = false;
+    function typeHeroAsk() {
+        const el = document.getElementById('heroAskText'); if (!el || heroAskTyped) return;
+        heroAskTyped = true;
+        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; // 움직임 줄이기: 첫 문장 그대로
+        const h = el.parentElement, wait = (ms) => new Promise(r => setTimeout(r, ms));
+        const show = (t) => { el.textContent = t; };
+        (async () => {
+            show(''); await wait(350);
+            for (let n = 0; ; n++) {
+                const text = HERO_ASKS[n % HERO_ASKS.length], frames = hangulTypingFrames(text);
+                h.classList.add('is-typing');
+                for (const f of frames) { show(f); await wait(f.endsWith(' ') ? 140 : 75); }
+                h.classList.remove('is-typing');
+                await wait(4500); // 다 친 뒤엔 _ 만 깜박이며 기다린다
+                while (document.hidden || document.body.classList.contains('hero-search-focused') || !document.body.classList.contains('hero-search-active')) await wait(1000); // 안 보일 땐 멈춤
+                h.classList.add('is-typing');
+                for (const f of frames.slice(0, -1).reverse()) { show(f); await wait(35); } // 지울 때도 자모 단위로
+                show(''); h.classList.remove('is-typing'); await wait(400);
+            }
+        })();
+    }
     function activateHeroSearch(focused = false) {
+        if (!focused) typeHeroAsk();
         renderHeroHome();
         if (focused && !document.body.classList.contains('hero-search-focused')) heroFocusedAt = performance.now();
         document.body.classList.add('hero-search-active'); syncSearchHint();
