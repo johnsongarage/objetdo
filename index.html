@@ -480,7 +480,7 @@
         .sm-grab { width: 40px; height: 5px; border-radius: 3px; background: var(--border); margin: 0 auto 8px; }
         .sm-row { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 17px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; text-align: left; cursor: pointer; }
         .sm-row:last-child { border-bottom: 0; }
-        html[data-simple="1"] #settingsBackdrop { z-index: 1081; } html[data-simple="1"] #settingsModal { z-index: 1082; } /* 찾기만 화면 위에서도 설정이 보이게 (인쇄 창은 원래 더 위) */
+        html[data-simple="1"] #settingsBackdrop, body.hero-search-active #settingsBackdrop { z-index: 1081; } html[data-simple="1"] #settingsModal, body.hero-search-active #settingsModal { z-index: 1082; } /* 찾기만 화면 위에서도 설정이 보이게 (인쇄 창은 원래 더 위) */
         .sm-row small { color: var(--text3); font-size: 13.5px; }
         /* 기능 끄기 */
         html[data-f-brief="0"] #heroSummary { display: none !important; }
@@ -632,8 +632,10 @@
                 padding: calc(20vh + env(safe-area-inset-top, 0px)) 20px calc(24px + env(safe-area-inset-bottom, 0px));
                 border: 0; border-radius: 0; box-shadow: none; z-index: 1060;
                 background: var(--hero-bg); backdrop-filter: none; -webkit-backdrop-filter: none;
-                overflow-y: auto; overscroll-behavior: contain;
+                overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
             }
+            body.hero-search-active .search-bar::-webkit-scrollbar { display: none; } /* PC에서 첫 화면 스크롤바가 뒤 페이지 스크롤바와 두 줄로 보였다 */
+            body.hero-search-active { overflow: hidden; }
             /* 검색창을 누르면(포커스) 위로 올려서 키보드가 결과를 가리지 않게 */
             body.hero-search-active.hero-search-focused .search-bar { padding-top: calc(14px + env(safe-area-inset-top, 0px)); gap: 10px; }
             body.hero-search-active .app-brand { justify-content: center; font-size: 24px; color: var(--hero-text); }
@@ -2172,7 +2174,7 @@
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
 <div class="simple-brand"><i></i>창고여지도<small>베타</small></div>
-<button type="button" class="simple-more" onclick="simpleOn() ? openSimpleMenu() : openSettingsModal()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <div class="simple-foot" id="simpleFoot"></div>
 <div id="simpleAnswer" role="dialog" aria-label="찾은 곳"><div class="sa-wrap">
     <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><span>찾은 말</span><b id="saQuery"></b></button>
@@ -2186,7 +2188,7 @@
     </div>
 </div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
-    <button type="button" class="sm-row" onclick="closeSimpleMenu(); setSimpleView(false)">전체 화면으로<small>공간 보기 · 물건 넣기 · 고치기</small></button>
+    <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else { deactivateHeroSearch(); window.scrollTo(0, 0); }"><span id="smMapText">전체 화면으로</span><small>공간 보기 · 물건 넣기 · 고치기</small></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()">번호 스티커 · 지도 인쇄</button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openSettingsModal()">설정<small>백업 · 기능 켜기</small></button>
 </div></div>
@@ -5457,7 +5459,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.9';
+    const APP_VERSION = '베타 2026.11.01.10';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -7636,7 +7638,10 @@
         const photos = (bootPhotos || imageList).filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0);
         el.textContent = photos.length ? `공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요` : '';
     }
-    function openSimpleMenu() { document.getElementById('simpleMenu').classList.add('is-open'); }
+    function openSimpleMenu() {
+        document.getElementById('smMapText').textContent = simpleOn() ? '전체 화면으로' : '지도 보기'; // 찾기만 화면이 아니면 지도로 내려간다
+        document.getElementById('simpleMenu').classList.add('is-open');
+    }
     function closeSimpleMenu() { document.getElementById('simpleMenu').classList.remove('is-open'); }
     function closeSimpleAnswer(refocus) {
         const el = document.getElementById('simpleAnswer'); if (!el) return;
