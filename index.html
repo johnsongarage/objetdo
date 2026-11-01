@@ -393,8 +393,6 @@
             --editbar-done-text: #26323a;
             --edit-frame: #2c6e7f;
         }
-        :root[data-theme="calm"] .hero-voice-btn, :root[data-theme="shop"] .hero-voice-btn { background: var(--accent); color: #fff; box-shadow: none; border: 0; }
-        :root[data-theme="calm"] .hero-voice-btn > .ti, :root[data-theme="shop"] .hero-voice-btn > .ti { background: rgba(255,255,255,0.16); }
         :root[data-theme="calm"] body.hero-search-active .search-bar .search-input-wrap, :root[data-theme="shop"] body.hero-search-active .search-bar .search-input-wrap { border: 1px solid var(--border); box-shadow: none; }
         /* 정돈 계열 브리핑: 격자·훑는 빛·숫자 빛 없이 흰 카드 */
         :root[data-theme="calm"] .brief, :root[data-theme="shop"] .brief { background: #fff; box-shadow: inset 0 0 0 1px var(--border); }
@@ -408,10 +406,10 @@
 
         /* 🏠 집·정리 모드: 핵심만 (사진 지도 · 검색 · 말로 찾기/넣기 · 인쇄). 꺼진 기능은 지우지 않고 숨긴다 */
         .hero-ask, .hero-spaces { display: none; }
-        html[data-mode="home"] body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
+        body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         html[data-mode="home"] body.hero-search-active:not(.hero-search-focused) .hero-spaces { display: grid; }
         html[data-mode="home"] body.hero-search-active .hero-beta { display: none; }
-        .hero-ask { margin: -4px 0 2px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--hero-text); text-align: left; }
+        .hero-ask { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.6px; color: var(--hero-text); text-align: left; }
         .hero-spaces { gap: 10px; margin-top: 4px; }
         .hero-spaces-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 700; color: var(--hero-text); }
         .hero-spaces-head small { font-size: 12px; font-weight: 500; color: var(--hero-text2); }
@@ -434,23 +432,22 @@
         html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #zmMoreSuggest { display: none !important; }
         /* 🔎 찾기만 화면: 검색창 하나 + 답 한 줄 + 사진. 나머지는 ⋯ 메뉴 안에 */
         .simple-more, #simpleAnswer, #simpleMenu { display: none; }
-        html[data-simple="1"] .simple-more { display: flex; position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 1065; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font-size: 24px; align-items: center; justify-content: center; cursor: pointer; }
+        body.hero-search-active:not(.hero-search-focused) .simple-more { display: flex; position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, calc(50% - 300px)); z-index: 1065; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font-size: 24px; align-items: center; justify-content: center; cursor: pointer; }
         html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         html[data-simple="1"] body.hero-search-focused .simple-more { display: none; } /* 검색창이 위로 올라가면 마이크와 겹친다 */
         html[data-simple="1"] .hero-beta, html[data-simple="1"] #heroSummary, html[data-simple="1"] #heroQuick .hero-quick-row:not([data-row="recent"]), html[data-simple="1"] .hero-spaces,
-        html[data-simple="1"] .hero-map-row, html[data-simple="1"] #heroMicBtn, html[data-simple="1"] .search-bar .app-brand,
+        html[data-simple="1"] .hero-map-row, html[data-simple="1"] .search-bar .app-brand,
         html[data-simple="1"] #floatingRemote, html[data-simple="1"] #foundBar, html[data-simple="1"] #foundPill { display: none !important; }
-        html[data-simple="1"] .hero-ask { font-size: 30px; margin-bottom: 8px; }
-        html[data-simple="1"] #micBtn { background: var(--accent); color: #fff; border-radius: 50%; }
         /* 찾기만 화면 꾸밈: 기능은 적어도 첫인상은 정돈되게 */
         .simple-brand, .simple-sub, .simple-foot { display: none; }
-        html[data-simple="1"] .simple-brand { display: flex; position: fixed; top: max(22px, calc(env(safe-area-inset-top) + 8px)); left: 22px; z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
+        body.hero-search-active:not(.hero-search-focused) .simple-brand { display: flex; position: fixed; top: max(24px, calc(env(safe-area-inset-top) + 10px)); left: max(22px, calc(50% - 280px)); z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
         .simple-brand i { width: 9px; height: 9px; border-radius: 3px; background: rgb(var(--accent-rgb)); display: block; transform: rotate(45deg); }
-        html[data-simple="1"] body.hero-search-focused .simple-brand { display: none; }
-        html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-sub { display: block; margin: 0 0 22px; font-size: 15px; line-height: 1.55; color: var(--text2); text-align: left; }
+        html[data-simple="1"] .simple-brand small { display: none; }
+        .simple-brand small { margin-left: 2px; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--border); font-size: 10.5px; font-weight: 700; color: var(--text3); }
+        body.hero-search-active .search-bar .app-brand, body.hero-search-active .hero-beta { display: none !important; } /* 이름은 왼쪽 위 작게 (가운데 큰 이름과 왼쪽 질문이 어긋나 보였다) */
+        html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-sub, html[data-f-brief="0"] body.hero-search-active:not(.hero-search-focused) .simple-sub { display: block; margin: -6px 0 6px; font-size: 14.5px; line-height: 1.55; color: var(--hero-text2); text-align: left; }
         html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-foot { display: block; position: fixed; left: 0; right: 0; bottom: max(26px, env(safe-area-inset-bottom)); z-index: 1061; text-align: center; font-size: 12.5px; color: var(--text3); }
         html[data-simple="1"] .search-input-wrap { box-shadow: 0 8px 28px rgba(43,42,40,0.07) !important; border: 1px solid var(--border) !important; }
-        html[data-simple="1"] .hero-ask::before { content: ''; display: block; width: 46px; height: 46px; margin-bottom: 18px; border-radius: 15px; background: rgba(var(--accent-rgb), 0.12) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-opacity='.55' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") center no-repeat; }
         html[data-simple="1"] #heroQuick { margin-top: 18px; }
         html[data-simple="1"] #heroQuick .hero-quick-row { justify-content: flex-start; }
         html[data-simple="1"] #heroQuick .hero-quick-label { font-size: 12.5px; color: var(--text3); }
@@ -582,11 +579,12 @@
         .search-input-wrap {
             width: 50%; position: relative; display: flex; align-items: center; gap: 4px;
             background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-pill);
-            padding: 0 6px 0 16px; height: 44px; box-shadow: var(--shadow-xs);
+            padding: 0 6px 0 14px; height: 44px; box-shadow: var(--shadow-xs);
             transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
         }
         .search-input-wrap:focus-within { border-color: var(--accent2); box-shadow: var(--shadow-focus); }
-        .search-input-wrap .ti-search { color: var(--text3); font-size: 15px; flex-shrink: 0; pointer-events: none; }
+        .search-input-wrap .ti-search { order: -1; margin-right: 6px; color: var(--text3); font-size: 20px; flex-shrink: 0; pointer-events: none; } /* 검색창이라는 표시는 맨 앞에 */
+        .search-input-wrap .voice-bars { order: -1; }
         /* 전역 input[type="text"] 테두리/배경/패딩 규칙보다 우선하도록 타입 선택자를 더해 명시도를 높임
            (그렇지 않으면 알약 안에 입력칸이 한 번 더 박스로 둘러싸여 보임) */
         .search-input-wrap input[type="text"] {
@@ -677,19 +675,28 @@
             .brief-exp-line b { color: #d0283a !important; }
             @media (prefers-reduced-motion: reduce) { .brief::after, .brief-head .dot { animation: none; } }
             .hero-quick { flex-direction: column; gap: 10px; margin-top: 6px; }
-            /* 🎤 말로 찾기: 검색창 바로 아래 큰 버튼 (키보드보다 말이 먼저 보이게). 검색창을 눌러 키보드가 올라오면 숨긴다 */
-            .hero-voice-btn { display: none; }
-            body.hero-search-active .hero-voice-btn { display: flex; }
-            body.hero-search-active.hero-search-focused .hero-voice-btn { display: none; }
-            .hero-voice-btn[hidden] { display: none !important; }
-            .hero-voice-btn { align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 64px; margin-top: -4px; padding: 10px 18px; border: 0; border-radius: var(--radius-pill); background: var(--hero-chip-bg); box-shadow: inset 0 0 0 2px var(--hero-chip-border); color: var(--hero-text); font: inherit; cursor: pointer; touch-action: manipulation; }
-            .hero-voice-btn > .ti { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; }
-            .hero-voice-btn b { font-size: 18px; font-weight: 800; }
-            .hero-voice-btn small { display: block; font-size: 12.5px; font-weight: 500; opacity: .75; }
-            .hero-voice-btn span { text-align: left; line-height: 1.25; }
-            .hero-voice-btn:active { transform: scale(0.98); }
-            .hero-voice-btn.is-listening > .ti { background: #ff4fd8; color: #fff; animation: voice-pulse 1s ease-in-out infinite; }
-            @keyframes voice-pulse { 50% { box-shadow: 0 0 0 10px rgba(255,79,216,.25); } }
+            /* 🎤 말로 찾기: 검색창 아래 큰 동그라미 마이크 + 위에 "이렇게 말해 보세요" 말풍선. 검색창을 눌러 키보드가 올라오면 숨긴다 */
+            .hero-voice { display: none; }
+            body.hero-search-active .hero-voice { display: flex; flex-direction: column; align-items: center; margin: 14px 0 6px; }
+            body.hero-search-active.hero-search-focused .hero-voice { display: none; }
+            .hero-voice[hidden] { display: none !important; }
+            .hv-bubbles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 36px; }
+            .hv-bubbles:empty { display: none; }
+            .hv-bubble { position: relative; padding: 8px 14px; border: 1px solid var(--hero-chip-border); border-radius: 16px; background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; font-size: 14px; cursor: pointer; animation: hv-float 4s ease-in-out infinite; }
+            .hv-bubble:nth-child(2) { animation-delay: -1.3s; } .hv-bubble:nth-child(3) { animation-delay: -2.6s; }
+            .hv-bubble::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: inherit; border-right: 1px solid var(--hero-chip-border); border-bottom: 1px solid var(--hero-chip-border); transform: translateX(-50%) rotate(45deg); }
+            @keyframes hv-float { 50% { transform: translateY(-3px); } }
+            .hero-voice-btn { display: flex; align-items: center; justify-content: center; width: 84px; height: 84px; padding: 0; border: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); cursor: pointer; touch-action: manipulation; box-shadow: 0 0 0 10px rgba(var(--accent-rgb),0.13), 0 0 0 22px rgba(var(--accent-rgb),0.06), 0 10px 24px rgba(0,0,0,0.22); transition: transform .12s; }
+            .hero-voice-btn:active { transform: scale(0.94); }
+            .hero-voice-btn.is-listening { background: rgb(var(--accent-rgb)); animation: hv-ring 1.1s ease-in-out infinite; }
+            @keyframes hv-ring { 50% { box-shadow: 0 0 0 16px rgba(var(--accent-rgb),0.22), 0 0 0 32px rgba(var(--accent-rgb),0.08), 0 10px 24px rgba(0,0,0,0.22); } }
+            .hero-voice-btn[data-mode="browser"] svg { opacity: .9; }
+            .hv-label { margin-top: 30px; font-size: 17px; font-weight: 800; color: var(--hero-text); }
+            .hv-hint { margin-top: 5px; font-size: 13px; color: var(--hero-text2); text-align: center; }
+            .hv-hint:empty { display: none; }
+            body.hero-search-active .hero-voice:not([hidden]) ~ .hero-quick .hero-quick-tip { display: none; } /* 말풍선이 예시를 대신한다 */
+            body.hero-search-active #micBtn { display: none; } /* 마이크는 아래 큰 동그라미 하나로 */
+            @media (prefers-reduced-motion: reduce) { .hv-bubble, .hero-voice-btn.is-listening { animation: none; } }
             .hero-quick-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
             .hero-quick-label { font-size: 12px; font-weight: 700; color: var(--hero-text2); width: 30px; flex-shrink: 0; }
             .hero-chip {
@@ -767,7 +774,8 @@
         }
         @media (hover: hover) { .icon-btn:hover { background: var(--accent-soft); color: var(--accent-text); } }
         /* 상단 검색 마이크: 창고에서 장갑 낀 손으로도 누르기 쉽게 크고 눈에 띄게 */
-        #micBtn { width: 40px; height: 40px; font-size: 20px; background: var(--accent-soft); color: var(--accent-text); }
+        #micBtn { position: relative; width: 40px; height: 40px; margin-left: 4px; font-size: 22px; background: transparent; color: var(--text); border-radius: 50%; }
+        #micBtn::before { content: ''; position: absolute; left: -4px; top: 9px; bottom: 9px; width: 1px; background: var(--border); } /* 입력칸과 마이크 사이 옅은 세로선 */
         #micBtn.is-listening { background: var(--danger); color: #fff; }
 
         .image-section { background: var(--card); padding: 20px; margin-bottom: 24px; border-radius: var(--radius-lg); border: 1px solid rgba(224,219,208,0.6); box-shadow: var(--shadow-sm); position: relative; }
@@ -2138,7 +2146,7 @@
     </div>
     <div class="hero-beta"><span class="beta-pill"><i class="ti ti-flask"></i> 무료 베타</span></div>
     <h2 class="hero-ask">뭘 찾으세요?</h2>
-    <p class="simple-sub">물건 이름을 쓰거나 말하면<br>어디 있는지 바로 알려 드려요</p>
+    <p class="simple-sub">쓰거나 말하면 어디 있는지 알려 드려요</p>
     <div class="hero-summary" id="heroSummary"></div>
     <div class="search-input-wrap">
         <input type="text" id="searchBox" placeholder="찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)" oninput="integratedSearch(false)" onfocus="this.select()">
@@ -2148,7 +2156,12 @@
             <i class="ti ti-microphone"></i>
         </button>
     </div>
-    <button type="button" id="heroMicBtn" class="hero-voice-btn" onclick="heroVoiceTap(this)" aria-label="말로 찾기"><i class="ti ti-microphone"></i><span><b id="heroMicLabel">말로 찾기</b><small id="heroMicHint">"건전지 어디 있어" 하고 말해 보세요</small></span></button>
+    <div class="hero-voice" id="heroVoice">
+        <div class="hv-bubbles" id="heroVoiceBubbles"></div>
+        <button type="button" id="heroMicBtn" class="hero-voice-btn" onclick="heroVoiceTap(this)" aria-label="말로 찾기"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.5"/></svg></button>
+        <b class="hv-label" id="heroMicLabel">눌러서 말하기</b>
+        <small class="hv-hint" id="heroMicHint"></small>
+    </div>
     <div id="searchResultDisplay" class="search-dropdown"></div>
     <div class="hero-quick" id="heroQuick"></div>
     <div class="hero-spaces" id="heroSpaces"></div>
@@ -2158,8 +2171,8 @@
     </div>
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
-<div class="simple-brand"><i></i>창고여지도</div>
-<button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴">⋯</button>
+<div class="simple-brand"><i></i>창고여지도<small>베타</small></div>
+<button type="button" class="simple-more" onclick="simpleOn() ? openSimpleMenu() : openSettingsModal()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <div class="simple-foot" id="simpleFoot"></div>
 <div id="simpleAnswer" role="dialog" aria-label="찾은 곳"><div class="sa-wrap">
     <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><span>찾은 말</span><b id="saQuery"></b></button>
@@ -3866,11 +3879,20 @@
         const ok = voiceSupported(), inApp = typeof isInAppBrowser === 'function' && isInAppBrowser();
         if (big) big.hidden = !ok || inApp;
         if (!hero) return;
-        hero.hidden = !ok && !inApp;
+        const box = document.getElementById('heroVoice'); if (box) box.hidden = !ok && !inApp;
         hero.dataset.mode = inApp ? 'browser' : 'voice';
         const used = safeStorage.getItem('voiceUsed') === '1';
-        document.getElementById('heroMicLabel').textContent = inApp ? '말로 찾기는 브라우저에서' : '말로 찾기';
-        document.getElementById('heroMicHint').textContent = inApp ? '눌러서 크롬·사파리로 열기' : used ? '"건전지 어디 있어" 하고 말해 보세요' : '처음 한 번만 마이크를 허용해 주세요';
+        document.getElementById('heroMicLabel').textContent = inApp ? '눌러서 브라우저로 열기' : '눌러서 말하기';
+        document.getElementById('heroMicHint').textContent = inApp ? '말로 찾기는 크롬·사파리에서 돼요' : used ? '' : '처음 한 번만 마이크를 허용해 주세요';
+    }
+    // 말풍선 예시: 등록한 물건 중 짧은 이름 3개 (최근 찾은 것 먼저). 누르면 그걸로 찾는다
+    function renderVoiceBubbles(photos) {
+        const el = document.getElementById('heroVoiceBubbles'); if (!el) return;
+        const all = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.map(i => i.name))))].filter(n => n && n.length <= 6 && !/[()]/.test(n)); // 짧은 이름만 (한 줄에 세 개가 들어가게)
+        const recent = loadSearchStore(SEARCH_HISTORY_KEY, []).filter(n => all.includes(n));
+        const pick = [...new Set([...recent, ...all.filter((_, i) => i % Math.max(1, Math.floor(all.length / 3)) === 0), ...all])].slice(0, 3);
+        const key = pick.join('|'); if (el.dataset.key === key) return; el.dataset.key = key;
+        el.innerHTML = pick.map((n, i) => `<button type="button" class="hv-bubble" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">${escapeHtml(i === 0 ? `${n} 어디 있어?` : n)}</button>`).join('');
     }
     function heroVoiceTap(btn) {
         if (btn.dataset.mode === 'browser') { openInBrowser(); return; }
@@ -5435,7 +5457,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.7';
+    const APP_VERSION = '베타 2026.11.01.9';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5856,6 +5878,7 @@
         const chip = (q, extra = '') => `<button type="button" class="hero-chip" data-q="${escapeHtml(q)}" onclick="applySearchSuggestion(this)">${escapeHtml(q)}${extra}</button>`;
         let html = '';
         syncSimpleFoot();
+        renderVoiceBubbles(photos);
         renderHeroSpaces(photos.map(d => loaded.find(x => x.id === d.id) || d));
         if (!feat('chips')) { // 즐겨찾기·자주 칩을 끄면 '최근'만
             if (history.length) html += `<div class="hero-quick-row" data-row="recent"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
