@@ -28,10 +28,13 @@
         // 화면 테마: 페인트 전에 적용해서 기본 테마가 잠깐 보였다 바뀌는 깜빡임을 막는다
         // 처음 방문(고른 적 없음)은 모노(흑백)가 기본. 직접 고른 테마는 그대로 유지 (없어진 블랙 테마들은 기본으로)
         // 쓰는 곳: 집·정리수납(home) / 매장·창고(store). 주소에 ?mode=home 이 붙어 오면 그걸로 정한다 (정리 전문가께 보내는 링크)
+        // 화면 기본값 세대: 이번 개편 전에 쓰던 사람(v1)은 흑백+네온 그대로, 처음 온 사람(v2)은 매장 정돈 테마+효과 끔
+        try { if (!localStorage.getItem('lookBase')) localStorage.setItem('lookBase', localStorage.length > 0 ? 'v1' : 'v2'); } catch (e) {}
         let m = 'store';
         try { const q = new URLSearchParams(location.search).get('mode'); if (q === 'home' || q === 'store') localStorage.setItem('useMode', q); m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store'; } catch (e) {}
         document.documentElement.dataset.mode = m;
-        let t = m === 'home' ? 'calm' : 'mono';
+        let lb = 'v2'; try { lb = localStorage.getItem('lookBase') || 'v2'; } catch (e) {}
+        let t = m === 'home' ? 'calm' : lb === 'v1' ? 'mono' : 'shop';
         try { t = localStorage.getItem('uiTheme') || t; } catch (e) {}
         if (t === 'dark' || t === 'redblack' || t === 'gold') t = 'mono';
         if (t !== 'default') document.documentElement.dataset.theme = t;
@@ -340,9 +343,68 @@
             --editbar-done-text: #33322f;
             --edit-frame: #5f7d6c;
         }
-        :root[data-theme="calm"] .hero-voice-btn { background: #2b2a28; color: #fff; box-shadow: none; }
-        :root[data-theme="calm"] .hero-voice-btn > .ti { background: rgba(255,255,255,0.16); }
-        :root[data-theme="calm"] body.hero-search-active .search-bar .search-input-wrap { border: 1px solid #e6e1d8; box-shadow: none; }
+        /* 🧰 매장 정돈 테마: 정돈 테마와 같은 차분한 바탕, 매장용으로 짙은 남색 글씨 + 청록 포인트. 부족은 주황, 유통기한은 빨강 그대로 */
+        :root[data-theme="shop"] {
+            --bg: #f4f5f3;
+            --card: #ffffff;
+            --border: #dfe3e4;
+            --accent: #26323a;
+            --accent2: #2c6e7f;
+            --text: #1f2a31;
+            --text2: #5f6a70;
+            --text3: #9aa3a8;
+            --search-hl: #ddeef1;
+            --zone-border: rgba(44,110,127,0.9);
+            --ivory-bg: rgba(255,255,255,0.94);
+            --ivory-border: #dfe3e4;
+            --charcoal: #26323a;
+            --ivory-text: #ffffff;
+            --charcoal-mute: #5f6a70;
+            --shadow-focus: 0 0 0 4px rgba(44,110,127,0.22);
+            --accent-hover: #17222a;
+            --accent-soft: #e2eef1;
+            --accent-rgb: 44, 110, 127;
+            --accent-dark-rgb: 38, 50, 58;
+            --on-accent2: #ffffff;
+            --on-accent: #ffffff;
+            --header-bg: rgba(244,245,243,0.94);
+            --header-text: #1f2a31;
+            --badge-bg: #2c6e7f;
+            --badge-text: #ffffff;
+            --active-zone-bg: #e2eef1;
+            --active-zone-bar: #2c6e7f;
+            --zone-stroke: #8fc3cf;
+            --zone-fill-rgb: 44, 110, 127;
+            --zone-fill-alpha: 0.12;
+            --hero-bg: #f4f5f3;
+            --hero-text: #1f2a31;
+            --hero-text2: #66737a;
+            --hero-chip-bg: #ffffff;
+            --hero-chip-border: #dfe3e4;
+            --notice-bg: #e8f1f3;
+            --notice-border: #d3e4e8;
+            --notice-text: #1f5160;
+            --danger-soft: #f6e5e2;
+            --accent-text: #1f5160;
+            --editbar-bg: #26323a;
+            --editbar-text: #ffffff;
+            --editbar-line: #26323a;
+            --editbar-done-bg: #ffffff;
+            --editbar-done-text: #26323a;
+            --edit-frame: #2c6e7f;
+        }
+        :root[data-theme="calm"] .hero-voice-btn, :root[data-theme="shop"] .hero-voice-btn { background: var(--accent); color: #fff; box-shadow: none; border: 0; }
+        :root[data-theme="calm"] .hero-voice-btn > .ti, :root[data-theme="shop"] .hero-voice-btn > .ti { background: rgba(255,255,255,0.16); }
+        :root[data-theme="calm"] body.hero-search-active .search-bar .search-input-wrap, :root[data-theme="shop"] body.hero-search-active .search-bar .search-input-wrap { border: 1px solid var(--border); box-shadow: none; }
+        /* 정돈 계열 브리핑: 격자·훑는 빛·숫자 빛 없이 흰 카드 */
+        :root[data-theme="calm"] .brief, :root[data-theme="shop"] .brief { background: #fff; box-shadow: inset 0 0 0 1px var(--border); }
+        :root[data-theme="calm"] .brief::before, :root[data-theme="calm"] .brief::after, :root[data-theme="shop"] .brief::before, :root[data-theme="shop"] .brief::after { display: none; }
+        :root[data-theme="calm"] .brief-head .dot, :root[data-theme="shop"] .brief-head .dot { box-shadow: none; animation: none; }
+        :root[data-theme="calm"] .brief-tile, :root[data-theme="shop"] .brief-tile { background: var(--bg); box-shadow: none; }
+        :root[data-theme="calm"] .brief-tile b, :root[data-theme="shop"] .brief-tile b { text-shadow: none; color: var(--text); }
+        :root[data-theme="calm"] .brief-tile.is-low, :root[data-theme="shop"] .brief-tile.is-low { background: #fff3e6; }
+        :root[data-theme="calm"] .brief-tile.is-low b, :root[data-theme="shop"] .brief-tile.is-low b { color: #d0650a; }
+        :root[data-theme="calm"] .beta-pill, :root[data-theme="shop"] .beta-pill { background: #fff; border: 1px solid var(--border); color: var(--text2); box-shadow: none; }
 
         /* 🏠 집·정리 모드: 핵심만 (사진 지도 · 검색 · 말로 찾기/넣기 · 인쇄). 꺼진 기능은 지우지 않고 숨긴다 */
         .hero-ask, .hero-spaces { display: none; }
@@ -744,8 +806,8 @@
         .zone-num { position: absolute; top: calc(var(--num-off, 6px) * -1); left: calc(var(--num-off, 6px) * -1); min-width: 1.6em; height: 1.6em; padding: 0 0.3em; border-radius: 0.8em; display: inline-flex; align-items: center; justify-content: center; background: #2b2716; color: #fff3a3; font-size: var(--num-fs, 8.5px); font-weight: 800; line-height: 1; text-indent: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .is-empty .zone-num { position: static; background: rgba(43,39,22,0.62); color: #fff; }
         .zone-note.is-focus .zone-num, .is-empty.is-focus .zone-num { background: #d936b8; color: #fff; }
-        html[data-f-fx="0"] .zone-note.is-focus { outline-color: #5f7d6c; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-        html[data-f-fx="0"] .zone-note.is-focus .zone-num, html[data-f-fx="0"] .is-empty.is-focus .zone-num { background: #5f7d6c; }
+        html[data-f-fx="0"] .zone-note.is-focus { outline-color: rgb(var(--accent-rgb)); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+        html[data-f-fx="0"] .zone-note.is-focus .zone-num, html[data-f-fx="0"] .is-empty.is-focus .zone-num { background: rgb(var(--accent-rgb)); }
         .zoom-ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; z-index: 2; }
         /* ✏️ 구역 그리기 도구: 고치기 모드에서 사진 왼쪽 아래 (확대 버튼과 반대편). 눌러 켠 동안만 끌기 = 그리기, 아니면 끌기 = 스크롤 */
         .draw-tool { position: absolute; left: 8px; bottom: 8px; z-index: 2; display: none; align-items: center; gap: 4px; height: 40px; padding: 0 14px 0 11px; border: 1.5px solid rgba(255,255,255,0.8); border-radius: 20px; background: rgba(26,26,24,0.72); color: #fff; font: inherit; font-size: 14px; font-weight: 700; box-shadow: 0 3px 10px rgba(0,0,0,0.3); cursor: pointer; }
@@ -2540,6 +2602,9 @@
                 </button>
                 <button type="button" class="theme-option" data-theme-value="calm" role="radio" onclick="setTheme('calm')" title="정돈 (따뜻한 흰색 & 세이지)">
                     <span class="theme-swatch"><i style="background:#f7f5f1;box-shadow:inset 0 0 0 1px #e6e1d8"></i><i style="background:#5f7d6c"></i></span><span>정돈</span>
+                </button>
+                <button type="button" class="theme-option" data-theme-value="shop" role="radio" onclick="setTheme('shop')" title="매장 정돈 (차분한 흰색 & 청록)">
+                    <span class="theme-swatch"><i style="background:#f4f5f3;box-shadow:inset 0 0 0 1px #dfe3e4"></i><i style="background:#2c6e7f"></i></span><span>매장 정돈</span>
                 </button>
             </div>
         </div>
@@ -4699,7 +4764,7 @@
                 else { ctx.fillStyle = `rgba(${themeColors.accentRgb}, 0.3)`; ctx.strokeStyle = themeColors.accent2; ctx.lineWidth = 5; }
             }
             else if (isHovered) { ctx.fillStyle = 'rgba(255, 243, 196, 0.35)'; ctx.strokeStyle = '#c8960a'; ctx.lineWidth = 3; }
-            else if (z === activeZone && !flyIntro) { const fx = feat('fx'); ctx.fillStyle = fx ? 'rgba(255, 90, 217, 0.14)' : 'rgba(95, 125, 108, 0.12)'; ctx.strokeStyle = fx ? NEON_ZONE : '#5f7d6c'; ctx.lineWidth = Math.max(3, 2.5 * displayScale(canvas)); }
+            else if (z === activeZone && !flyIntro) { const fx = feat('fx'); ctx.fillStyle = fx ? 'rgba(255, 90, 217, 0.14)' : `rgba(${themeColors.accentRgb}, 0.12)`; ctx.strokeStyle = fx ? NEON_ZONE : `rgb(${themeColors.accentRgb})`; ctx.lineWidth = Math.max(3, 2.5 * displayScale(canvas)); }
             else if (cleanView) { /* 보기 모드 기본: 아래에서 테두리만 그림 */ }
             else { ctx.fillStyle = `rgba(${themeColors.zoneFillRgb}, ${themeColors.zoneFillAlpha})`; ctx.strokeStyle = themeColors.zoneStroke; ctx.lineWidth = 2; }
             if (!hideBox) {
@@ -4738,7 +4803,7 @@
             if (fx && data._neonEdgesGlow) { ctx.clip('evenodd'); ctx.globalAlpha = 0.3; ctx.drawImage(data._neonEdgesGlow, 0, 0, canvas.width, canvas.height); } // 어두운 바깥에 물체 테두리가 은은히
             ctx.restore();
             if (!hideBox && fx) strokeNeon(ctx, z, k * 1.8);
-            else if (!hideBox) { ctx.save(); ctx.lineWidth = 4 * k; ctx.strokeStyle = '#ffffff'; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.lineWidth = 2.5 * k; ctx.strokeStyle = '#5f7d6c'; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.restore(); }
+            else if (!hideBox) { ctx.save(); ctx.lineWidth = 4 * k; ctx.strokeStyle = '#ffffff'; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.lineWidth = 2.5 * k; ctx.strokeStyle = `rgb(${themeColors.accentRgb})`; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.restore(); }
         }
         renderZoneNotes(data, cleanView);
 
@@ -5293,7 +5358,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.4';
+    const APP_VERSION = '베타 2026.11.01.5';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -7435,13 +7500,17 @@
     // 쓰는 곳(모드)과 기능 켜고 끄기: 모드마다 기본값이 있고, 설정에서 직접 바꾼 값이 있으면 그걸 따른다. 꺼도 적어 둔 내용은 지우지 않고 숨기기만 한다
     function useMode() { return document.documentElement.dataset.mode === 'home' ? 'home' : 'store'; }
     const FEAT_DEFAULTS = { home: { exp: false, brief: false, chips: false, fx: false }, store: { exp: true, brief: true, chips: true, fx: true } };
-    function feat(k) { const v = safeStorage.getItem('feat_' + k); return v === '1' ? true : v === '0' ? false : FEAT_DEFAULTS[useMode()][k]; }
+    function feat(k) {
+        const v = safeStorage.getItem('feat_' + k); if (v === '1') return true; if (v === '0') return false;
+        if (k === 'fx' && useMode() === 'store') return safeStorage.getItem('lookBase') === 'v1'; // 새 매장 사용자는 효과 끔, 예전부터 쓰던 사람은 그대로
+        return FEAT_DEFAULTS[useMode()][k];
+    }
     function toggleFeat(k) { safeStorage.setItem('feat_' + k, feat(k) ? '0' : '1'); applyFeatures(); }
     function setUseMode(m) {
         if (useMode() === m) return;
         safeStorage.setItem('useMode', m); document.documentElement.dataset.mode = m;
         ['exp', 'brief', 'chips', 'fx'].forEach(k => safeStorage.removeItem('feat_' + k)); safeStorage.removeItem(STOCK_KEY); // 모드의 기본값으로
-        setTheme(m === 'home' ? 'calm' : 'mono');
+        setTheme(m === 'home' ? 'calm' : safeStorage.getItem('lookBase') === 'v1' ? 'mono' : 'shop');
         applyFeatures();
         showToast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요', 3000);
     }
