@@ -497,6 +497,10 @@
         .sm-grab { width: 40px; height: 5px; border-radius: 3px; background: var(--border); margin: 0 auto 8px; }
         .sm-row { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 17px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; text-align: left; cursor: pointer; }
         .sm-row:last-child { border-bottom: 0; }
+        .sm-row { justify-content: flex-start; gap: 14px; }
+        .sm-ic { flex: none; width: 38px; height: 38px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; } /* 테마 톤의 옅은 바탕 + 선 아이콘 */
+        .sm-tx { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .sm-tx b { font-weight: 500; }
         .sm-head { display: none; }
         .search-suggest-tip { margin: 10px 4px 2px; font-size: 12.5px; color: var(--text3); }
         /* PC: 아래에서 올라오는 시트 대신 오른쪽 사이드바 */
@@ -508,7 +512,8 @@
             .sm-brand { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--text); }
 
             .sm-close { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--bg); color: var(--text2); font-size: 22px; line-height: 1; cursor: pointer; }
-            .sm-row { flex-direction: column; align-items: flex-start; gap: 3px; padding: 15px 6px; border-radius: 12px; border-bottom: 0; }
+            .sm-row { align-items: center; gap: 14px; padding: 12px 8px; border-radius: 12px; border-bottom: 0; }
+            .sm-tx { flex-direction: column; align-items: flex-start; gap: 2px; }
             .sm-row:hover { background: var(--bg); }
             @keyframes sm-side { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
             @media (prefers-reduced-motion: reduce) { .sm-sheet { animation: none; } }
@@ -2271,11 +2276,11 @@
 </div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
     <div class="sm-head"><span class="sm-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>창고여지도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
-    <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else { deactivateHeroSearch(); window.scrollTo(0, 0); }"><span id="smMapText">전체 화면으로</span><small>공간 보기 · 물건 넣기 · 고치기</small></button>
-    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()">번호 스티커 · 지도 인쇄</button>
-    <button type="button" class="sm-row" onclick="closeSimpleMenu(); loadSampleData()">예시 보기<small>내 지도는 그대로</small></button>
-    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openVideoGuideModal()">사용법</button>
-    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openSettingsModal()">설정<small>백업 · 기능 켜기</small></button>
+    <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else { deactivateHeroSearch(); window.scrollTo(0, 0); }"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg></span><span class="sm-tx"><b id="smMapText">전체 화면으로</b><small>공간 보기 · 물건 넣기 · 고치기</small></span></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4"/><rect x="7" y="13" width="10" height="8" rx="2"/></svg></span><span class="sm-tx"><b>번호 스티커 · 지도 인쇄</b></span></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); loadSampleData()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sm-tx"><b>예시 보기</b><small>내 지도는 그대로</small></span></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openVideoGuideModal()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17h.01"/></svg></span><span class="sm-tx"><b>사용법</b></span></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openSettingsModal()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3c.4-1.8 2.9-1.8 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 0 0 1 2.5c1.8.4 1.8 3 0 3.4a1.7 1.7 0 0 0-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 0 0-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 0 0-2.5-1c-1.6.9-3.3-.9-2.4-2.4a1.7 1.7 0 0 0-1.1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 0 0 1.1-2.5c-.9-1.6.8-3.3 2.4-2.4 1 .6 2.3 0 2.5-1.1z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sm-tx"><b>설정</b><small>백업 · 기능 켜기</small></span></button>
 </div></div>
 
 <div class="content-wrapper" id="report-container">
@@ -5555,7 +5560,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.21';
+    const APP_VERSION = '베타 2026.11.01.22';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
