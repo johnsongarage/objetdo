@@ -349,7 +349,6 @@
         html[data-mode="home"] body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         html[data-mode="home"] body.hero-search-active:not(.hero-search-focused) .hero-spaces { display: grid; }
         html[data-mode="home"] body.hero-search-active .hero-beta { display: none; }
-        html[data-mode="home"] body.hero-search-active .app-brand { font-size: 15px; }
         .hero-ask { margin: -4px 0 2px; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--hero-text); text-align: left; }
         .hero-spaces { gap: 10px; margin-top: 4px; }
         .hero-spaces-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 700; color: var(--hero-text); }
@@ -5294,7 +5293,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.2';
+    const APP_VERSION = '베타 2026.11.01.3';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
