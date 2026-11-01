@@ -28,10 +28,13 @@
         // 화면 테마: 페인트 전에 적용해서 기본 테마가 잠깐 보였다 바뀌는 깜빡임을 막는다
         // 처음 방문(고른 적 없음)은 모노(흑백)가 기본. 직접 고른 테마는 그대로 유지 (없어진 블랙 테마들은 기본으로)
         // 쓰는 곳: 집·정리수납(home) / 매장·창고(store). 주소에 ?mode=home 이 붙어 오면 그걸로 정한다 (정리 전문가께 보내는 링크)
+        // 화면 기본값 세대: 이번 개편 전에 쓰던 사람(v1)은 흑백+네온 그대로, 처음 온 사람(v2)은 매장 정돈 테마+효과 끔
+        try { if (!localStorage.getItem('lookBase')) localStorage.setItem('lookBase', localStorage.length > 0 ? 'v1' : 'v2'); } catch (e) {}
         let m = 'store';
         try { const q = new URLSearchParams(location.search).get('mode'); if (q === 'home' || q === 'store') localStorage.setItem('useMode', q); m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store'; } catch (e) {}
         document.documentElement.dataset.mode = m;
-        let t = m === 'home' ? 'calm' : 'mono';
+        let lb = 'v2'; try { lb = localStorage.getItem('lookBase') || 'v2'; } catch (e) {}
+        let t = m === 'home' ? 'calm' : lb === 'v1' ? 'mono' : 'shop';
         try { t = localStorage.getItem('uiTheme') || t; } catch (e) {}
         if (t === 'dark' || t === 'redblack' || t === 'gold') t = 'mono';
         if (t !== 'default') document.documentElement.dataset.theme = t;
@@ -7497,13 +7500,17 @@
     // 쓰는 곳(모드)과 기능 켜고 끄기: 모드마다 기본값이 있고, 설정에서 직접 바꾼 값이 있으면 그걸 따른다. 꺼도 적어 둔 내용은 지우지 않고 숨기기만 한다
     function useMode() { return document.documentElement.dataset.mode === 'home' ? 'home' : 'store'; }
     const FEAT_DEFAULTS = { home: { exp: false, brief: false, chips: false, fx: false }, store: { exp: true, brief: true, chips: true, fx: true } };
-    function feat(k) { const v = safeStorage.getItem('feat_' + k); return v === '1' ? true : v === '0' ? false : FEAT_DEFAULTS[useMode()][k]; }
+    function feat(k) {
+        const v = safeStorage.getItem('feat_' + k); if (v === '1') return true; if (v === '0') return false;
+        if (k === 'fx' && useMode() === 'store') return safeStorage.getItem('lookBase') === 'v1'; // 새 매장 사용자는 효과 끔, 예전부터 쓰던 사람은 그대로
+        return FEAT_DEFAULTS[useMode()][k];
+    }
     function toggleFeat(k) { safeStorage.setItem('feat_' + k, feat(k) ? '0' : '1'); applyFeatures(); }
     function setUseMode(m) {
         if (useMode() === m) return;
         safeStorage.setItem('useMode', m); document.documentElement.dataset.mode = m;
         ['exp', 'brief', 'chips', 'fx'].forEach(k => safeStorage.removeItem('feat_' + k)); safeStorage.removeItem(STOCK_KEY); // 모드의 기본값으로
-        setTheme(m === 'home' ? 'calm' : 'mono');
+        setTheme(m === 'home' ? 'calm' : safeStorage.getItem('lookBase') === 'v1' ? 'mono' : 'shop');
         applyFeatures();
         showToast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요', 3000);
     }
