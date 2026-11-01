@@ -502,6 +502,40 @@
         .sm-tx { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .sm-tx b { font-weight: 500; }
         .sm-head { display: none; }
+        /* 📋 물건 전체 목록: 인쇄물 내용을 화면으로 (공간 → 칸 → 물건 / 가나다순) */
+        .hs-all { border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--hero-text); cursor: pointer; }
+        #listView { position: fixed; inset: 0; z-index: 1075; background: var(--bg); color: var(--text); overflow-y: auto; overscroll-behavior: contain; }
+        #listView[hidden] { display: none; }
+        .lv-top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px; padding: max(12px, env(safe-area-inset-top)) max(14px, calc(50% - 300px)) 10px; background: var(--bg); }
+        .lv-back { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--card); color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: inset 0 0 0 1px var(--border); }
+        .lv-title { flex: 1; min-width: 0; }
+        .lv-title b { display: block; font-size: 18px; font-weight: 800; }
+        .lv-title small { font-size: 12.5px; color: var(--text2); }
+        .lv-print { border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 18px; padding: 8px 14px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+        .lv-seg { display: flex; gap: 6px; margin: 2px max(16px, calc(50% - 300px)) 12px; padding: 4px; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
+        .lv-seg button { flex: 1; height: 36px; border: 0; border-radius: 10px; background: none; color: var(--text2); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .lv-seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+        .lv-body { padding: 0 max(16px, calc(50% - 300px)) 40px; }
+        .lv-space { margin-bottom: 18px; border-radius: 18px; background: var(--card); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
+        .lv-space-h { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+        .lv-space-h img { width: 52px; height: 38px; border-radius: 8px; object-fit: cover; background: var(--bg); }
+        .lv-space-h b { font-size: 16px; } .lv-space-h small { margin-left: auto; font-size: 12.5px; color: var(--text3); }
+        .lv-zone { display: flex; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-top: 1px solid var(--border); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        .lv-space-h + .lv-zone { border-top: 0; }
+        .lv-zone:active { background: var(--bg); }
+        .lv-num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .lv-zone-t { min-width: 0; flex: 1; }
+        .lv-zone-t b { display: block; font-size: 14.5px; font-weight: 700; margin-bottom: 6px; }
+        .lv-items { display: flex; flex-wrap: wrap; gap: 5px; }
+        .lv-items span { padding: 4px 10px; border-radius: 12px; background: var(--bg); font-size: 13.5px; }
+        .lv-items em { font-style: normal; font-size: 13px; color: var(--text3); }
+        .lv-group { margin: 14px 4px 6px; font-size: 13px; font-weight: 800; color: rgb(var(--accent-rgb)); }
+        .lv-abc { border-radius: 16px; background: var(--card); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
+        .lv-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 12px 14px; border: 0; border-top: 1px solid var(--border); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+        .lv-row:first-child { border-top: 0; }
+        .lv-row b { font-size: 15px; font-weight: 600; }
+        .lv-row small { flex: none; font-size: 12.5px; color: var(--text2); }
+        .lv-empty { padding: 40px 10px; text-align: center; color: var(--text2); }
         .search-suggest-tip { margin: 10px 4px 2px; font-size: 12.5px; color: var(--text3); }
         /* PC: 아래에서 올라오는 시트 대신 오른쪽 사이드바 */
         @media (min-width: 769px) {
@@ -2268,7 +2302,7 @@
 <button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <div class="simple-foot" id="simpleFoot"></div>
 <div id="simpleAnswer" role="dialog" aria-label="찾은 곳"><div class="sa-wrap">
-    <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><span>찾은 말</span><b id="saQuery"></b></button>
+    <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><span id="saQLabel">찾은 말</span><b id="saQuery"></b></button>
     <div class="sa-card">
         <div class="sa-kicker">여기 있어요</div>
         <div class="sa-title" id="saTitle"></div>
@@ -2278,9 +2312,19 @@
         <div class="sa-with" id="saWith"></div>
     </div>
 </div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
+<div id="listView" role="dialog" aria-label="물건 전체 목록" hidden>
+    <div class="lv-top">
+        <button type="button" class="lv-back" onclick="closeListView()" aria-label="닫기">‹</button>
+        <div class="lv-title"><b>물건 전체 목록</b><small id="lvCount"></small></div>
+        <button type="button" class="lv-print" onclick="openPrintPreview()">인쇄</button>
+    </div>
+    <div class="lv-seg" role="tablist"><button type="button" data-v="space" onclick="setListView('space')">공간별</button><button type="button" data-v="abc" onclick="setListView('abc')">가나다순</button></div>
+    <div class="lv-body" id="lvBody"></div>
+</div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
     <div class="sm-head"><span class="sm-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>창고여지도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
     <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else { deactivateHeroSearch(); window.scrollTo(0, 0); }"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg></span><span class="sm-tx"><b id="smMapText">전체 화면으로</b><small>공간 보기 · 물건 넣기 · 고치기</small></span></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openListView()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></span><span class="sm-tx"><b>물건 전체 목록</b><small>뭐가 어디 있는지 훑어보기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4"/><rect x="7" y="13" width="10" height="8" rx="2"/></svg></span><span class="sm-tx"><b>번호 스티커 · 지도 인쇄</b></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); loadSampleData()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sm-tx"><b>예시 보기</b><small>내 지도는 그대로</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openVideoGuideModal()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17h.01"/></svg></span><span class="sm-tx"><b>사용법</b></span></button>
@@ -5564,7 +5608,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.23';
+    const APP_VERSION = '베타 2026.11.01.24';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6003,7 +6047,7 @@
             const url = photoThumbUrl(d);
             return `<button type="button" class="hero-space" onclick="openHeroSpace('${escapeHtml(String(d.id))}')">${url ? `<img src="${escapeHtml(url)}" alt="">` : '<img alt="">'}<span><b>${escapeHtml(d.title || '이름 없는 공간')}</b><small>칸 ${d.zones.length}개</small></span><i>›</i></button>`;
         }).join('');
-        box.innerHTML = `<div class="hero-spaces-head">${useMode() === 'home' ? '우리 집 공간' : '공간'} <small>${photos.length ? `${photos.length}곳` : ''}</small></div>${cards}<button type="button" class="hero-space-add" onclick="document.getElementById('fileInput').click()">+ 공간 추가 (사진 한 장)</button>`;
+        box.innerHTML = `<div class="hero-spaces-head">${useMode() === 'home' ? '우리 집 공간' : '공간'} <small>${photos.length ? `${photos.length}곳 · <button type="button" class="hs-all" onclick="openListView()">전체 목록 ›</button>` : ''}</small></div>${cards}<button type="button" class="hero-space-add" onclick="document.getElementById('fileInput').click()">+ 공간 추가 (사진 한 장)</button>`;
     }
     function openHeroSpace(id) { deactivateHeroSearch(); const d = imageList.find(x => String(x.id) === id); if (d) showPhoto(d.id, true); }
     // 창고 브리핑 카드: 구역·물건·이번 주 찾음·부족 + 마지막 재고 확인. 숫자는 바뀌었을 때(처음 포함) 0부터 올라간다
@@ -7797,6 +7841,48 @@
         const photos = (bootPhotos || imageList).filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0);
         el.textContent = photos.length ? `공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요` : '';
     }
+    // 📋 물건 전체 목록
+    let listViewMode = 'space';
+    function openListView() {
+        closeSimpleMenu();
+        try { const v = safeStorage.getItem('listViewMode'); if (v === 'abc' || v === 'space') listViewMode = v; } catch (e) {}
+        renderListView();
+        const el = document.getElementById('listView'); el.hidden = false; el.scrollTop = 0;
+    }
+    function closeListView() { document.getElementById('listView').hidden = true; }
+    function setListView(v) { listViewMode = v; try { safeStorage.setItem('listViewMode', v); } catch (e) {} renderListView(); document.getElementById('listView').scrollTop = 0; }
+    let listFrom = false; // 목록에서 눌러 들어간 답 카드면 [‹ 목록으로]로 돌아간다
+    function listGo(dataId, index) { closeListView(); listFrom = simpleOn(); selectZone(dataId, index); } // 찾기와 같은 화면으로 (찾기만 화면이면 답 카드)
+    function hangulInitial(ch) {
+        const c = ch.charCodeAt(0) - 0xAC00;
+        if (c >= 0 && c <= 11171) return 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'[Math.floor(c / 588)].replace('ㄲ', 'ㄱ').replace('ㄸ', 'ㄷ').replace('ㅃ', 'ㅂ').replace('ㅆ', 'ㅅ').replace('ㅉ', 'ㅈ');
+        return /[a-z]/i.test(ch) ? 'A-Z' : /[0-9]/.test(ch) ? '0-9' : '기타';
+    }
+    function renderListView() {
+        const photos = imageList.filter(d => d.id !== 'dummy_root');
+        const all = photos.flatMap(d => d.zones.flatMap((z, i) => z.items.map(it => ({ name: it.name, d, z, i }))));
+        document.getElementById('lvCount').textContent = `물건 ${new Set(all.map(a => a.name)).size}개 · 공간 ${photos.length}곳`;
+        document.querySelectorAll('.lv-seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === listViewMode)));
+        const body = document.getElementById('lvBody');
+        if (!all.length) { body.innerHTML = '<p class="lv-empty">아직 적어 둔 물건이 없어요</p>'; return; }
+        const go = (d, i) => `onclick="listGo('${escapeHtml(String(d.id))}', ${i})"`;
+        if (listViewMode === 'abc') {
+            const sorted = [...all].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+            let html = '', cur = null, open = false;
+            sorted.forEach(a => {
+                const g = hangulInitial(a.name.trim()[0] || ' ');
+                if (g !== cur) { if (open) html += '</div>'; html += `<div class="lv-group">${g}</div><div class="lv-abc">`; cur = g; open = true; }
+                html += `<button type="button" class="lv-row" ${go(a.d, a.i)}><b>${escapeHtml(a.name)}</b><small>${escapeHtml(a.d.title || '')} ${a.i + 1}번${a.z.name ? ' · ' + escapeHtml(a.z.name) : ''}</small></button>`;
+            });
+            body.innerHTML = html + (open ? '</div>' : '');
+            return;
+        }
+        body.innerHTML = photos.map(d => {
+            const url = photoThumbUrl(d), n = d.zones.reduce((k, z) => k + z.items.length, 0);
+            return `<section class="lv-space"><div class="lv-space-h">${url ? `<img src="${escapeHtml(url)}" alt="">` : ''}<b>${escapeHtml(d.title || '사진')}</b><small>칸 ${d.zones.length} · 물건 ${n}</small></div>` +
+                d.zones.map((z, i) => `<button type="button" class="lv-zone" ${go(d, i)}><span class="lv-num">${i + 1}</span><span class="lv-zone-t"><b>${escapeHtml(z.name || `${i + 1}번 칸`)}</b><span class="lv-items">${z.items.length ? z.items.map(it => `<span>${escapeHtml(it.name)}</span>`).join('') : '<em>비어 있어요</em>'}</span></span></button>`).join('') + '</section>';
+        }).join('');
+    }
     function openSimpleMenu() {
         document.getElementById('smMapText').textContent = simpleOn() ? '전체 화면으로' : '지도 보기'; // 찾기만 화면이 아니면 지도로 내려간다
         document.getElementById('simpleMenu').classList.add('is-open');
@@ -7805,6 +7891,8 @@
     function closeSimpleAnswer(refocus) {
         const el = document.getElementById('simpleAnswer'); if (!el) return;
         el.classList.remove('is-open');
+        if (refocus && listFrom) { listFrom = false; openListView(); return; }
+        listFrom = false;
         if (refocus) { const box = document.getElementById('searchBox'); box.value = ''; integratedSearch(false); document.body.classList.remove('hero-search-focused'); activateHeroSearch(); window.scrollTo(0, 0); } // 빈 검색창만 남은 휑한 화면 대신 첫 화면으로
     }
     // 찾은 칸을 답 한 줄 + 사진 한 장으로 (지도·목록으로 넘어가지 않는다)
@@ -7815,7 +7903,8 @@
         const display = document.getElementById('searchResultDisplay'); if (display) display.style.display = 'none';
         const box = document.getElementById('searchBox'); if (box) box.blur();
         const q = box ? box.value.trim() : '', nq = normalizeForSearch(q);
-        document.getElementById('saQuery').textContent = q || '찾기';
+        document.getElementById('saQLabel').textContent = listFrom ? '목록으로' : '찾은 말';
+        document.getElementById('saQuery').textContent = listFrom ? '' : (q || '찾기');
         document.getElementById('saTitle').textContent = `${d.title || '사진'} ${index + 1}번`;
         document.getElementById('saPath').innerHTML = `<span>${escapeHtml(d.title || '사진')}</span><i>›</i><span>${escapeHtml(z.name || `${index + 1}번 칸`)}</span>`;
         const names = z.items.map(it => it.name);
