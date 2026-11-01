@@ -438,22 +438,47 @@
         html[data-simple="1"] .simple-more { display: flex; position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 1065; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font-size: 24px; align-items: center; justify-content: center; cursor: pointer; }
         html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         html[data-simple="1"] body.hero-search-focused .simple-more { display: none; } /* 검색창이 위로 올라가면 마이크와 겹친다 */
-        html[data-simple="1"] .hero-beta, html[data-simple="1"] #heroSummary, html[data-simple="1"] #heroQuick .hero-quick-row, html[data-simple="1"] .hero-spaces,
+        html[data-simple="1"] .hero-beta, html[data-simple="1"] #heroSummary, html[data-simple="1"] #heroQuick .hero-quick-row:not([data-row="recent"]), html[data-simple="1"] .hero-spaces,
         html[data-simple="1"] .hero-map-row, html[data-simple="1"] #heroMicBtn, html[data-simple="1"] .search-bar .app-brand,
         html[data-simple="1"] #floatingRemote, html[data-simple="1"] #foundBar, html[data-simple="1"] #foundPill { display: none !important; }
         html[data-simple="1"] .hero-ask { font-size: 30px; margin-bottom: 8px; }
         html[data-simple="1"] #micBtn { background: var(--accent); color: #fff; border-radius: 50%; }
+        /* 찾기만 화면 꾸밈: 기능은 적어도 첫인상은 정돈되게 */
+        .simple-brand, .simple-sub, .simple-foot { display: none; }
+        html[data-simple="1"] .simple-brand { display: flex; position: fixed; top: max(22px, calc(env(safe-area-inset-top) + 8px)); left: 22px; z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
+        .simple-brand i { width: 9px; height: 9px; border-radius: 3px; background: rgb(var(--accent-rgb)); display: block; transform: rotate(45deg); }
+        html[data-simple="1"] body.hero-search-focused .simple-brand { display: none; }
+        html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-sub { display: block; margin: 0 0 22px; font-size: 15px; line-height: 1.55; color: var(--text2); text-align: left; }
+        html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-foot { display: block; position: fixed; left: 0; right: 0; bottom: max(26px, env(safe-area-inset-bottom)); z-index: 1061; text-align: center; font-size: 12.5px; color: var(--text3); }
+        html[data-simple="1"] .search-input-wrap { box-shadow: 0 8px 28px rgba(43,42,40,0.07) !important; border: 1px solid var(--border) !important; }
+        html[data-simple="1"] .hero-ask::before { content: ''; display: block; width: 46px; height: 46px; margin-bottom: 18px; border-radius: 15px; background: rgba(var(--accent-rgb), 0.12) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-opacity='.55' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") center no-repeat; }
+        html[data-simple="1"] #heroQuick { margin-top: 18px; }
+        html[data-simple="1"] #heroQuick .hero-quick-row { justify-content: flex-start; }
+        html[data-simple="1"] #heroQuick .hero-quick-label { font-size: 12.5px; color: var(--text3); }
+        html[data-simple="1"] #heroQuick .hero-chip { background: transparent; border: 1px solid var(--border); box-shadow: none; color: var(--text); }
+        html[data-simple="1"] .hero-quick-tip { text-align: left; }
         #simpleAnswer { position: fixed; inset: 0; z-index: 1070; background: var(--bg); overflow-y: auto; padding: max(16px, env(safe-area-inset-top)) 20px 110px; color: var(--text); }
         #simpleAnswer.is-open { display: block; }
         .sa-wrap { max-width: 560px; margin: 0 auto; }
-        .sa-q { display: flex; align-items: center; justify-content: space-between; width: calc(100% - 50px); height: 56px; padding: 0 20px; border: 1px solid var(--border); border-radius: 28px; background: var(--card); color: var(--text); font: inherit; font-size: 17px; text-align: left; cursor: pointer; }
-        .sa-q span { color: var(--text3); font-size: 14px; }
-        .sa-title { margin-top: 22px; font-size: 26px; font-weight: 800; line-height: 1.3; letter-spacing: -0.5px; }
-        .sa-sub { margin-top: 4px; font-size: 15px; color: var(--text2); }
-        .sa-pic { margin-top: 16px; width: 100%; border-radius: 18px; display: block; background: var(--card); }
-        .sa-with { margin-top: 14px; font-size: 14.5px; color: var(--text2); line-height: 1.5; }
-        .sa-with b { color: var(--text); font-weight: 600; }
-        .sa-again { position: fixed; left: 20px; right: 20px; bottom: max(24px, env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; height: 56px; border: 1px solid var(--border); border-radius: 28px; background: var(--card); color: var(--text); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .sa-q { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); color: var(--text2); font: inherit; font-size: 14px; cursor: pointer; }
+        .sa-q b { color: var(--text); font-weight: 700; }
+        .sa-q::before { content: '‹'; font-size: 20px; line-height: 1; color: var(--text3); margin-top: -2px; }
+        .sa-card { margin-top: 18px; padding: 20px 18px 18px; border-radius: 24px; background: var(--card); box-shadow: 0 10px 34px rgba(43,42,40,0.07); border: 1px solid var(--border); }
+        .sa-kicker { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: rgb(var(--accent-rgb)); }
+        .sa-kicker::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: rgb(var(--accent-rgb)); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.15); }
+        .sa-title { margin-top: 8px; font-size: 30px; font-weight: 800; line-height: 1.25; letter-spacing: -0.8px; }
+        .sa-path { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13.5px; color: var(--text2); }
+        .sa-path span { padding: 5px 11px; border-radius: 14px; background: var(--bg); }
+        .sa-path i { font-style: normal; color: var(--text3); }
+        .sa-pic { margin-top: 16px; width: 100%; border-radius: 16px; display: block; background: var(--bg); }
+        .sa-with-h { margin-top: 18px; font-size: 12.5px; font-weight: 700; color: var(--text3); letter-spacing: 0.2px; }
+        .sa-with { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .sa-with span { padding: 7px 12px; border-radius: 16px; border: 1px solid var(--border); font-size: 14px; color: var(--text); }
+        .sa-with span.is-hit { border-color: rgb(var(--accent-rgb)); background: rgba(var(--accent-rgb), 0.1); font-weight: 700; }
+        .sa-again { position: fixed; left: 20px; right: 20px; bottom: max(24px, env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; height: 58px; border: 0; border-radius: 29px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 26px rgba(43,42,40,0.18); }
+        #simpleAnswer.is-open .sa-card { animation: sa-in .32s cubic-bezier(.2,.8,.2,1); }
+        @keyframes sa-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { #simpleAnswer.is-open .sa-card { animation: none; } }
         #simpleMenu.is-open { display: block; position: fixed; inset: 0; z-index: 1080; background: rgba(43,42,40,0.35); }
         .sm-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; background: var(--card); border-radius: 24px 24px 0 0; padding: 12px 20px max(24px, env(safe-area-inset-bottom)); }
         .sm-grab { width: 40px; height: 5px; border-radius: 3px; background: var(--border); margin: 0 auto 8px; }
@@ -2114,6 +2139,7 @@
     </div>
     <div class="hero-beta"><span class="beta-pill"><i class="ti ti-flask"></i> 무료 베타</span></div>
     <h2 class="hero-ask">뭘 찾으세요?</h2>
+    <p class="simple-sub">물건 이름을 쓰거나 말하면<br>어디 있는지 바로 알려 드려요</p>
     <div class="hero-summary" id="heroSummary"></div>
     <div class="search-input-wrap">
         <input type="text" id="searchBox" placeholder="찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)" oninput="integratedSearch(false)" onfocus="this.select()">
@@ -2133,12 +2159,19 @@
     </div>
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
+<div class="simple-brand"><i></i>창고여지도</div>
 <button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴">⋯</button>
+<div class="simple-foot" id="simpleFoot"></div>
 <div id="simpleAnswer" role="dialog" aria-label="찾은 곳"><div class="sa-wrap">
-    <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><b id="saQuery"></b><span>다시 찾기</span></button>
-    <div class="sa-title" id="saTitle"></div><div class="sa-sub" id="saSub"></div>
-    <canvas class="sa-pic" id="saPic"></canvas>
-    <p class="sa-with" id="saWith"></p>
+    <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><span>찾은 말</span><b id="saQuery"></b></button>
+    <div class="sa-card">
+        <div class="sa-kicker">여기 있어요</div>
+        <div class="sa-title" id="saTitle"></div>
+        <div class="sa-path" id="saPath"></div>
+        <canvas class="sa-pic" id="saPic"></canvas>
+        <div class="sa-with-h" id="saWithH">이 칸에 함께 있는 것</div>
+        <div class="sa-with" id="saWith"></div>
+    </div>
 </div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); setSimpleView(false)">전체 화면으로<small>공간 보기 · 물건 넣기 · 고치기</small></button>
@@ -5823,15 +5856,16 @@
         const frequent = Object.entries(loadSearchStore(SEARCH_PICKS_KEY, {})).filter(([name]) => has(name)).sort((a, b) => b[1] - a[1]).slice(0, 4);
         const chip = (q, extra = '') => `<button type="button" class="hero-chip" data-q="${escapeHtml(q)}" onclick="applySearchSuggestion(this)">${escapeHtml(q)}${extra}</button>`;
         let html = '';
+        syncSimpleFoot();
         renderHeroSpaces(photos.map(d => loaded.find(x => x.id === d.id) || d));
         if (!feat('chips')) { // 즐겨찾기·자주 칩을 끄면 '최근'만
-            if (history.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
+            if (history.length) html += `<div class="hero-quick-row" data-row="recent"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
             quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
             return;
         }
         const pinned = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.filter(i => i.pin).map(i => i.name))))].slice(0, 8);
         if (pinned.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">즐찾</span>${pinned.map(n => `<button type="button" class="hero-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">★ ${escapeHtml(n)}</button>`).join('')}</div>`; // 신입용 고정 물건 (사장님이 정해 둔 것)
-        if (history.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
+        if (history.length) html += `<div class="hero-quick-row" data-row="recent"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
         if (frequent.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">자주</span>${frequent.map(([n, c]) => chip(n, ` <small>${c}회</small>`)).join('')}</div>`;
         quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
     }
@@ -7576,6 +7610,11 @@
         if (on) { closeSettingsModal(); hideZoneModal && hideZoneModal(); window.scrollTo(0, 0); activateHeroSearch(); showToast('찾기만 화면이에요. 다른 기능은 오른쪽 위 ⋯ 에 있어요', 3000); }
         else { deactivateHeroSearch(); showToast('전체 화면이에요. 설정에서 다시 찾기만 화면으로 바꿀 수 있어요', 3000); }
     }
+    function syncSimpleFoot() {
+        const el = document.getElementById('simpleFoot'); if (!el) return;
+        const photos = (bootPhotos || imageList).filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0);
+        el.textContent = photos.length ? `공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요` : '';
+    }
     function openSimpleMenu() { document.getElementById('simpleMenu').classList.add('is-open'); }
     function closeSimpleMenu() { document.getElementById('simpleMenu').classList.remove('is-open'); }
     function closeSimpleAnswer(refocus) {
@@ -7590,11 +7629,13 @@
         recordFind();
         const display = document.getElementById('searchResultDisplay'); if (display) display.style.display = 'none';
         const box = document.getElementById('searchBox'); if (box) box.blur();
-        document.getElementById('saQuery').textContent = box ? box.value.trim() : '';
+        const q = box ? box.value.trim() : '', nq = normalizeForSearch(q);
+        document.getElementById('saQuery').textContent = q || '찾기';
         document.getElementById('saTitle').textContent = `${d.title || '사진'} ${index + 1}번`;
-        document.getElementById('saSub').textContent = z.name || '';
-        const others = z.items.map(it => it.name);
-        document.getElementById('saWith').innerHTML = others.length ? `이 칸에 있는 것 <b>${others.map(escapeHtml).join(' · ')}</b>` : '';
+        document.getElementById('saPath').innerHTML = `<span>${escapeHtml(d.title || '사진')}</span><i>›</i><span>${escapeHtml(z.name || `${index + 1}번 칸`)}</span>`;
+        const names = z.items.map(it => it.name);
+        document.getElementById('saWithH').hidden = !names.length;
+        document.getElementById('saWith').innerHTML = names.map(n => `<span${nq && normalizeForSearch(n).includes(nq) ? ' class="is-hit"' : ''}>${escapeHtml(n)}</span>`).join('');
         const c = document.getElementById('saPic'), img = d.img;
         if (img && img.width) {
             const W = img.width, H = img.height, k = W / 800;
