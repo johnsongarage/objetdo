@@ -481,6 +481,21 @@
         .sm-grab { width: 40px; height: 5px; border-radius: 3px; background: var(--border); margin: 0 auto 8px; }
         .sm-row { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 17px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; text-align: left; cursor: pointer; }
         .sm-row:last-child { border-bottom: 0; }
+        .sm-head { display: none; }
+        /* PC: 아래에서 올라오는 시트 대신 오른쪽 사이드바 */
+        @media (min-width: 769px) {
+            #simpleMenu.is-open { background: rgba(43,42,40,0.25); }
+            .sm-sheet { left: auto; right: 0; top: 0; bottom: 0; width: 320px; max-width: none; margin: 0; border-radius: 20px 0 0 20px; padding: 18px 24px 24px; box-shadow: -12px 0 40px rgba(0,0,0,0.08); animation: sm-side .22s cubic-bezier(.2,.8,.2,1); overflow-y: auto; }
+            .sm-grab { display: none; }
+            .sm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+            .sm-brand { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--text); }
+            .sm-brand i { width: 9px; height: 9px; border-radius: 3px; background: rgb(var(--accent-rgb)); transform: rotate(45deg); display: block; }
+            .sm-close { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--bg); color: var(--text2); font-size: 22px; line-height: 1; cursor: pointer; }
+            .sm-row { flex-direction: column; align-items: flex-start; gap: 3px; padding: 15px 6px; border-radius: 12px; border-bottom: 0; }
+            .sm-row:hover { background: var(--bg); }
+            @keyframes sm-side { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+            @media (prefers-reduced-motion: reduce) { .sm-sheet { animation: none; } }
+        }
         body.hero-search-active #videoGuideModal { z-index: 1085 !important; }
         html[data-simple="1"] #settingsBackdrop, body.hero-search-active #settingsBackdrop { z-index: 1081; } html[data-simple="1"] #settingsModal, body.hero-search-active #settingsModal { z-index: 1082; } /* 찾기만 화면 위에서도 설정이 보이게 (인쇄 창은 원래 더 위) */
         .sm-row small { color: var(--text3); font-size: 13.5px; }
@@ -2190,6 +2205,7 @@
     </div>
 </div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
+    <div class="sm-head"><span class="sm-brand"><i></i>창고여지도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
     <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else { deactivateHeroSearch(); window.scrollTo(0, 0); }"><span id="smMapText">전체 화면으로</span><small>공간 보기 · 물건 넣기 · 고치기</small></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()">번호 스티커 · 지도 인쇄</button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); loadSampleData()">예시 보기<small>내 지도는 그대로</small></button>
@@ -5423,7 +5439,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.11';
+    const APP_VERSION = '베타 2026.11.01.12';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
