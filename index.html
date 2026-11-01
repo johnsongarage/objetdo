@@ -434,12 +434,11 @@
         html[data-mode="home"] .zone-note:not(.is-focus) { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }
         html[data-mode="home"] .zone-note:not(.is-focus) > :not(.zone-num) { display: none !important; }
         /* 구역 창: '자주 쓰는 물건'은 접어 두고, 눌러서 펼치거나 위에서 찾을 때만 보인다 */
-        .zm-suggest-toggle { display: none; }
-        html[data-mode="home"] .zm-suggest-toggle { display: inline; margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--text2); }
-        html[data-mode="home"] .zm-add-head { cursor: pointer; display: flex; }
-        html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #industryAsk,
-        html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #itemList,
-        html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #zmMoreSuggest { display: none !important; }
+        .zm-suggest-toggle { display: inline; margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--text2); }
+        .zm-add-head { cursor: pointer; display: flex; }
+        #modal:not(.zm-suggest-open) #industryAsk, /* 업종 묻기는 펼쳤을 때만 (글자 칠 땐 추천만) */
+        #modal:not(.zm-suggest-open):not(.zm-filtering) #itemList,
+        #modal:not(.zm-suggest-open):not(.zm-filtering) #zmMoreSuggest { display: none !important; }
         /* 🔎 찾기만 화면: 검색창 하나 + 답 한 줄 + 사진. 나머지는 ⋯ 메뉴 안에 */
         .simple-more, #simpleAnswer, #simpleMenu { display: none; }
         body.hero-search-active:not(.hero-search-focused) .simple-more { display: flex; position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, calc(50% - 300px)); z-index: 1065; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font-size: 24px; align-items: center; justify-content: center; cursor: pointer; }
@@ -1753,12 +1752,19 @@
         .zm-add-new[hidden], .zm-item[hidden], .zm-review[hidden] { display: none !important; }
 
         /* 가져오기 확인 목록 (팝업 위를 덮는 한 장) */
-        .zm-review { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: var(--card); }
-        .zm-review-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 20px 16px 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .zm-review { margin-top: 12px; padding: 14px 14px 12px; border-radius: 16px; background: var(--accent-soft); display: flex; flex-direction: column; }
+        .zm-review-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+        .zm-review-cancel { border: 0; background: none; color: var(--text2); font: inherit; font-size: 13px; cursor: pointer; padding: 2px 4px; }
+        .zm-review-foot { display: flex; gap: 8px; margin-top: 10px; }
+        .zm-review-foot .btn-base { flex: 1; min-height: 46px; font-size: 15px; }
+        .zm-body .zm-review .zm-item { background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+        .zm-body .zm-review .zm-item-main { min-height: 46px; }
+        .zm-body .zm-review .zm-check { display: inline-flex; flex-shrink: 0; } /* 담기 칩에선 숨긴 체크 상자를 여기선 보인다 */
+        .zm-body .zm-review .zm-item:not(.is-checked) .zm-item-name { color: var(--text3); text-decoration: line-through; }
         .zm-review-head h3 { font-size: 17px; line-height: 1.4; }
         .zm-review-head p { font-size: 12px; color: var(--text2); margin-top: 2px; }
         .zm-review-retry { min-height: 40px; padding: 0 12px; font-size: 13px; flex-shrink: 0; color: var(--accent-text); }
-        .zm-review-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+        .zm-review-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
         .zm-item-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
         .zm-item-text small { font-size: 12px; font-weight: 500; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .zm-tag { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-pill); background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
@@ -1878,7 +1884,21 @@
         #modal.memo-focus .zm-memo-done { display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 6px; }
         #modal.memo-focus #zmPicked { padding-top: 10px; }
         #modal.memo-focus .zm-item.is-writing .cmt { height: 48px; font-size: 16px; }
-        .zm-find-top { position: sticky; top: -16px; z-index: 1; margin: -16px -20px 14px; padding: 14px 20px 10px; background: var(--card); border-bottom: 1px solid var(--border); }
+        .zm-find-top { margin: 18px 0 14px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .zm-picked-hint { margin: 8px 2px 0; font-size: 12px; color: var(--text3); }
+        #zmPicked:empty + .zm-picked-hint { display: none; }
+        .zm-put-head { margin-top: 0 !important; }
+        .zm-put-row { display: flex; align-items: center; gap: 10px; }
+        .zm-put-row .zm-find { flex: 1; width: auto; height: 50px; }
+        .zm-put-row .zm-find .ti-plus { order: -1; margin-right: 4px; color: var(--text3); font-size: 18px; }
+        .zm-mic { flex: none; width: 50px; height: 50px; border: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 0 6px rgba(var(--accent-rgb),0.12); transition: transform .12s; }
+        .zm-mic:active { transform: scale(0.94); }
+        .zm-mic.is-listening { background: rgb(var(--accent-rgb)); animation: hv-ring 1.1s ease-in-out infinite; }
+        .zm-mic[hidden] { display: none; }
+        .zm-put-hint { margin: 9px 2px 0; font-size: 12.5px; color: var(--text2); }
+        .zm-put-hint b { color: var(--text); font-weight: 600; }
+        .zm-put-hint:empty { display: none; }
+        .zm-find-top .zm-status { text-align: left; margin-top: 6px; }
         .zm-find-top .zm-status:empty { display: none; }
         .zm-find-top .zm-add-new { margin-top: 8px; }
         .zm-more-suggest { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 40px; margin-top: 10px; border: 1px dashed var(--border); border-radius: var(--radius-md); background: none; color: var(--text2); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
@@ -2415,30 +2435,44 @@
     </div>
 
     <div class="zm-body">
-        <!-- 맨 위: 검색(찾기·새로 추가) — 가장 많이 하는 일이 "이름 치고 담기"라서. 스크롤해도 위에 붙어 있다 -->
+        <!-- 열면 먼저 "여기 뭐가 있지?" → 담긴 물건을 맨 위에 -->
+        <div class="zm-section-head">
+            <span>이 칸에 있는 것</span>
+            <span id="zoneItemCount" class="zm-count"></span>
+        </div>
+        <div id="zmPicked" class="zm-chips is-picked" data-empty="아직 없어요 · 아래에서 이름을 쓰거나 말해서 넣어요"></div>
+        <p class="zm-picked-hint">물건을 누르면 수량·메모를 고칠 수 있어요</p>
+        <!-- 넣기: 입력칸 하나 + 동그라미 마이크 하나 (첫 화면과 같은 모양) -->
         <div class="zm-find-top">
-        <!-- 상단 검색창과 같은 모양: 입력(찾기·새로 추가) + 돋보기 + 가져오기 버튼들 -->
-            <div class="search-input-wrap zm-find">
-                <input type="text" id="newItemInput" placeholder="물건 찾기 또는 새로 추가" autocomplete="off" enterkeyhint="done" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
-                <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
-                <i class="ti ti-search"></i>
-                <!-- 📷 추후 OCR(창고에 적어둔 라벨·메모 사진에서 가져오기) 버튼을 이 자리에 같은 .icon-btn으로 추가하고,
-                     인식 결과는 openImportReview({ source: 'ocr', candidates: [{ name, comment }] })로 넘기면 확인 목록이 그대로 재사용된다. -->
-                <button type="button" id="voiceItemBtn" class="icon-btn" onclick="startVoiceItemEntry()" title="말로 여러 개 추가" aria-label="말로 여러 개 추가"><i class="ti ti-microphone"></i></button>
+            <div class="zm-section-head zm-put-head"><span>넣기</span></div>
+            <div class="zm-put-row">
+                <div class="search-input-wrap zm-find">
+                    <i class="ti ti-plus"></i>
+                    <input type="text" id="newItemInput" placeholder="물건 이름 쓰기" autocomplete="off" enterkeyhint="done" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
+                    <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+                </div>
+                <!-- 📷 추후 OCR 버튼도 이 줄에: 인식 결과는 openImportReview({ source: 'ocr', candidates: [{ name, comment }] })로 넘기면 확인 목록이 그대로 재사용된다 -->
+                <button type="button" id="voiceItemBtn" class="zm-mic" onclick="startVoiceItemEntry(this)" title="말로 넣기 (여러 개도 한 번에)" aria-label="말로 넣기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.5"/></svg></button>
             </div>
-            <button type="button" id="voiceItemBig" class="zm-voice-big" onclick="startVoiceItemEntry(this)"><i class="ti ti-microphone"></i><span><b>말로 넣기</b><small>"반팔티, 긴팔티, 레깅스"처럼 한 번에</small></span></button>
+            <p class="zm-put-hint" id="zmPutHint"></p>
             <div id="voiceItemStatus" class="zm-status" role="status" aria-live="polite"></div>
             <button type="button" id="zmAddRow" class="zm-add-new" onclick="addNewItem()" hidden>
                 <span class="zm-add-new-icon"><i class="ti ti-plus"></i></span><span id="zmAddRowText"></span>
             </button>
+            <!-- ✅ 알아들은 것: 목록으로 보여 주고 체크한 것만 넣는다 (창을 덮지 않고 이 자리에서) -->
+            <div id="importReview" class="zm-review" role="group" aria-labelledby="importReviewTitle" hidden>
+                <div class="zm-review-head">
+                    <div style="min-width: 0;"><h3 id="importReviewTitle"></h3><p id="importReviewSub"></p></div>
+                    <button type="button" class="zm-review-cancel" onclick="closeImportReview()">취소</button>
+                </div>
+                <div id="importReviewList" class="zm-review-list"></div>
+                <div class="zm-review-foot">
+                    <button type="button" id="importReviewRetry" class="btn-base btn-secondary" onclick="retryImportReview()">다시 말하기</button>
+                    <button type="button" id="importReviewConfirm" class="btn-base btn-primary" onclick="confirmImportReview()"></button>
+                </div>
+            </div>
         </div>
-        <!-- 담긴 물건(눌러서 메모, ×로 빼기) / 아래: 자주 쓰는 물건 후보(눌러서 담기, 처음엔 8개만) -->
-        <div class="zm-section-head">
-            <span>이 구역에 있는 것 <small class="zm-head-hint">* 눌러서 상세 편집</small></span>
-            <span id="zoneItemCount" class="zm-count"></span>
-        </div>
-        <div id="zmPicked" class="zm-chips is-picked" data-empty="아직 없어요 · 위에서 찾거나 아래에서 눌러 담아요"></div>
-        <div class="zm-section-head zm-add-head" onclick="if (document.documentElement.dataset.mode === 'home') document.getElementById('modal').classList.toggle('zm-suggest-open')"><span>자주 쓰는 물건</span><span class="zm-suggest-toggle">펼치기 ›</span></div>
+        <div class="zm-section-head zm-add-head" onclick="const m = document.getElementById('modal'); m.classList.toggle('zm-suggest-open'); this.querySelector('.zm-suggest-toggle').textContent = m.classList.contains('zm-suggest-open') ? '접기 ‹' : '펼치기 ›'"><span>자주 쓰는 물건에서 고르기</span><span class="zm-suggest-toggle">펼치기 ›</span></div>
         <!-- 업종 한 번 묻기: 추천 물건 칸 위에 한 줄로 (예전엔 창 맨 위를 반쯤 차지해 이 구역 물건이 밀려 안 보였다) (고르거나 건너뛰면 다시 안 물음, 설정에서 바꿀 수 있음) -->
         <div id="industryAsk" class="zm-industry" hidden>
             <div class="zm-industry-q"><b>가게 종류</b>를 고르면 아래 추천 물건이 맞춰져요</div>
@@ -2454,21 +2488,6 @@
         <button type="button" class="btn-base btn-primary zm-memo-done" onpointerdown="event.preventDefault()" onclick="document.activeElement && document.activeElement.blur()"><i class="ti ti-check"></i> 다 적었어요</button>
     </div>
 
-    <!-- ✅ 가져오기 확인 목록: 말(음성)·추후 OCR로 읽은 물건을 바로 적용하지 않고 한 번 더 확인 -->
-    <div id="importReview" class="zm-review" role="dialog" aria-labelledby="importReviewTitle" hidden>
-        <div class="zm-review-head">
-            <div style="min-width: 0;">
-                <h3 id="importReviewTitle"></h3>
-                <p id="importReviewSub"></p>
-            </div>
-            <button type="button" id="importReviewRetry" class="btn-base btn-quiet zm-review-retry" onclick="retryImportReview()"><i class="ti ti-microphone"></i> 다시 말하기</button>
-        </div>
-        <div id="importReviewList" class="zm-review-list"></div>
-        <div class="zm-foot">
-            <button type="button" class="btn-base zm-delete" style="color: var(--text2);" onclick="closeImportReview()">취소</button>
-            <button type="button" id="importReviewConfirm" class="btn-base btn-primary zm-save" onclick="confirmImportReview()"></button>
-        </div>
-    </div>
 </div>
 
 <div id="stockBackdrop" onclick="closeStock()"></div>
@@ -3874,7 +3893,7 @@
     function syncVoiceButtons() {
         const hero = document.getElementById('heroMicBtn'), big = document.getElementById('voiceItemBig');
         const ok = voiceSupported(), inApp = typeof isInAppBrowser === 'function' && isInAppBrowser();
-        if (big) big.hidden = !ok || inApp;
+        const zmic = document.getElementById('voiceItemBtn'); if (zmic) zmic.hidden = !ok || inApp;
         if (!hero) return;
         const box = document.getElementById('heroVoice'); if (box) box.hidden = !ok && !inApp;
         hero.dataset.mode = inApp ? 'browser' : 'voice';
@@ -4014,6 +4033,9 @@
         document.getElementById('newItemInput').value = '';
         document.getElementById('voiceItemStatus').textContent = '';
         document.getElementById('modal').classList.remove('zm-filtering', 'zm-suggest-open');
+        { const tg = document.querySelector('#modal .zm-suggest-toggle'); if (tg) tg.textContent = '펼치기 ›'; }
+        closeImportReview();
+        syncPutHint(z);
         zmShowAllSuggest = false;
         closeImportReview();
         syncIndustryAsk();
@@ -4063,6 +4085,16 @@
     document.getElementById('newItemInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addNewItem(); } });
     document.getElementById('zoneNameInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) e.target.blur(); });
 
+    // 넣기 안내 예시: 같은 사진의 다른 칸 물건 중 짧은 이름 3개 (없으면 일반 예시)
+    function syncPutHint(z) {
+        const el = document.getElementById('zmPutHint'); if (!el || !z) return;
+        const d = imageList.find(x => x.zones && x.zones.includes(z));
+        const mine = new Set(z.items.map(i => i.name));
+        let ex = d ? [...new Set(d.zones.flatMap(o => o.items.map(i => i.name)))].filter(n => !mine.has(n) && n.length <= 6 && !/[()]/.test(n)).slice(0, 3) : [];
+        if (ex.length < 3) ex = useMode() === 'home' ? ['건전지', '테이프', '가위'] : ['빨대', '컵홀더', '냅킨'];
+        const voice = !document.getElementById('voiceItemBtn').hidden;
+        el.innerHTML = voice ? `말로 여러 개도 한 번에 · <b>"${ex.map(escapeHtml).join(', ')}"</b>` : '';
+    }
     function updateZoneItemCount() {
         const n = document.querySelectorAll('#modal .zm-body .cb:checked').length;
         document.getElementById('zoneItemCount').textContent = n ? `${n}개` : '';
@@ -5291,7 +5323,7 @@
     var ZM_SUGGEST = 8, zmShowAllSuggest = false;
     function applyZoneItemFilter() {
         const q = document.getElementById('newItemInput').value.trim();
-        const rows = [...document.querySelectorAll('#modal .zm-body .zm-item')];
+        const rows = [...document.querySelectorAll('#modal .zm-body .zm-item')].filter(r => !r.closest('.zm-review')); // 알아들은 것 목록은 빼고
         let exact = false, pool = 0, cut = 0;
         rows.forEach(row => {
             const name = row.querySelector('.cb').value, picked = row.classList.contains('is-checked');
@@ -5340,7 +5372,7 @@
     function updateImportReviewCount() {
         const n = document.querySelectorAll('#importReviewList .rv-cb:checked').length;
         const btn = document.getElementById('importReviewConfirm');
-        btn.textContent = n ? `${n}개 체크하기` : '선택한 물건이 없어요';
+        btn.textContent = n ? `${n}개 넣기` : '고른 물건이 없어요';
         btn.disabled = n === 0;
     }
     function closeImportReview() { importReview = null; const el = document.getElementById('importReview'); if (el) el.hidden = true; }
@@ -5355,7 +5387,7 @@
         renderZoneItems(true);
         chosen.forEach(c => checkZoneItem(c.name, c.comment));
         closeImportReview();
-        document.getElementById('voiceItemStatus').textContent = `${chosen.length}개를 체크했어요. 저장을 눌러야 반영돼요`;
+        document.getElementById('voiceItemStatus').textContent = `${chosen.length}개를 넣었어요 · [완료]를 누르면 저장돼요`;
     }
 
     // ────────────────────────────────────────────────────────────
@@ -5387,8 +5419,8 @@
                 bumpVoiceCount('voiceAddCount');
                 openImportReview({
                     source: 'voice',
-                    title: `말한 물건 ${names.length}개`,
-                    sub: '잘못 들은 건 체크를 풀어주세요',
+                    title: `알아들은 것 ${names.length}개`,
+                    sub: '넣을 것만 체크해 주세요',
                     candidates: names.map(name => ({ name })),
                     onRetry: startVoiceItemEntry
                 });
@@ -5457,7 +5489,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.17';
+    const APP_VERSION = '베타 2026.11.01.18';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
