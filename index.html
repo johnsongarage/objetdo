@@ -464,6 +464,19 @@
             .brief-exp-line b { color: #d0283a !important; }
             @media (prefers-reduced-motion: reduce) { .brief::after, .brief-head .dot { animation: none; } }
             .hero-quick { flex-direction: column; gap: 10px; margin-top: 6px; }
+            /* 🎤 말로 찾기: 검색창 바로 아래 큰 버튼 (키보드보다 말이 먼저 보이게). 검색창을 눌러 키보드가 올라오면 숨긴다 */
+            .hero-voice-btn { display: none; }
+            body.hero-search-active .hero-voice-btn { display: flex; }
+            body.hero-search-active.hero-search-focused .hero-voice-btn { display: none; }
+            .hero-voice-btn[hidden] { display: none !important; }
+            .hero-voice-btn { align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 64px; margin-top: -4px; padding: 10px 18px; border: 0; border-radius: var(--radius-pill); background: var(--hero-chip-bg); box-shadow: inset 0 0 0 2px var(--hero-chip-border); color: var(--hero-text); font: inherit; cursor: pointer; touch-action: manipulation; }
+            .hero-voice-btn > .ti { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; }
+            .hero-voice-btn b { font-size: 18px; font-weight: 800; }
+            .hero-voice-btn small { display: block; font-size: 12.5px; font-weight: 500; opacity: .75; }
+            .hero-voice-btn span { text-align: left; line-height: 1.25; }
+            .hero-voice-btn:active { transform: scale(0.98); }
+            .hero-voice-btn.is-listening > .ti { background: #ff4fd8; color: #fff; animation: voice-pulse 1s ease-in-out infinite; }
+            @keyframes voice-pulse { 50% { box-shadow: 0 0 0 10px rgba(255,79,216,.25); } }
             .hero-quick-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
             .hero-quick-label { font-size: 12px; font-weight: 700; color: var(--hero-text2); width: 30px; flex-shrink: 0; }
             .hero-chip {
@@ -1473,6 +1486,14 @@
             background: var(--card); border: 1px dashed var(--accent2); border-radius: var(--radius-sm);
             font: inherit; font-size: 15px; font-weight: 600; color: var(--accent-text); cursor: pointer; text-align: left;
         }
+        /* 🎤 말로 넣기: 물건 찾기 칸 바로 아래 큰 버튼 (정리하면서 손이 바쁠 때) */
+        .zm-voice-big { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 52px; margin-top: 8px; padding: 8px 14px; border: 1.5px dashed var(--accent2); border-radius: var(--radius-md); background: var(--accent-soft); color: var(--accent-text); font: inherit; cursor: pointer; touch-action: manipulation; }
+        .zm-voice-big > .ti { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; }
+        .zm-voice-big b { font-size: 15.5px; font-weight: 800; }
+        .zm-voice-big small { display: block; font-size: 12px; font-weight: 500; color: var(--text3); }
+        .zm-voice-big span { text-align: left; line-height: 1.3; }
+        .zm-voice-big.is-listening > .ti { background: #ff4fd8; color: #fff; }
+        .zm-voice-big[hidden] { display: none; }
         .zm-add-new-icon { width: 22px; height: 22px; border-radius: 6px; background: var(--accent2); color: var(--on-accent2); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
         .zm-add-new[hidden], .zm-item[hidden], .zm-review[hidden] { display: none !important; }
 
@@ -1910,6 +1931,7 @@
             <i class="ti ti-microphone"></i>
         </button>
     </div>
+    <button type="button" id="heroMicBtn" class="hero-voice-btn" onclick="heroVoiceTap(this)" aria-label="말로 찾기"><i class="ti ti-microphone"></i><span><b id="heroMicLabel">말로 찾기</b><small id="heroMicHint">"건전지 어디 있어" 하고 말해 보세요</small></span></button>
     <div id="searchResultDisplay" class="search-dropdown"></div>
     <div class="hero-quick" id="heroQuick"></div>
     <div class="hero-map-row">
@@ -2158,6 +2180,7 @@
                      인식 결과는 openImportReview({ source: 'ocr', candidates: [{ name, comment }] })로 넘기면 확인 목록이 그대로 재사용된다. -->
                 <button type="button" id="voiceItemBtn" class="icon-btn" onclick="startVoiceItemEntry()" title="말로 여러 개 추가" aria-label="말로 여러 개 추가"><i class="ti ti-microphone"></i></button>
             </div>
+            <button type="button" id="voiceItemBig" class="zm-voice-big" onclick="startVoiceItemEntry(this)"><i class="ti ti-microphone"></i><span><b>말로 넣기</b><small>"반팔티, 긴팔티, 레깅스"처럼 한 번에</small></span></button>
             <div id="voiceItemStatus" class="zm-status" role="status" aria-live="polite"></div>
             <button type="button" id="zmAddRow" class="zm-add-new" onclick="addNewItem()" hidden>
                 <span class="zm-add-new-icon"><i class="ti ti-plus"></i></span><span id="zmAddRowText"></span>
@@ -3558,20 +3581,41 @@
             }
         };
     })();
-    function startVoiceRecognition() {
+    function startVoiceRecognition(btnEl) {
         const searchInput = document.getElementById('searchBox');
         let last = '';
         startVoiceCapture({
-            btn: document.getElementById('micBtn'),
+            btn: btnEl && btnEl.nodeType ? btnEl : document.getElementById('micBtn'),
             input: searchInput,
             onState: (on) => { if (on) voiceSheet.show(); else voiceSheet.done(last); },
             onText: (t) => { last = t; voiceSheet.text(t); },
             onFinal: (text) => {
-                searchInput.value = text.replace(/(어디\s*있어|찾아줘|보여줘|검색해줘)$/, '').trim();
+                searchInput.value = text.replace(/\s*(어디\s*있어|어딨어|찾아줘|보여줘|검색해줘)[?요]*$/, '').trim();
+                bumpVoiceCount('voiceSearchCount');
                 integratedSearch(true);
             },
             onNoSpeech: (msg) => showToast(msg)
         });
+    }
+
+    // 말로 찾기·넣기를 몇 번 썼는지 폰 안에만 센다 (말한 내용은 남기지 않음) — 키보드보다 말을 더 쓰는지 보려고
+    function bumpVoiceCount(key) { try { safeStorage.setItem(key, String((parseInt(safeStorage.getItem(key) || '0', 10) || 0) + 1)); safeStorage.setItem('voiceUsed', '1'); } catch (e) {} syncVoiceButtons(); }
+    // 큰 마이크 버튼: 음성 인식이 없는 브라우저면 숨기고, 카톡 등 앱 안 브라우저면 "브라우저로 열기"로 바꾼다 (안 되는 버튼을 보여 주지 않게)
+    function voiceSupported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+    function syncVoiceButtons() {
+        const hero = document.getElementById('heroMicBtn'), big = document.getElementById('voiceItemBig');
+        const ok = voiceSupported(), inApp = typeof isInAppBrowser === 'function' && isInAppBrowser();
+        if (big) big.hidden = !ok || inApp;
+        if (!hero) return;
+        hero.hidden = !ok && !inApp;
+        hero.dataset.mode = inApp ? 'browser' : 'voice';
+        const used = safeStorage.getItem('voiceUsed') === '1';
+        document.getElementById('heroMicLabel').textContent = inApp ? '말로 찾기는 브라우저에서' : '말로 찾기';
+        document.getElementById('heroMicHint').textContent = inApp ? '눌러서 크롬·사파리로 열기' : used ? '"건전지 어디 있어" 하고 말해 보세요' : '처음 한 번만 마이크를 허용해 주세요';
+    }
+    function heroVoiceTap(btn) {
+        if (btn.dataset.mode === 'browser') { openInBrowser(); return; }
+        startVoiceRecognition(btn);
     }
 
     // 🎨 화면 테마 전환 (기본 인디고 / 샴페인 / 옐로우 & 네이비(빽다방용) / 그린 & 아이보리 / 파스텔) — 저장해 두고 다음 접속에도 유지. 그린의 저장값은 호환을 위해 'default' 유지
@@ -5043,17 +5087,18 @@
             .filter(tok => tok && !VOICE_LIST_CONNECTORS.has(tok));
     }
 
-    function startVoiceItemEntry() {
+    function startVoiceItemEntry(btnEl) {
         if (!activeZone) return;
         const input = document.getElementById('newItemInput'), status = document.getElementById('voiceItemStatus');
         status.textContent = '';
         startVoiceCapture({
-            btn: document.getElementById('voiceItemBtn'),
+            btn: btnEl && btnEl.nodeType ? btnEl : document.getElementById('voiceItemBtn'),
             input,
             onFinal: (transcript) => {
                 input.value = ''; applyZoneItemFilter();
                 const names = [...new Set(parseVoiceItemList(transcript))];
                 if (names.length === 0) { status.textContent = '알아들은 물건이 없어요. 다시 말해주세요'; return; }
+                bumpVoiceCount('voiceAddCount');
                 openImportReview({
                     source: 'voice',
                     title: `말한 물건 ${names.length}개`,
@@ -5126,7 +5171,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.10.29.1';
+    const APP_VERSION = '베타 2026.11.01.1';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5550,7 +5595,7 @@
         if (pinned.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">즐찾</span>${pinned.map(n => `<button type="button" class="hero-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">★ ${escapeHtml(n)}</button>`).join('')}</div>`; // 신입용 고정 물건 (사장님이 정해 둔 것)
         if (history.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
         if (frequent.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">자주</span>${frequent.map(([n, c]) => chip(n, ` <small>${c}회</small>`)).join('')}</div>`;
-        quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지) · 🎤 눌러 말로도</p>';
+        quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
     }
 
     // 창고 브리핑 카드: 구역·물건·이번 주 찾음·부족 + 마지막 재고 확인. 숫자는 바뀌었을 때(처음 포함) 0부터 올라간다
@@ -7561,7 +7606,7 @@
 
     async function startApp() {
         await storageReady;
-        syncStockRow();
+        syncStockRow(); syncVoiceButtons();
         loadVisitStats();
         isEditMode = false;
 
