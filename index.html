@@ -29,7 +29,11 @@
         // 처음 방문(고른 적 없음)은 모노(흑백)가 기본. 직접 고른 테마는 그대로 유지 (없어진 블랙 테마들은 기본으로)
         // 쓰는 곳: 집·정리수납(home) / 매장·창고(store). 주소에 ?mode=home 이 붙어 오면 그걸로 정한다 (정리 전문가께 보내는 링크)
         let m = 'store';
-        try { const q = new URLSearchParams(location.search).get('mode'); if (q === 'home' || q === 'store') localStorage.setItem('useMode', q); m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store'; } catch (e) {}
+        try {
+            const u = new URLSearchParams(location.search), q = u.get('mode');
+            if (q === 'home' || q === 'store') { localStorage.setItem('useMode', q); u.delete('mode'); history.replaceState(null, '', location.pathname + (u.toString() ? '?' + u : '') + location.hash); } // 주소에서 지워야 나중에 설정에서 바꾼 모드가 새로고침에 되돌아가지 않는다
+            m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store';
+        } catch (e) {}
         document.documentElement.dataset.mode = m;
         try { if (localStorage.getItem('simpleView') === '1') document.documentElement.dataset.simple = '1'; } catch (e) {}
         // 기본 톤: 집은 정돈, 매장은 매장 정돈 (11/1부터 모두). 예전 기본값이던 흑백은 한 번만 매장 정돈으로 옮긴다
@@ -2291,7 +2295,7 @@
         <p class="welcome-sub">물건 이름만 대면 어느 칸인지 안내해요</p>
         <div class="welcome-actions">
             <button class="btn-base btn-primary btn-lg" onclick="loadSampleData()"><i class="ti ti-player-play"></i> 예시로 먼저 둘러보기</button>
-            <button class="btn-base btn-secondary btn-lg" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
+            <button class="btn-base btn-secondary btn-lg" id="welcomeStartBtn" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
             <p class="revisit-only welcome-revisit-note">지금 쓰던 지도는 그대로 있어요. 예시는 저장하지 않고 미리보기로 열려요.</p>
             <a class="setup-promo" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener" hidden>
                 <i class="ti ti-gift setup-promo-ic" aria-hidden="true"></i>
@@ -2764,7 +2768,8 @@
     try {
         const linkedSample = new URLSearchParams(location.search).get('sample');
         if (linkedSample) {
-            sessionStorage.setItem(SAMPLE_PREVIEW_KEY, linkedSample === 'organizer' ? 'organizer' : '1');
+            let homeMode = false; try { homeMode = localStorage.getItem('useMode') === 'home'; } catch (e) {}
+            sessionStorage.setItem(SAMPLE_PREVIEW_KEY, linkedSample === 'organizer' || (linkedSample !== 'store' && homeMode) ? 'organizer' : '1');
             history.replaceState(null, '', location.pathname + location.hash);
         }
     } catch (e) {}
@@ -5447,7 +5452,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.14';
+    const APP_VERSION = '베타 2026.11.01.15';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6604,6 +6609,11 @@
         if (!show) document.body.classList.remove('welcome-revisit');
         const card = document.getElementById('welcomeCard'); if (card) card.style.display = show ? 'flex' : 'none';
         document.body.classList.toggle('welcome-open', show); // 첫 화면에서는 사진용 하단 조작 바를 숨기고 카드를 화면 높이에 맞춘다
+        if (show) {
+            const home = useMode() === 'home', t = document.querySelector('.welcome-title'), st = document.getElementById('welcomeStartBtn');
+            if (t) t.innerHTML = home ? '사진 한 장이<br>우리 집 수납 지도가 돼요' : '사진 한 장이<br>창고 지도가 돼요';
+            if (st) st.innerHTML = home ? '<i class="ti ti-camera"></i> 내 수납장 사진으로 시작' : '<i class="ti ti-camera"></i> 내 창고 사진으로 시작';
+        }
         if (show) { syncIndustryUI(); renderWelcomeShowcase(); document.querySelectorAll('.setup-promo').forEach(a => a.hidden = !setupPromoOn()); } else clearInterval(wsTimer);
         const sampleBtn = document.getElementById('sampleDataBtn'); if (sampleBtn && show) sampleBtn.style.display = 'none';
         const dummy = document.getElementById('section-dummy_root'); if (dummy) dummy.style.display = show ? 'none' : '';
@@ -7611,6 +7621,16 @@
         setTheme(m === 'home' ? 'calm' : 'shop');
         applyFeatures();
         showToast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요', 3000);
+        // 예시를 보고 있었다면 그 모드의 예시로 바꾼다 (집 → 팬트리·옷장, 매장 → 카페 창고)
+        if (isSamplePreview) { // 미리보기는 저장을 안 하므로, 고른 모드만 실제로 남기고 다시 연다
+            try { localStorage.setItem('useMode', m); sessionStorage.setItem(SAMPLE_PREVIEW_KEY, m === 'home' ? 'organizer' : '1'); } catch (e) {}
+            setTimeout(() => location.reload(), 600); return;
+        }
+        if (safeStorage.getItem('isSampleData') === '1') {
+            safeStorage.setItem('savedSystemData', JSON.stringify(sampleSystemData()));
+            safeStorage.setItem('baseItems', JSON.stringify(currentSample().baseItems));
+            setTimeout(reloadAfterSave, 600);
+        }
     }
     // 찾기만 화면: 이 기기에서만 켜진다. 데이터는 그대로, 화면만 검색 하나로
     function simpleOn() { return document.documentElement.dataset.simple === '1'; }
