@@ -33,6 +33,7 @@
         let m = 'store';
         try { const q = new URLSearchParams(location.search).get('mode'); if (q === 'home' || q === 'store') localStorage.setItem('useMode', q); m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store'; } catch (e) {}
         document.documentElement.dataset.mode = m;
+        try { if (localStorage.getItem('simpleView') === '1') document.documentElement.dataset.simple = '1'; } catch (e) {}
         let lb = 'v2'; try { lb = localStorage.getItem('lookBase') || 'v2'; } catch (e) {}
         let t = m === 'home' ? 'calm' : lb === 'v1' ? 'mono' : 'shop';
         try { t = localStorage.getItem('uiTheme') || t; } catch (e) {}
@@ -432,6 +433,34 @@
         html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #industryAsk,
         html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #itemList,
         html[data-mode="home"] #modal:not(.zm-suggest-open):not(.zm-filtering) #zmMoreSuggest { display: none !important; }
+        /* 🔎 찾기만 화면: 검색창 하나 + 답 한 줄 + 사진. 나머지는 ⋯ 메뉴 안에 */
+        .simple-more, #simpleAnswer, #simpleMenu { display: none; }
+        html[data-simple="1"] .simple-more { display: flex; position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 1065; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font-size: 24px; align-items: center; justify-content: center; cursor: pointer; }
+        html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
+        html[data-simple="1"] body.hero-search-focused .simple-more { display: none; } /* 검색창이 위로 올라가면 마이크와 겹친다 */
+        html[data-simple="1"] .hero-beta, html[data-simple="1"] #heroSummary, html[data-simple="1"] #heroQuick .hero-quick-row, html[data-simple="1"] .hero-spaces,
+        html[data-simple="1"] .hero-map-row, html[data-simple="1"] #heroMicBtn, html[data-simple="1"] .search-bar .app-brand,
+        html[data-simple="1"] #floatingRemote, html[data-simple="1"] #foundBar, html[data-simple="1"] #foundPill { display: none !important; }
+        html[data-simple="1"] .hero-ask { font-size: 30px; margin-bottom: 8px; }
+        html[data-simple="1"] #micBtn { background: var(--accent); color: #fff; border-radius: 50%; }
+        #simpleAnswer { position: fixed; inset: 0; z-index: 1070; background: var(--bg); overflow-y: auto; padding: max(16px, env(safe-area-inset-top)) 20px 110px; color: var(--text); }
+        #simpleAnswer.is-open { display: block; }
+        .sa-wrap { max-width: 560px; margin: 0 auto; }
+        .sa-q { display: flex; align-items: center; justify-content: space-between; width: calc(100% - 50px); height: 56px; padding: 0 20px; border: 1px solid var(--border); border-radius: 28px; background: var(--card); color: var(--text); font: inherit; font-size: 17px; text-align: left; cursor: pointer; }
+        .sa-q span { color: var(--text3); font-size: 14px; }
+        .sa-title { margin-top: 22px; font-size: 26px; font-weight: 800; line-height: 1.3; letter-spacing: -0.5px; }
+        .sa-sub { margin-top: 4px; font-size: 15px; color: var(--text2); }
+        .sa-pic { margin-top: 16px; width: 100%; border-radius: 18px; display: block; background: var(--card); }
+        .sa-with { margin-top: 14px; font-size: 14.5px; color: var(--text2); line-height: 1.5; }
+        .sa-with b { color: var(--text); font-weight: 600; }
+        .sa-again { position: fixed; left: 20px; right: 20px; bottom: max(24px, env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; height: 56px; border: 1px solid var(--border); border-radius: 28px; background: var(--card); color: var(--text); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+        #simpleMenu.is-open { display: block; position: fixed; inset: 0; z-index: 1080; background: rgba(43,42,40,0.35); }
+        .sm-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; background: var(--card); border-radius: 24px 24px 0 0; padding: 12px 20px max(24px, env(safe-area-inset-bottom)); }
+        .sm-grab { width: 40px; height: 5px; border-radius: 3px; background: var(--border); margin: 0 auto 8px; }
+        .sm-row { display: flex; width: 100%; align-items: center; justify-content: space-between; padding: 17px 4px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; text-align: left; cursor: pointer; }
+        .sm-row:last-child { border-bottom: 0; }
+        html[data-simple="1"] #settingsBackdrop { z-index: 1081; } html[data-simple="1"] #settingsModal { z-index: 1082; } /* 찾기만 화면 위에서도 설정이 보이게 (인쇄 창은 원래 더 위) */
+        .sm-row small { color: var(--text3); font-size: 13.5px; }
         /* 기능 끄기 */
         html[data-f-brief="0"] #heroSummary { display: none !important; }
         html[data-f-exp="0"] #stockExpTab, html[data-f-exp="0"] #stockField [data-field="exp"], html[data-f-exp="0"] .ic-exp-sec { display: none !important; }
@@ -2104,6 +2133,18 @@
     </div>
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
+<button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴">⋯</button>
+<div id="simpleAnswer" role="dialog" aria-label="찾은 곳"><div class="sa-wrap">
+    <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><b id="saQuery"></b><span>다시 찾기</span></button>
+    <div class="sa-title" id="saTitle"></div><div class="sa-sub" id="saSub"></div>
+    <canvas class="sa-pic" id="saPic"></canvas>
+    <p class="sa-with" id="saWith"></p>
+</div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
+<div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); setSimpleView(false)">전체 화면으로<small>공간 보기 · 물건 넣기 · 고치기</small></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()">번호 스티커 · 지도 인쇄</button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openSettingsModal()">설정<small>백업 · 기능 켜기</small></button>
+</div></div>
 
 <div class="content-wrapper" id="report-container">
     <!-- 샘플 데이터로 둘러보는 중일 때만 표시 (헤더가 좁은 모바일에서 넘치지 않도록 본문 상단에 둔다) -->
@@ -2535,6 +2576,9 @@
         <div class="use-mode" id="useModeSeg">
             <button type="button" data-mode="home" onclick="setUseMode('home')"><b>집 · 정리수납</b><small>팬트리, 옷장, 다용도실</small></button>
             <button type="button" data-mode="store" onclick="setUseMode('store')"><b>매장 · 창고</b><small>재고 점검, 발주, 유통기한까지</small></button>
+        </div>
+        <div class="settings-list" style="margin-top: 10px;">
+            <button class="settings-row" onclick="setSimpleView(!simpleOn())"><i class="ti ti-search"></i> 찾기만 화면 <small style="color: var(--text3); font-weight: 400;">검색창 하나만 (가족·직원용)</small><span class="feat-sw" data-feat="simple"></span></button>
         </div>
         <div class="settings-label" style="margin-top: 14px;">쓰는 기능 <small style="font-weight: 400; color: var(--text3);">끈 기능도 적어 둔 내용은 그대로 있어요</small></div>
         <div class="settings-list" id="featList">
@@ -5125,6 +5169,7 @@
         clearZoneFocus();
     }, true);
     function selectZone(dataId, index) {
+        if (simpleOn()) { showSimpleAnswer(dataId, index); return; }
         deactivateHeroSearch(); recordFind();
         activeData = imageList.find(d => d.id == dataId); activeZone = activeData.zones[index];
         showSearchArrow = true; showPhoto(dataId);
@@ -5358,7 +5403,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.5';
+    const APP_VERSION = '베타 2026.11.01.6';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5878,6 +5923,12 @@
         box.placeholder = document.body.classList.contains('hero-search-active') || window.innerWidth > 600 ? '찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)' : '예: 영수증 용지, ㅇㅅㅈ';
     }
     function deactivateHeroSearch() {
+        if (simpleOn()) { // 찾기만 화면에서는 검색 화면이 곧 첫 화면
+            document.body.classList.remove('hero-search-focused');
+            const d = document.getElementById('searchResultDisplay'); if (d) d.style.display = 'none';
+            const b = document.getElementById('searchBox'); if (b && document.activeElement === b) b.blur();
+            return;
+        }
         document.body.classList.remove('hero-search-active', 'hero-search-focused'); syncSearchHint();
         // 검색 카드를 내리면 결과 창도 같이 닫는다 ([창고 지도 보기]는 검색 카드 안 버튼이라 바깥 누르기로 닫히지 않아 결과 창이 남았다)
         const display = document.getElementById('searchResultDisplay'); if (display) display.style.display = 'none';
@@ -6240,6 +6291,7 @@
 
     function queueFoundCheck(dataId, index, itemName) {
         hideFoundBar();
+        if (simpleOn()) return;
         const data = imageList.find(d => d.id == dataId), zone = data && data.zones[index];
         if (!zone || !itemName) return; // 구역/사진 이름으로 찾은 경우엔 확인할 "물건"이 없음
         foundCtx = { dataId: data.id, zone, itemName, stage: 'waiting', at: Date.now(), hiddenAt: null };
@@ -7514,11 +7566,56 @@
         applyFeatures();
         showToast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요', 3000);
     }
+    // 찾기만 화면: 이 기기에서만 켜진다. 데이터는 그대로, 화면만 검색 하나로
+    function simpleOn() { return document.documentElement.dataset.simple === '1'; }
+    function setSimpleView(on) {
+        safeStorage.setItem('simpleView', on ? '1' : '0');
+        if (on) document.documentElement.dataset.simple = '1'; else delete document.documentElement.dataset.simple;
+        document.querySelectorAll('.feat-sw[data-feat="simple"]').forEach(sw => sw.classList.toggle('is-on', on));
+        closeSimpleAnswer(false);
+        if (on) { closeSettingsModal(); hideZoneModal && hideZoneModal(); window.scrollTo(0, 0); activateHeroSearch(); showToast('찾기만 화면이에요. 다른 기능은 오른쪽 위 ⋯ 에 있어요', 3000); }
+        else { deactivateHeroSearch(); showToast('전체 화면이에요. 설정에서 다시 찾기만 화면으로 바꿀 수 있어요', 3000); }
+    }
+    function openSimpleMenu() { document.getElementById('simpleMenu').classList.add('is-open'); }
+    function closeSimpleMenu() { document.getElementById('simpleMenu').classList.remove('is-open'); }
+    function closeSimpleAnswer(refocus) {
+        const el = document.getElementById('simpleAnswer'); if (!el) return;
+        el.classList.remove('is-open');
+        if (refocus) { const box = document.getElementById('searchBox'); box.value = ''; activateHeroSearch(true); box.focus(); integratedSearch(false); }
+    }
+    // 찾은 칸을 답 한 줄 + 사진 한 장으로 (지도·목록으로 넘어가지 않는다)
+    function showSimpleAnswer(dataId, index) {
+        const d = imageList.find(x => x.id == dataId), z = d && d.zones[index];
+        if (!d || !z) return;
+        recordFind();
+        const display = document.getElementById('searchResultDisplay'); if (display) display.style.display = 'none';
+        const box = document.getElementById('searchBox'); if (box) box.blur();
+        document.getElementById('saQuery').textContent = box ? box.value.trim() : '';
+        document.getElementById('saTitle').textContent = `${d.title || '사진'} ${index + 1}번`;
+        document.getElementById('saSub').textContent = z.name || '';
+        const others = z.items.map(it => it.name);
+        document.getElementById('saWith').innerHTML = others.length ? `이 칸에 있는 것 <b>${others.map(escapeHtml).join(' · ')}</b>` : '';
+        const c = document.getElementById('saPic'), img = d.img;
+        if (img && img.width) {
+            const W = img.width, H = img.height, k = W / 800;
+            c.width = W; c.height = H; const x = c.getContext('2d');
+            x.drawImage(img, 0, 0, W, H);
+            x.save(); x.beginPath(); x.rect(0, 0, W, H); x.rect(z.x, z.y, z.w, z.h); x.fillStyle = 'rgba(43,42,40,0.45)'; x.fill('evenodd'); x.restore();
+            x.lineWidth = 7 * k; x.strokeStyle = '#ffffff'; x.strokeRect(z.x, z.y, z.w, z.h);
+            x.lineWidth = 4 * k; x.strokeStyle = `rgb(${themeColors.accentRgb})`; x.strokeRect(z.x, z.y, z.w, z.h);
+            const r = 24 * k, cx = z.x + r * 0.6, cy = z.y + r * 0.6;
+            x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fillStyle = `rgb(${themeColors.accentRgb})`; x.fill(); x.lineWidth = 3 * k; x.strokeStyle = '#fff'; x.stroke();
+            x.fillStyle = '#fff'; x.font = `800 ${Math.round(24 * k)}px sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(index + 1), cx, cy + 1 * k);
+            c.hidden = false;
+        } else c.hidden = true;
+        const el = document.getElementById('simpleAnswer'); el.classList.add('is-open'); el.scrollTop = 0;
+    }
     function applyFeatures() {
         const r = document.documentElement;
         r.dataset.fExp = feat('exp') ? '1' : '0'; r.dataset.fBrief = feat('brief') ? '1' : '0'; r.dataset.fChips = feat('chips') ? '1' : '0'; r.dataset.fFx = feat('fx') ? '1' : '0';
         document.querySelectorAll('#useModeSeg [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === useMode())));
         document.querySelectorAll('#featList .feat-sw').forEach(sw => sw.classList.toggle('is-on', sw.dataset.feat === 'stock' ? stockOn() : feat(sw.dataset.feat)));
+        document.querySelectorAll('.feat-sw[data-feat="simple"]').forEach(sw => sw.classList.toggle('is-on', simpleOn()));
         if (typeof stockField !== 'undefined' && stockField === 'exp' && !feat('exp')) stockField = 'qty';
         syncStockRow();
         if (document.body.classList.contains('hero-search-active')) renderHeroHome();
