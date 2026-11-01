@@ -444,6 +444,9 @@
         body.hero-search-active:not(.hero-search-focused) .simple-brand { display: flex; position: fixed; top: max(24px, calc(env(safe-area-inset-top) + 10px)); left: max(22px, calc(50% - 280px)); z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
         .simple-brand i { width: 9px; height: 9px; border-radius: 3px; background: rgb(var(--accent-rgb)); display: block; transform: rotate(45deg); }
         html[data-simple="1"] .simple-brand small { display: none; }
+        /* 위 막대 바탕: 첫 화면을 내리면 글자가 이름·메뉴 밑으로 들어가 겹쳐 보였다 → 같은 색 바탕으로 가린다 */
+        .hero-topbar { display: none; }
+        body.hero-search-active:not(.hero-search-focused) .hero-topbar { display: block; position: fixed; left: 0; right: 0; top: 0; height: calc(64px + env(safe-area-inset-top, 0px)); z-index: 1064; background: var(--hero-bg); pointer-events: none; }
         .simple-brand small { margin-left: 2px; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--border); font-size: 10.5px; font-weight: 700; color: var(--text3); }
         body.hero-search-active .search-bar .app-brand, body.hero-search-active .hero-beta { display: none !important; } /* 이름은 왼쪽 위 작게 (가운데 큰 이름과 왼쪽 질문이 어긋나 보였다) */
         html[data-simple="1"] body.hero-search-active:not(.hero-search-focused) .simple-sub, html[data-f-brief="0"] body.hero-search-active:not(.hero-search-focused) .simple-sub { display: block; margin: -6px 0 6px; font-size: 14.5px; line-height: 1.55; color: var(--hero-text2); text-align: left; }
@@ -2191,6 +2194,7 @@
     </div>
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
+<div class="hero-topbar" aria-hidden="true"></div>
 <div class="simple-brand"><i></i>창고여지도<small>베타</small></div>
 <button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <div class="simple-foot" id="simpleFoot"></div>
@@ -5443,7 +5447,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.01.13';
+    const APP_VERSION = '베타 2026.11.01.14';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
