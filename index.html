@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#ffffff">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=13">
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=13">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=14">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=14">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="오브젯도">
@@ -55,10 +55,10 @@
     <meta property="og:title" content="오브젯도 - 사진으로 만드는 물건 자리 지도">
     <meta property="og:description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요.">
     <meta property="og:url" content="https://johnsongarage.github.io/udigo/">
-    <meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=21">
+    <meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=22">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="오브젯도: 사진으로 만드는 물건 자리 지도. 남색 하늘과 울퉁불퉁한 땅 위에 노란 상자가 떠 있고 위에서 흰 핀이 가리키는 앱 아이콘, 아래에 '빨대 → 아래 칸 가운데' 검색 결과">
+    <meta property="og:image:alt" content="오브젯도: 사진으로 만드는 물건 자리 지도. 먹색 바탕 위에 모래색 상자가 떠 있고 위에서 흰 핀이 가리키는 앱 아이콘, 아래에 '빨대 → 아래 칸 가운데' 검색 결과">
     <meta property="og:locale" content="ko_KR">
     <meta name="twitter:card" content="summary_large_image">
     <style>
@@ -5664,7 +5664,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.8';
+    const APP_VERSION = '베타 2026.11.02.9';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
