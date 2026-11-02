@@ -9,14 +9,14 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=13">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="창고여지도">
+    <meta name="apple-mobile-web-app-title" content="오브젯도">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <script>
         // ✏ 서비스 이름: 앱 화면 글자·공유·백업/인쇄 파일 이름·인쇄물은 모두 이 한 곳을 쓴다.
         //   이름을 바꿀 땐 python3 tools/rename_app.py 새이름 → 이 줄과 아래 <head>의 제목·공유 미리보기 글, manifest까지 한 번에 바뀐다.
         //   (검색·카톡 미리보기는 스크립트를 실행하지 않고 <head> 글자를 그대로 읽어서, 그쪽은 글자로 따로 적혀 있어야 한다)
-        const APP_NAME = '창고여지도';
-        const APP_NAME_EN = ''; // 영문 표기 (정해지면 넣기, 비우면 첫 화면에서 숨김)
+        const APP_NAME = '오브젯도';
+        const APP_NAME_EN = 'Objetdo'; // 영문 표기 (비우면 첫 화면에서 숨김)
         // 이름 뒤 조사: 받침 있으면 '으로/이/은/을', 없으면 '로/가/는/를' (ㄹ 받침 + 로)
         function josa(word, withBatchim, without) {
             const c = word.charCodeAt(word.length - 1) - 0xAC00;
@@ -47,18 +47,18 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"></noscript>
-    <title>창고여지도 - 사진으로 만드는 매장 물품 지도</title>
+    <title>오브젯도 - 사진으로 만드는 물건 자리 지도</title>
     <!-- 카톡·SNS 링크 미리보기 (이미지 주소는 반드시 전체 주소여야 카톡이 읽는다) -->
     <meta name="description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요. A4로 뽑아 벽에 붙일 수도 있어요.">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="창고여지도">
-    <meta property="og:title" content="창고여지도 - 사진으로 만드는 매장 물품 지도">
+    <meta property="og:site_name" content="오브젯도">
+    <meta property="og:title" content="오브젯도 - 사진으로 만드는 물건 자리 지도">
     <meta property="og:description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요.">
     <meta property="og:url" content="https://johnsongarage.github.io/udigo/">
-    <meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=20">
+    <meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=21">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="창고여지도: 사진으로 만드는 매장 물품 지도. 남색 하늘과 울퉁불퉁한 땅 위에 노란 상자가 떠 있고 위에서 흰 핀이 가리키는 앱 아이콘, 아래에 '빨대 → 아래 칸 가운데' 검색 결과">
+    <meta property="og:image:alt" content="오브젯도: 사진으로 만드는 물건 자리 지도. 남색 하늘과 울퉁불퉁한 땅 위에 노란 상자가 떠 있고 위에서 흰 핀이 가리키는 앱 아이콘, 아래에 '빨대 → 아래 칸 가운데' 검색 결과">
     <meta property="og:locale" content="ko_KR">
     <meta name="twitter:card" content="summary_large_image">
     <style>
@@ -1555,7 +1555,7 @@
         .welcome-beta { text-align: center; margin-bottom: 8px; }
         /* 첫 화면 이름 줄 */
         .welcome-brand { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0 0 12px; }
-        .welcome-brand-name { display: flex; flex-direction: column; align-items: center; gap: 1px; } /* 창고여지도가 가운데서 주인공, 영문은 아래에 작게 */
+        .welcome-brand-name { display: flex; flex-direction: column; align-items: center; gap: 1px; } /* 오브젯도가 가운데서 주인공, 영문은 아래에 작게 */
         .welcome-brand b { font-size: 22px; font-weight: 900; color: var(--accent-text); letter-spacing: -0.6px; }
         .welcome-brand .welcome-en { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 1.2px; text-transform: uppercase; }
         .welcome-brand span { font-size: 13px; font-weight: 600; color: var(--text2); }
@@ -2132,7 +2132,7 @@
 </div>
 
 <div id="guideModal" style="display:none; line-height: 1.6;">
-    <h2 style="text-align: center; color: var(--accent-text); margin-bottom: 16px; font-size: 1.25em;"><span data-app-name>창고여지도</span> 사용법</h2>
+    <h2 style="text-align: center; color: var(--accent-text); margin-bottom: 16px; font-size: 1.25em;"><span data-app-name>오브젯도</span> 사용법</h2>
     <div style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
         <ol class="guide-steps">
             <li><i class="ti ti-camera"></i><div><b>사진 올리고 구역 만들기</b><span>사진 가운데 <b>[AI로 구역 찾기]</b>를 누르거나, <b>[직접 그리기]</b>로 사진 위를 끌어 구역을 만들어요. 나중에 고치려면 오른쪽 아래 <b>[구역 고치기]</b>.</span><small>AI로 찾을 때 사진만 외부 AI 서버로 보내져요.</small></div></li>
@@ -2296,7 +2296,7 @@
 
 <div class="search-bar">
     <div class="app-brand" style="display: flex; align-items: center;">
-        <button type="button" class="brand-home" onclick="openWelcomeRevisit()" title="첫 화면으로"><svg class="brand-box" style="margin-right: 6px; vertical-align: -3px;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span data-app-name>창고여지도</span><span class="beta-badge">베타</span></button>
+        <button type="button" class="brand-home" onclick="openWelcomeRevisit()" title="첫 화면으로"><svg class="brand-box" style="margin-right: 6px; vertical-align: -3px;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span data-app-name>오브젯도</span><span class="beta-badge">베타</span></button>
         <button onclick="openVideoGuideModal()" style="display: none;" title="사용방법 가이드">
             <i class="ti ti-bulb" style="font-size: 18px; transition: color 0.2s;"></i>
         </button>
@@ -2330,13 +2330,13 @@
 </div>
 <div id="heroSearchBackdrop" onclick="onHeroBackdropClick()"></div>
 <div class="hero-topbar" aria-hidden="true"></div>
-<div class="simple-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>창고여지도<small>베타</small></div>
+<div class="simple-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>오브젯도<small>베타</small></div>
 <button type="button" class="simple-more" onclick="openSimpleMenu()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 <div class="simple-foot" id="simpleFoot"></div>
 <div id="simpleAnswer" role="dialog" aria-label="찾은 곳"><div class="sa-wrap">
     <button type="button" class="sa-q" onclick="closeSimpleAnswer(true)"><span id="saQLabel">찾은 말</span><b id="saQuery"></b></button>
     <div class="sa-card">
-        <div class="sa-kicker">여기 있어요</div>
+        <div class="sa-kicker">여깃도!</div>
         <div class="sa-title" id="saTitle"></div>
         <div class="sa-path" id="saPath"></div>
         <canvas class="sa-pic" id="saPic"></canvas>
@@ -2354,7 +2354,7 @@
     <div class="lv-body" id="lvBody"></div>
 </div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
-    <div class="sm-head"><span class="sm-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>창고여지도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
+    <div class="sm-head"><span class="sm-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>오브젯도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
     <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else if (document.body.classList.contains('hero-search-active')) { deactivateHeroSearch(); window.scrollTo(0, 0); } else openWelcomeRevisit();"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg></span><span class="sm-tx"><b id="smMapText">전체 화면으로</b><small>공간 보기 · 물건 넣기 · 고치기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openListView()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></span><span class="sm-tx"><b>물건 전체 목록</b><small>훑어보기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4"/><rect x="7" y="13" width="10" height="8" rx="2"/></svg></span><span class="sm-tx"><b>번호 스티커 · 지도 인쇄</b></span></button>
@@ -2432,7 +2432,7 @@
             <g class="welcome-hero-pin"><path d="M119 36 a12 12 0 1 1 24 0 c0 9 -12 20 -12 20 s-12 -11 -12 -20z" fill="var(--accent)"/><circle cx="131" cy="35" r="4.5" fill="#fff"/></g>
             </g>
         </svg>
-        <div class="welcome-brand"><div class="welcome-brand-name"><b data-app-name>창고여지도</b><small class="welcome-en" data-app-name-en hidden></small></div></div>
+        <div class="welcome-brand"><div class="welcome-brand-name"><b data-app-name>오브젯도</b><small class="welcome-en" data-app-name-en hidden></small></div></div>
         <h2 class="welcome-title">사진 한 장이<br>창고 지도가 돼요</h2>
         <!-- 포스트잇과 다른 점: 선반 앞에 가지 않아도 물건 이름으로 자리를 찾는다 (넣을 때도, 꺼낼 때도) -->
         <p class="welcome-sub">물건 이름만 대면 어느 칸인지 안내해요</p>
@@ -2799,7 +2799,7 @@
             <button id="installAppRow" class="settings-row" onclick="installApp()"><i class="ti ti-device-mobile"></i> 홈 화면에 앱으로 설치</button>
             <button class="settings-row" onclick="closeSettingsModal(); openVideoGuideModal();"><i class="ti ti-help-circle"></i> 사용법 다시 보기</button>
             <button class="settings-row" onclick="openFeedbackForm()"><i class="ti ti-message-2"></i> 의견 보내기</button>
-            <button class="settings-row" onclick="shareApp()"><i class="ti ti-share"></i> <span data-app-name>창고여지도</span> 알려주기</button>
+            <button class="settings-row" onclick="shareApp()"><i class="ti ti-share"></i> <span data-app-name>오브젯도</span> 알려주기</button>
             <button id="contactRow" class="settings-row" onclick="openContact()" hidden><i class="ti ti-headset"></i> 문의하기 <small id="contactText" style="margin-left: auto; color: var(--text3); font-weight: 400;"></small></button>
             <a id="promoRow" class="settings-row promo-row" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener" hidden><i class="ti ti-gift"></i> 무료 방문 세팅 <small style="margin-left: auto; color: var(--text3); font-weight: 400;">10/31까지 · 다산·구리</small></a>
         </div>
@@ -5664,7 +5664,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.7';
+    const APP_VERSION = '베타 2026.11.02.8';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
