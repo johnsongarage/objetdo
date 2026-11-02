@@ -45,8 +45,8 @@
     </script>
     <!-- 아이콘 글꼴: 화면을 막지 않게 받는다 (그냥 넣으면 다 받을 때까지 아래 스크립트가 멈춰 첫 화면에 사진이 늦게 떴다) -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"></noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.50.0/dist/tabler-icons.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.50.0/dist/tabler-icons.min.css"></noscript>
     <title>오브젯도 - 사진으로 만드는 물건 자리 지도</title>
     <!-- 카톡·SNS 링크 미리보기 (이미지 주소는 반드시 전체 주소여야 카톡이 읽는다) -->
     <meta name="description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요. A4로 뽑아 벽에 붙일 수도 있어요.">
@@ -411,6 +411,8 @@
         /* 🏠 집·정리 모드: 핵심만 (사진 지도 · 검색 · 말로 찾기/넣기 · 인쇄). 꺼진 기능은 지우지 않고 숨긴다 */
         .hero-ask, .hero-spaces { display: none; }
         html[data-mode="home"] .only-store, html:not([data-mode="home"]) .only-home { display: none; } /* 모드별 문구 */
+        html[data-mode="home"] #promoBanner, html[data-mode="home"] .setup-promo, html[data-mode="home"] #promoRow, html[data-mode="home"] .ws-setup { display: none !important; } /* 다산·구리 방문 세팅은 매장 대상 */
+        body.welcome-open:not(.hero-search-active) .search-bar { display: none; } /* 시작 화면: 카드에 이름·로고가 있어 위 머리글 이름이 겹쳤다 */
         body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         body.hero-search-active:not(.hero-search-focused) .hero-spaces { display: grid; }
         html[data-simple="1"] .hero-spaces { display: none !important; }
@@ -1316,6 +1318,18 @@
         #emptyGuide { text-align: center; color: var(--text3); padding: 50px 20px; display: none; font-size: 14px; border: 2px dashed var(--border); border-radius: 12px; background: var(--card); }
 
         @media (max-width: 600px) { .floating-remote { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 10px; padding: 4px 6px; } }
+        /* PC 지도: 사진이 가운데 좁게, 구역 목록은 화면 끝까지 길게 늘어져 [편집]이 멀었다 → 사진 왼쪽 · 구역 목록 오른쪽 */
+        @media (min-width: 1024px) {
+            body:not(.hero-search-active):not(.photo-fs) .image-section { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr); column-gap: 22px; align-items: start; }
+            body:not(.hero-search-active):not(.photo-fs) .image-section > :first-child { grid-column: 1 / -1; }
+            body:not(.hero-search-active):not(.photo-fs) .image-section > .zoom-box { grid-column: 1; width: 100%; }
+            body:not(.hero-search-active):not(.photo-fs) .image-section > .zl-wrap { grid-column: 2; margin-top: 0 !important; position: sticky; top: 76px; max-height: calc(100vh - 160px); overflow-y: auto !important; } /* 아래 떠 있는 버튼(인쇄·점검·구역 고치기)에 안 가리게 */
+        }
+        /* 폰: 떠 있는 알약이 구역 목록의 [편집] 버튼을 가렸다 → 화면 아래 띠로 (목록은 띠 뒤로 지나가고, 맨 아래는 body 여백으로 다 보인다) */
+        @media (max-width: 600px) {
+            body:not(.photo-fs) .floating-remote { left: 0; right: 0; bottom: 0; justify-content: flex-end; padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); border-radius: 0; border: 0; border-top: 1px solid var(--border); background: var(--bg); box-shadow: 0 -4px 14px rgba(43,42,40,0.06); }
+            body:not(.photo-fs) .floating-remote.is-tucked { transform: translateY(100%); }
+        }
 
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.4); } 70% { box-shadow: 0 0 0 10px rgba(var(--accent-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -1801,6 +1815,13 @@
         @keyframes vs-caret { 50% { opacity: 0; } }
         .vs-text.is-final { color: #ffd6f6; text-shadow: 0 0 14px rgba(255,90,217,0.85); }
         .vs-hint { margin-top: 6px; font-size: 12.5px; color: rgba(200,245,255,0.6); }
+        /* 효과를 끈 정돈 톤에서는 네온 남색 대신 앱 먹색 판으로 (네온은 효과 켤 때만) */
+        html[data-f-fx="0"] #voiceSheet { background: #2b2a28; box-shadow: 0 -8px 30px rgba(43,42,40,0.3); color: #fff; }
+        html[data-f-fx="0"] .vs-text { text-shadow: none; }
+        html[data-f-fx="0"] .vs-text.is-empty { color: rgba(255,255,255,0.75); }
+        html[data-f-fx="0"] .vs-text .caret { background: #fff; box-shadow: none; }
+        html[data-f-fx="0"] .vs-text.is-final { color: #f3e2b0; text-shadow: none; }
+        html[data-f-fx="0"] .vs-hint { color: rgba(255,255,255,0.55); }
 
         /* 찾기·새로 추가 입력줄 (상단 검색창과 같은 알약 모양) */
         .search-input-wrap.zm-find { width: 100%; margin-bottom: 10px; background: var(--card); }
@@ -2272,11 +2293,12 @@
 <div id="editIntro" role="dialog" aria-modal="true" aria-label="구역 고치기 사용법" style="line-height: 1.6;">
     <h2 style="text-align: center; color: var(--accent-text); margin-bottom: 16px; font-size: 1.25em;">구역 고치기, 이렇게 해요</h2>
     <div style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-        <ol class="guide-steps">
-            <li><i class="ti ti-hand-move"></i><div><b>구역 만들기·옮기기</b><span>사진 왼쪽 아래 <b>[구역 그리기]</b>를 누르고 사진 위를 끌면 새 구역이 생겨요. 구역을 한 번 누르면 골라져서 끌어 옮기거나 모서리로 크기를 바꿀 수 있고, 한 번 더 누르면 물건 관리 창이 떠요.</span><small>그 밖에 사진 위를 끌면 화면이 움직여요.</small></div></li>
-            <li><i class="ti ti-arrows-move"></i><div><b>물건을 다른 구역으로 옮기기</b><span>사진 위 구역의 말풍선에서 <b>물건 이름을 꾹 누른 채 다른 구역으로 끌어다 놓으세요.</b> 구역 밖에 놓으면 삭제할지 물어봐요. 말풍선이 안 보이면 오른쪽 아래 <i class="ti ti-message-circle"></i> 버튼을 눌러 켜세요.</span><small>사진 아래 구역 목록에서 물건 이름을 눌러 구역을 고르는 방법도 있어요.</small></div></li>
-            <li><i class="ti ti-check"></i><div><b>다 고쳤으면 [완료]</b><span>위쪽 띠의 노란 <b>[완료]</b> 버튼을 누르면 끝나요.</span></div></li>
+        <ol class="guide-steps"><!-- 글이 빽빽했다 → 한 줄씩 -->
+            <li><i class="ti ti-hand-move"></i><div><b>구역 만들기</b><span><b>[구역 그리기]</b>를 누르고 사진 위를 끌어요</span></div></li>
+            <li><i class="ti ti-arrows-move"></i><div><b>옮기기·크기</b><span>구역을 한 번 누르고 끌거나, 모서리를 당겨요</span></div></li>
+            <li><i class="ti ti-hand-finger"></i><div><b>물건 옮기기</b><span>물건 이름을 꾹 눌러 다른 구역에 놓아요</span></div></li>
         </ol>
+        <p style="margin: 10px 0 0; font-size: 13px; color: var(--text2); text-align: center;">다 고쳤으면 위쪽 <b>[완료]</b></p>
     </div>
     <button onclick="closeEditIntro();" class="btn-base btn-primary" style="width: 100%;">알겠어요</button>
 </div>
@@ -2758,7 +2780,7 @@
             <button type="button" data-mode="store" onclick="setUseMode('store')"><b>매장 · 창고</b><small>재고 점검, 발주, 유통기한까지</small></button>
         </div>
         <div class="settings-list" style="margin-top: 10px;">
-            <button class="settings-row" onclick="setSimpleView(!simpleOn())"><i class="ti ti-search"></i> 찾기만 화면 <small style="color: var(--text3); font-weight: 400;">검색창 하나만 (가족·직원용)</small><span class="feat-sw" data-feat="simple"></span></button>
+            <button class="settings-row" onclick="setSimpleView(!simpleOn())"><i class="ti ti-search"></i> 찾기만 화면 <small style="color: var(--text3); font-weight: 400;">가족·직원용</small><span class="feat-sw" data-feat="simple"></span></button>
         </div>
         <div class="settings-label" style="margin-top: 14px;">쓰는 기능 <small style="font-weight: 400; color: var(--text3);">끈 기능도 적어 둔 내용은 그대로 있어요</small></div>
         <div class="settings-list" id="featList">
@@ -2779,10 +2801,10 @@
         </div>
     </section>
     <section class="settings-sec">
-        <h4 class="settings-sec-title">매장</h4>
+        <h4 class="settings-sec-title"><span class="only-store">매장</span><span class="only-home">인쇄·파일</span></h4>
         <div class="settings-group">
-            <label class="settings-label" for="storeNameInput">매장 이름 <small style="font-weight: 400; color: var(--text3);">인쇄물 머리글·파일 이름에 들어가요</small></label>
-            <input type="text" id="storeNameInput" class="store-name-input" maxlength="20" placeholder="예: 다산점 창고" autocomplete="off" oninput="setStoreName(this.value)">
+            <label class="settings-label" for="storeNameInput"><span class="only-store">매장 이름</span><span class="only-home">머리글 이름</span> <small style="font-weight: 400; color: var(--text3);">인쇄물 머리글·파일 이름에 들어가요</small></label>
+            <input type="text" id="storeNameInput" class="store-name-input" maxlength="20" placeholder="예: 다산점 창고" autocomplete="off" oninput="setStoreName(this.value)" data-ph-home="예: 우리 집">
         </div>
         <small id="stockRowText" hidden></small>
         <div class="settings-group">
@@ -3934,7 +3956,7 @@
             if (wrap) wrap.classList.toggle('is-listening', on);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             btn.setAttribute('aria-label', on ? '듣기 멈추기' : prev.label);
-            if (icon) icon.className = on ? 'ti ti-player-stop-filled' : 'ti ti-microphone';
+            if (icon) icon.className = on ? 'ti ti-player-stop' : 'ti ti-microphone';
             input.placeholder = on ? '듣고 있어요… 말씀하세요' : prev.placeholder;
             if (onState) onState(on);
         };
@@ -3981,14 +4003,15 @@
             if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
             const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
             energy *= 0.94; const t = (now - t0) / 1000, amp = H * (0.08 + 0.36 * energy);
-            [[`rgba(255,90,217,0.55)`, 1.6, 0.9, 2.2], [`rgba(70,235,255,0.6)`, 2.3, 1.4, 1.6], [`#c9fbff`, 1.2, 2.0, 2.4]].forEach(([c, f, sp, lw], k) => {
+            const fx = feat('fx');
+            (fx ? [[`rgba(255,90,217,0.55)`, 1.6, 0.9, 2.2], [`rgba(70,235,255,0.6)`, 2.3, 1.4, 1.6], [`#c9fbff`, 1.2, 2.0, 2.4]] : [[`rgba(255,255,255,0.25)`, 1.6, 0.9, 2], [`rgba(243,226,176,0.55)`, 2.3, 1.4, 1.6], [`rgba(255,255,255,0.9)`, 1.2, 2.0, 2.2]]).forEach(([c, f, sp, lw], k) => {
                 ctx.beginPath();
                 for (let x = 0; x <= W; x += 3) {
                     const u = x / W, env = Math.sin(Math.PI * u); // 가운데가 가장 크게 출렁이고 양끝은 잦아든다
                     const y = H / 2 + Math.sin(u * Math.PI * 2 * f + t * sp * 3 + k) * amp * env * (k === 2 ? 0.7 : 1);
                     x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
                 }
-                ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.shadowColor = c; ctx.shadowBlur = 8; ctx.stroke();
+                ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.shadowColor = c; ctx.shadowBlur = fx ? 8 : 0; ctx.stroke();
             });
             raf = requestAnimationFrame(draw);
         }
@@ -4084,7 +4107,7 @@
         document.getElementById('installAppRow').hidden = isInstalledApp();
         syncLastBackupText();
         document.getElementById('promoRow').hidden = !setupPromoOn();
-        syncSettingsFooter(); syncStatsRow(); syncStockRow(); syncFontSeg(); document.getElementById('storeNameInput').value = storeName();
+        syncSettingsFooter(); syncStatsRow(); syncStockRow(); syncFontSeg(); { const sn = document.getElementById('storeNameInput'); sn.value = storeName(); sn.placeholder = useMode() === 'home' ? sn.dataset.phHome : '예: 다산점 창고'; }
         document.getElementById('resetRow').parentElement.hidden = isSamplePreview || !hasSavedData(); // 지울 게 없으면 묶음째 숨김
         document.getElementById('contactRow').hidden = !CONTACT.url;
         document.getElementById('contactText').textContent = CONTACT.label || '';
@@ -4306,7 +4329,7 @@
         const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = (data.img && data.img.width) ? (data.img.height * (800 / data.img.width)) : 450;
         const ctx = canvas.getContext('2d'); data.canvas = canvas; data.ctx = ctx;
 
-        const listWrapper = document.createElement('div'); listWrapper.style.cssText = "margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card);";
+        const listWrapper = document.createElement('div'); listWrapper.className = 'zl-wrap'; listWrapper.style.cssText = "margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card);";
         const toggleHeader = document.createElement('div'); toggleHeader.style.cssText = "padding: 12px 16px; background: var(--bg); cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; font-size: 13px; font-weight: 500; color: var(--text); border-bottom: 1px solid var(--border);";
         const listOpen = !closedZoneLists.has(String(data.id));
         toggleHeader.innerHTML = `<span><i class="ti ti-list" style="margin-right:4px; color:var(--text2);"></i>구역 목록<span class="zl-summary" id="count-${data.id}"></span></span><span id="arrow-${data.id}" style="font-size:11px; color:var(--text2); flex-shrink:0;">${listOpen ? "▼ 목록 접기" : "▲ 목록 펼치기"}</span>`;
@@ -5663,7 +5686,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.11';
+    const APP_VERSION = '베타 2026.11.02.13';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6079,19 +6102,19 @@
         const frequent = Object.entries(loadSearchStore(SEARCH_PICKS_KEY, {})).filter(([name]) => has(name)).sort((a, b) => b[1] - a[1]).slice(0, 4);
         const chip = (q, extra = '') => `<button type="button" class="hero-chip" data-q="${escapeHtml(q)}" onclick="applySearchSuggestion(this)">${escapeHtml(q)}${extra}</button>`;
         let html = '';
-        syncSimpleFoot();
+        syncSimpleFoot(); syncSearchHint();
         renderVoiceBubbles(photos);
         renderHeroSpaces(photos.map(d => loaded.find(x => x.id === d.id) || d));
         if (!feat('chips')) { // 즐겨찾기·자주 칩을 끄면 '최근'만
             if (history.length) html += `<div class="hero-quick-row" data-row="recent"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
-            quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
+            quick.innerHTML = html || `<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (${(h => `${h.cho} → ${escapeHtml(h.name)}`)(searchHintEx())})</p>`;
             return;
         }
         const pinned = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.filter(i => i.pin).map(i => i.name))))].slice(0, 8);
         if (pinned.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">즐찾</span>${pinned.map(n => `<button type="button" class="hero-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)">★ ${escapeHtml(n)}</button>`).join('')}</div>`; // 신입용 고정 물건 (사장님이 정해 둔 것)
         if (history.length) html += `<div class="hero-quick-row" data-row="recent"><span class="hero-quick-label">최근</span>${history.map(h => chip(h)).join('')}</div>`;
         if (frequent.length) html += `<div class="hero-quick-row"><span class="hero-quick-label">자주</span>${frequent.map(([n, c]) => chip(n, ` <small>${c}회</small>`)).join('')}</div>`;
-        quick.innerHTML = html || '<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (ㅇㅅㅈ → 영수증 용지)</p>';
+        quick.innerHTML = html || `<p class="hero-quick-tip">앞 글자만 쳐도 돼요 (${(h => `${h.cho} → ${escapeHtml(h.name)}`)(searchHintEx())})</p>`;
     }
 
     // 집·정리 모드 첫 화면: 공간 카드 (사진 · 이름 · 칸 수). 누르면 그 사진 지도로
@@ -6216,7 +6239,17 @@
     // 검색창 안내: 홈 화면(넓은 칸)엔 다 적고, 위쪽 좁은 칸(폰)엔 예시만 — 다 적으면 끝이 잘렸다
     function syncSearchHint() {
         const box = document.getElementById('searchBox'); if (!box) return;
-        box.placeholder = document.body.classList.contains('hero-search-active') || window.innerWidth > 600 ? '찾을 물건 (예: 영수증 용지, ㅇㅅㅈ)' : '예: 영수증 용지, ㅇㅅㅈ';
+        const h = searchHintEx();
+        box.placeholder = document.body.classList.contains('hero-search-active') || window.innerWidth > 600 ? `찾을 물건 (예: ${h.name}, ${h.cho})` : `예: ${h.name}, ${h.cho}`;
+    }
+    // 검색창 예시: 내 지도에 있는 물건 이름으로 (집 모드인데 '영수증 용지'가 나왔다). 없으면 모드별 기본 예시
+    function searchHintEx() {
+        const photos = (typeof imageList !== 'undefined' ? imageList : []).filter(d => d.id !== 'dummy_root');
+        const names = [...new Set(photos.flatMap(d => d.zones.flatMap(z => z.items.map(i => i.name))))];
+        const cho = (n) => n.replace(/ /g, '').split('').map(getChosung).join('');
+        const ok = names.filter(n => /^[가-힣]{2,4}( [가-힣]{1,3})?$/.test(n || '') && !/[ㄲㄸㅃㅆㅉ]/.test(cho(n))); // 된소리 초성(ㅋㄸㄲ)은 예시로 어색
+        const name = (names.includes('영수증 용지') && '영수증 용지') || exampleNames(photos).find(n => ok.includes(n)) || ok.find(n => n.length >= 3) || ok[0] || (useMode() === 'home' ? '라면' : '영수증 용지');
+        return { name, cho: cho(name.split(' ')[0]) }; // 앞 글자만: 영수증 용지 → ㅇㅅㅈ
     }
     function deactivateHeroSearch() {
         if (simpleOn()) { // 찾기만 화면에서는 검색 화면이 곧 첫 화면
@@ -6489,7 +6522,7 @@
         if (!history.length && !frequent.length) { // 처음엔 기록이 없어 빈 화면만 남았다 → 내 물건으로 예시를 보여 준다
             const ex = exampleNames(imageList.filter(d => d.id !== 'dummy_root'));
             if (!ex.length) { display.style.display = 'none'; display.innerHTML = ''; return; }
-            display.innerHTML = `<div class="search-suggest-head"><span>이렇게 찾아 보세요</span></div><div class="search-chips">${ex.map(n => `<span class="search-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)"><i class="ti ti-search"></i><span class="search-chip-text">${escapeHtml(n)}</span></span>`).join('')}</div><p class="search-suggest-tip">앞 글자만 쳐도 돼요 · ㅇㅅㅈ → 영수증 용지</p>`;
+            display.innerHTML = `<div class="search-suggest-head"><span>이렇게 찾아 보세요</span></div><div class="search-chips">${ex.map(n => `<span class="search-chip" data-q="${escapeHtml(n)}" onclick="applySearchSuggestion(this)"><i class="ti ti-search"></i><span class="search-chip-text">${escapeHtml(n)}</span></span>`).join('')}</div><p class="search-suggest-tip">앞 글자만 쳐도 돼요 · ${(h => `${h.cho} → ${escapeHtml(h.name)}`)(searchHintEx())}</p>`;
             display.style.display = 'block'; return;
         }
 
@@ -7639,8 +7672,10 @@
     function syncPrintName() {
         const n = storeName(), btn = document.getElementById('printNameBtn');
         btn.classList.toggle('is-empty', !n);
-        btn.innerHTML = n ? `<b>${escapeHtml(n)}</b><i class="ti ti-pencil"></i>` : `<i class="ti ti-plus"></i> 매장 이름`;
-        btn.title = n ? '매장 이름 고치기 (종이 위·파일 이름에 들어가요)' : '매장 이름을 넣으면 종이 위·파일 이름에 들어가요';
+        const label = useMode() === 'home' ? '머리글 이름' : '매장 이름'; // 집 모드에 '매장 이름'이 떠 있었다
+        btn.innerHTML = n ? `<b>${escapeHtml(n)}</b><i class="ti ti-pencil"></i>` : `<i class="ti ti-plus"></i> ${label}`;
+        btn.title = n ? `${label} 고치기 (종이 위·파일 이름에 들어가요)` : `${label}을 넣으면 종이 위·파일 이름에 들어가요`;
+        const inp = document.getElementById('printStoreName'); if (inp) inp.placeholder = useMode() === 'home' ? '머리글 이름 (예: 우리 집)' : '매장 이름 (예: 다산점 창고)';
     }
     function editPrintName() {
         const btn = document.getElementById('printNameBtn'), input = document.getElementById('printStoreName');
