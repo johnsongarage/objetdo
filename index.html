@@ -2940,20 +2940,24 @@
     const storageReady = photoStore.init();
     function reloadAfterSave() { photoStore.pending.then(() => location.reload()); }
 
+    // 예시 미리보기 중에도 화면 설정(모드·기능 켜고 끄기·글자 크기 등)은 진짜로 저장한다 — 데이터가 아니라 취향이라서
+    //    (예전엔 미리보기에서 바꾼 설정이 새로고침하면 사라져 "설정이 리셋된다"고 보였다)
+    const PREF_KEYS = new Set(['useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint']);
+    const isPrefKey = (key) => PREF_KEYS.has(key) || String(key).startsWith('feat_');
     const safeStorage = {
         _storage: {},
         getItem(key) {
-            if (isSamplePreview && key in this._storage) return this._storage[key];
+            if (isSamplePreview && key in this._storage && !isPrefKey(key)) return this._storage[key];
             if (key === PHOTO_DATA_KEY && photoStore.db) return photoStore.cache;
             try { return localStorage.getItem(key); } catch (e) { return this._storage[key] || null; }
         },
         setItem(key, value) {
-            if (isSamplePreview) { this._storage[key] = String(value); return; }
+            if (isSamplePreview && !isPrefKey(key)) { this._storage[key] = String(value); return; }
             if (key === PHOTO_DATA_KEY && photoStore.db) { photoStore.write(String(value)); return; }
             try { localStorage.setItem(key, value); } catch (e) { this._storage[key] = value; }
         },
         removeItem(key) {
-            if (isSamplePreview) { this._storage[key] = null; return; }
+            if (isSamplePreview && !isPrefKey(key)) { this._storage[key] = null; return; }
             if (key === PHOTO_DATA_KEY && photoStore.db) { photoStore.write(null); return; }
             try { localStorage.removeItem(key); } catch (e) { delete this._storage[key]; }
         }
@@ -5635,7 +5639,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.4';
+    const APP_VERSION = '베타 2026.11.02.5';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
