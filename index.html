@@ -2399,11 +2399,13 @@
             <g fill="none" stroke="rgb(var(--accent-rgb))" stroke-width="1.6" stroke-dasharray="4 3" opacity=".55"><rect class="wh-zone" style="animation-delay:0.35s" x="27" y="37" width="53" height="52" rx="5"/><rect class="wh-zone" style="animation-delay:0.47s" x="93" y="37" width="53" height="52" rx="5"/><rect class="wh-zone" style="animation-delay:0.59s" x="160" y="37" width="53" height="52" rx="5"/><rect class="wh-zone" style="animation-delay:0.71s" x="27" y="103" width="53" height="52" rx="5"/><rect class="wh-zone" style="animation-delay:0.83s" x="93" y="103" width="53" height="52" rx="5"/><rect class="wh-zone" style="animation-delay:0.95s" x="160" y="103" width="53" height="52" rx="5"/></g>
             <rect x="2" y="12" width="40" height="13" rx="1.5" fill="var(--accent2)" opacity=".45" transform="rotate(-24 22 18)"/>
             <rect x="198" y="12" width="40" height="13" rx="1.5" fill="var(--accent2)" opacity=".45" transform="rotate(24 218 18)"/>
+            <g id="whHitPos"><!-- 찾는 칸은 열 때마다 아무 칸이나 (늘 같은 칸이면 엉뚱한 뜻으로 읽힐 수 있다) -->
             <g class="welcome-hero-hit">
                 <rect x="93" y="37" width="53" height="52" rx="5" fill="rgb(var(--accent-rgb))" fill-opacity=".14" stroke="rgb(var(--accent-rgb))" stroke-width="2.5"/>
                 <rect x="98" y="58" width="32" height="24" rx="2" fill="#fff3a3"/><g stroke="#8a7a3a" stroke-width="2" stroke-linecap="round"><line x1="103" y1="66" x2="124" y2="66"/><line x1="103" y1="74" x2="117" y2="74"/></g>
             </g>
             <g class="welcome-hero-pin"><path d="M119 36 a12 12 0 1 1 24 0 c0 9 -12 20 -12 20 s-12 -11 -12 -20z" fill="var(--accent)"/><circle cx="131" cy="35" r="4.5" fill="#fff"/></g>
+            </g>
         </svg>
         <div class="welcome-brand"><div class="welcome-brand-name"><b data-app-name>창고여지도</b><small class="welcome-en" data-app-name-en hidden></small></div></div>
         <h2 class="welcome-title">사진 한 장이<br>창고 지도가 돼요</h2>
@@ -5615,7 +5617,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.2';
+    const APP_VERSION = '베타 2026.11.02.3';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6811,6 +6813,7 @@
         const card = document.getElementById('welcomeCard'); if (card) card.style.display = show ? 'flex' : 'none';
         document.body.classList.toggle('welcome-open', show); // 첫 화면에서는 사진용 하단 조작 바를 숨기고 카드를 화면 높이에 맞춘다
         if (show) {
+            { const cells = [[-66, 0], [0, 0], [67, 0], [-66, 66], [0, 66], [67, 66]], c = cells[Math.floor(Math.random() * cells.length)], g = document.getElementById('whHitPos'); if (g) g.setAttribute('transform', `translate(${c[0]} ${c[1]})`); }
             const home = useMode() === 'home', t = document.querySelector('.welcome-title'), st = document.getElementById('welcomeStartBtn');
             if (t) t.innerHTML = home ? '사진 한 장이<br>우리 집 수납 지도가 돼요' : '사진 한 장이<br>창고 지도가 돼요';
             if (st) st.innerHTML = home ? '<i class="ti ti-camera"></i> 내 수납장 사진으로 시작' : '<i class="ti ti-camera"></i> 내 창고 사진으로 시작';
