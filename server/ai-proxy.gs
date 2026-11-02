@@ -1,5 +1,5 @@
 /**
- * 창고여지도 AI 구역 찾기 중계 (Google Apps Script 웹 앱)
+ * 오브젯도 AI 구역 찾기 중계 (Google Apps Script 웹 앱)
  *
  * 앱(index.html)은 사진만 이 웹 앱으로 보내고, 여기서 Roboflow 키를 붙여 분석을 요청한 뒤
  * 결과(predictions)만 돌려준다. 키는 앱에도, 브라우저 네트워크 기록에도 나타나지 않는다.
@@ -108,7 +108,7 @@ function saveStats_(p) {
 function statsSpreadsheet_(props) {
   var sid = props.getProperty('STATS_SHEET_ID');
   if (sid) return SpreadsheetApp.openById(sid);
-  var ss = SpreadsheetApp.create('창고여지도 사용 통계');
+  var ss = SpreadsheetApp.create('오브젯도 사용 통계');
   props.setProperty('STATS_SHEET_ID', ss.getId());
   return ss;
 }
