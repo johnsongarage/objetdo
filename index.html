@@ -410,6 +410,7 @@
 
         /* 🏠 집·정리 모드: 핵심만 (사진 지도 · 검색 · 말로 찾기/넣기 · 인쇄). 꺼진 기능은 지우지 않고 숨긴다 */
         .hero-ask, .hero-spaces { display: none; }
+        html[data-mode="home"] .only-store, html:not([data-mode="home"]) .only-home { display: none; } /* 모드별 문구 */
         body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         body.hero-search-active:not(.hero-search-focused) .hero-spaces { display: grid; }
         html[data-simple="1"] .hero-spaces { display: none !important; }
@@ -2465,7 +2466,7 @@
     <div id="photoStrip" class="photo-strip" role="tablist" aria-label="사진 고르기" hidden></div>
     <div id="canvasList"></div>
     <div id="bottomActions" style="display: flex; gap: 10px; margin-top: 16px; align-items: stretch;">
-        <button onclick="pickPhoto()" class="btn-base btn-primary btn-lg" style="flex: 1;"><i class="ti ti-camera"></i> 새로운 매장 사진 등록하기</button>
+        <button onclick="pickPhoto()" class="btn-base btn-primary btn-lg" style="flex: 1;"><i class="ti ti-camera"></i> <span class="only-store">새로운 매장 사진 등록하기</span><span class="only-home">새 공간 사진 넣기</span></button>
         <button onclick="openSettingsModal()" class="btn-base btn-secondary btn-lg" style="width: 52px; padding: 0; font-size: 18px;" title="설정" aria-label="설정"><i class="ti ti-settings"></i></button>
     </div>
     <button id="sampleDataBtn" onclick="loadSampleData()" class="btn-base btn-secondary btn-lg" style="display:none; width: 100%; margin-top: 10px; border-style: dashed;">
@@ -2765,7 +2766,7 @@
             <button class="settings-row" onclick="toggleFeat('exp')"><i class="ti ti-calendar-time"></i> 유통기한 <span class="feat-sw" data-feat="exp"></span></button>
             <button class="settings-row" onclick="toggleFeat('brief')"><i class="ti ti-chart-bar"></i> 첫 화면 숫자 요약 <span class="feat-sw" data-feat="brief"></span></button>
             <button class="settings-row" onclick="toggleFeat('chips')"><i class="ti ti-star"></i> 즐겨찾기 · 자주 찾는 물건 <span class="feat-sw" data-feat="chips"></span></button>
-            <button class="settings-row" onclick="toggleFeat('fx')"><i class="ti ti-sparkles"></i> 화려한 효과 (네온 · 레이더) <span class="feat-sw" data-feat="fx"></span></button>
+            <button class="settings-row" onclick="toggleFeat('fx')"><i class="ti ti-sparkles"></i> 찾을 때 네온 효과 <span class="feat-sw" data-feat="fx"></span></button>
         </div>
     </section>
     <!-- 설정 순서: 자주 쓰고 중요한 것부터 — 백업 · 매장(재고 세기) · 도움 · 화면(한 번 정하면 끝) · 정보·기타(지우기는 맨 아래) -->
@@ -3449,7 +3450,7 @@
     function startAiScan(data) {
         const stage = data.noteStage, base = data.canvas;
         if (!stage || !base || !base.clientWidth) return null;
-        const reduce = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !feat('fx');
+        const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; // AI 레이더는 정돈 톤에서도 늘 켠다 (11/2 사용자 결정). 움직임 줄이기만 존중
         const W = base.clientWidth, H = base.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
         const cv = document.createElement('canvas'); cv.className = 'ai-scan';
         cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
@@ -5663,7 +5664,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.6';
+    const APP_VERSION = '베타 2026.11.02.7';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8032,7 +8033,7 @@
     }
     // 부족 레이더: 모자란 칸마다 주황 고리가 두 번 퍼진다 (사진 위에 잠깐 얹었다 걷는 그림)
     function stockRadar(kind) {
-        if ((window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || !feat('fx')) return;
+        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return; // 점검 레이더도 늘 켠다
         const isExp = kind === 'exp', ring = isExp ? '#ff4d5e' : NEON_LOW, flashRgb = isExp ? '255,60,80' : '255,150,40';
         stockPhotos().forEach(d => {
             const low = d.zones.filter(isExp ? zoneExp : zoneLow), base = d.canvas, stage = d.noteStage;
