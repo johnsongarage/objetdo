@@ -2962,12 +2962,23 @@
     // AI 구역 찾기: 사진만 Apps Script 중계(server/ai-proxy.gs)로 보내고 결과만 받는다.
     // Roboflow 키는 중계 서버의 스크립트 속성에만 있다 (예전엔 키를 받아 와 브라우저가 Roboflow를 직접 불러서 키가 드러났다)
     const AI_PROXY_URL = "https://script.google.com/macros/s/AKfycbw7W1pUIvnPWDEosL6ZmIhfEbS8rgUVvaU_hfECUB2faBLR5Hte96f_-fDTE_fo-Rhv/exec";
+    // 🛡 AI 칸 찾기 무료 횟수: 기기(브라우저)마다 AI_FREE번. 중계 서버도 기기 번호로 하루 횟수를 따로 막는다 (server/ai-proxy.gs)
+    //    예시(샘플)에서 쓴 건 세지 않는다. 숫자는 이 기기에만 저장 — 지워도 서버의 하루 제한·전체 제한은 남는다
+    const AI_FREE = 10, AI_USES_KEY = 'aiUses';
+    function aiUsesLeft() { let n = 0; try { n = parseInt(localStorage.getItem(AI_USES_KEY) || '0', 10) || 0; } catch (e) {} return Math.max(0, AI_FREE - n); }
+    function countAiUse() { if (isSamplePreview || safeStorage.getItem('isSampleData') === '1') return; try { localStorage.setItem(AI_USES_KEY, String(AI_FREE - aiUsesLeft() + 1)); } catch (e) {} syncAiLeft(); }
+    function syncAiLeft() { const left = aiUsesLeft(); document.querySelectorAll('.ai-left').forEach(el => { el.textContent = left > 0 ? `무료 ${left}번 남음` : '무료 횟수를 다 썼어요'; }); }
+    class AiLimitError extends Error {}
     async function detectZones(base64Data) {
+        if (aiUsesLeft() <= 0 && !isSamplePreview && safeStorage.getItem('isSampleData') !== '1') throw new AiLimitError('free');
         // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight) 없이 바로 보낸다 (Apps Script는 사전 확인에 응답하지 못함)
-        const res = await fetch(AI_PROXY_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: base64Data });
+        const id = (typeof readStats === 'function' && readStats().id) || '';
+        const res = await fetch(`${AI_PROXY_URL}?id=${encodeURIComponent(id)}`, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: base64Data });
         if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
         const result = await res.json();
+        if (result.status === 'limit') throw new AiLimitError(result.message || 'server');
         if (result.status !== 'success') throw new Error(result.message || 'AI 서버 오류');
+        countAiUse();
         return result.predictions || [];
     }
 
@@ -3531,6 +3542,9 @@
     async function runAIAnalysis(dataId) {
         const data = imageList.find(d => d.id == dataId);
         if (!data || !data.imgData) { alert("이미지가 아직 업로드되지 않았습니다."); return; }
+        if (aiUsesLeft() <= 0 && !isSamplePreview && safeStorage.getItem('isSampleData') !== '1') { // 다 썼으면 묻기·연출 전에 바로 알려 준다
+            alert(`무료 베타의 AI 칸 찾기 ${AI_FREE}번을 다 쓰셨어요.\n칸은 [직접 그리기]로 손가락으로 쓱 그리면 돼요.\n더 필요하시면 설정 > 의견 보내기로 알려 주세요.`); return;
+        }
         // 이미 그린 구역이 있으면 바꿀지 먼저 묻는다 (예전엔 말없이 덮어써서 적어 둔 물건까지 사라졌다)
         if (data.zones.length && !confirm(`지금 있는 구역 ${data.zones.length}개를 AI가 찾은 구역으로 바꿀까요?\n구역에 적어 둔 물건도 함께 지워져요. (되돌리기로 되살릴 수 있어요)`)) return;
 
@@ -3588,7 +3602,10 @@
         } catch (err) {
             data.aiScanning = false;
             if (scan) scan.abort();
-            alert("AI 구역 찾기에 실패했어요. 인터넷 연결을 확인하거나, 직접 그려 주세요.\n(" + err.message + ")");
+            if (err instanceof AiLimitError) alert(err.message === 'free'
+                ? `무료 베타의 AI 칸 찾기 ${AI_FREE}번을 다 쓰셨어요.\n칸은 [직접 그리기]로 손가락으로 쓱 그리면 돼요.\n더 필요하시면 설정 > 의견 보내기로 알려 주세요.`
+                : `${err.message}\n칸은 [직접 그리기]로 그려 주세요.`);
+            else alert("AI 구역 찾기에 실패했어요. 인터넷 연결을 확인하거나, 직접 그려 주세요.\n(" + err.message + ")");
         } finally {
             // 💡 3. 마무리: 버튼 복구 및 dimm/메시지 숨김
             document.getElementById('editOverlay').style.display = 'none';
@@ -4286,7 +4303,8 @@
         fsBar.querySelector('.fs-close').onclick = () => closePhotoFullscreen();
         // 구역이 하나도 없는 사진: 보기 모드엔 가운데 고르기 화면, 고치는 중엔 사진 위쪽 띠(syncFirstZone)
         const firstZone = document.createElement('div'); firstZone.className = 'first-zone'; firstZone.hidden = true;
-        firstZone.innerHTML = `<div class="first-zone-pick"><button type="button" class="first-zone-btn first-zone-ai"><i class="ti ti-sparkles"></i> AI로 구역 찾기</button><button type="button" class="first-zone-note" onclick="openDataInfo()">사진은 분석 서버로 보내져요 · <u>자세히</u></button><div class="first-zone-or" aria-hidden="true"><span>또는</span></div><button type="button" class="first-zone-btn first-zone-manual"><i class="ti ti-plus"></i> 직접 그리기</button></div>`;
+        firstZone.innerHTML = `<div class="first-zone-pick"><button type="button" class="first-zone-btn first-zone-ai"><i class="ti ti-sparkles"></i> AI로 구역 찾기</button><button type="button" class="first-zone-note" onclick="openDataInfo()"><span class="ai-left"></span> · 사진은 분석 서버로 보내져요 · <u>자세히</u></button><div class="first-zone-or" aria-hidden="true"><span>또는</span></div><button type="button" class="first-zone-btn first-zone-manual"><i class="ti ti-plus"></i> 직접 그리기</button></div>`;
+        syncAiLeft(); // AI 무료 남은 횟수
         const hideToast = () => { const t = document.getElementById('toast'); if (t) t.classList.remove('show'); };
         firstZone.querySelector('.first-zone-manual').onclick = () => { hideToast(); activeData = data; data.manualPicked = true; if (!isEditMode) toggleEditMode(); setDrawArmed(data, true); };
         firstZone.querySelector('.first-zone-ai').onclick = () => { hideToast(); runAIAnalysis(data.id); };
@@ -5617,7 +5635,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.3';
+    const APP_VERSION = '베타 2026.11.02.4';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
