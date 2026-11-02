@@ -10,7 +10,7 @@
 <meta property="og:description" content="선반 사진 한 장이 물건 지도가 돼요. 검색 한 번이면 그 칸이 빛나요. 가입·결제 없음.">
 <meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=22">
 <meta property="og:url" content="https://johnsongarage.github.io/udigo/start/">
-<meta name="theme-color" content="#2e2960">
+<meta name="theme-color" content="#f7f5f1">
 <link rel="icon" href="../icon-192.png?v=14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,9 +20,10 @@
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "273e5309e3764e809f02aab7f9942c5c"}'></script>
 <style>
   :root {
-    --ink: #1c1a33; --ink2: #55526c; --ink3: #8b88a3; --line: #e6e3ef;
-    --paper: #fbfaf6; --navy: #2e2960; --navy2: #3b3577; --note: #fff1a6; --note-edge: #e9d978;
-    --yellow: #ffd84d; --low: #ff8a1c; --exp: #e8384a;
+    /* 오브젯도 톤: 따뜻한 흰 바탕 · 먹색 · 세이지 핀 · 모래색 상자 (앱 아이콘과 같은 색). 포스트잇만 진짜 노란색 */
+    --ink: #2b2a28; --ink2: #6f6b64; --ink3: #a7a299; --line: #e6e1d8;
+    --paper: #f7f5f1; --navy: #2b2a28; --navy2: #3d5246; --note: #fff1a6; --note-edge: #e9d978;
+    --yellow: #e8dcc4; --sage: #9cc5ae; --low: #ff8a1c; --exp: #e8384a;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -36,7 +37,7 @@
 
   /* 버튼 */
   .btn { display: flex; align-items: center; justify-content: center; min-height: 54px; padding: 0 20px; border-radius: 14px; font-size: 16.5px; font-weight: 800; text-decoration: none; text-align: center; }
-  .btn-main { background: var(--yellow); color: var(--ink); box-shadow: 0 6px 18px rgba(255,200,40,0.3); }
+  .btn-main { background: var(--yellow); color: var(--ink); box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
   .btn-sub { flex-direction: column; padding: 8px 20px; line-height: 1.25; border: 1.5px solid rgba(255,255,255,0.5); color: #fff; }
   .btn-sub small { font-size: 12.5px; font-weight: 600; opacity: 0.8; }
   .safe { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.72); }
@@ -49,7 +50,7 @@
   .brand span { margin-left: auto; font-size: 12px; font-weight: 600; opacity: 0.7; }
   .hero-grid { display: grid; gap: 22px; margin-top: 26px; }
   .hero h1 { font-size: 31px; }
-  .hero h1 em { font-style: normal; color: var(--yellow); }
+  .hero h1 em { font-style: normal; color: var(--sage); }
   .hero .scene { margin-top: 12px; font-size: 16px; color: rgba(255,255,255,0.82); }
   .hero .cta { display: grid; gap: 10px; margin-top: 22px; }
   .compare { position: relative; border-radius: 14px; overflow: hidden; background: #e9e6df; box-shadow: 0 14px 34px rgba(0,0,0,0.35); --p: 50%; user-select: none; -webkit-user-select: none; }
@@ -59,7 +60,7 @@
   .compare .bar { position: absolute; top: 0; bottom: 0; left: var(--p); width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.35); pointer-events: none; }
   .compare .knob { position: absolute; top: 50%; left: var(--p); width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%; background: #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.35); display: grid; place-items: center; font-size: 15px; font-weight: 900; color: var(--navy); pointer-events: none; }
   .compare .lab { position: absolute; top: 10px; padding: 3px 10px; border-radius: 10px; font-size: 12.5px; font-weight: 800; pointer-events: none; }
-  .compare .lab.l { left: 10px; background: rgba(28,26,51,0.75); color: #fff; }
+  .compare .lab.l { left: 10px; background: rgba(43,42,40,0.75); color: #fff; }
   .compare .lab.r { right: 10px; background: var(--yellow); color: var(--ink); }
   .compare input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
   .compare-cap { margin-top: 8px; font-size: 12.5px; color: rgba(255,255,255,0.65); text-align: center; }
@@ -100,7 +101,7 @@
   .pains .sub { margin-top: 8px; color: var(--ink2); }
   .pain { display: grid; gap: 16px; padding: 30px 0; border-bottom: 1px dashed var(--line); }
   .pain:last-child { border-bottom: 0; }
-  .pain .shot { border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 10px 26px rgba(28,26,51,0.12); }
+  .pain .shot { border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 10px 26px rgba(43,42,40,0.12); }
   .pain .k { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--navy2); }
   .pain .k i { width: 9px; height: 9px; border-radius: 50%; }
   .pain h3 { margin-top: 6px; font-size: 22px; }
@@ -113,7 +114,7 @@
   /* ── 5. 업종 ── */
   .biz { padding: 40px 0 54px; }
   .biz-list { display: grid; gap: 16px; margin-top: 20px; }
-  .biz-list div { padding: 4px 0 4px 14px; border-left: 4px solid var(--yellow); }
+  .biz-list div { padding: 4px 0 4px 14px; border-left: 4px solid var(--sage); }
   .biz-list b { display: block; font-size: 16px; }
   .biz-list span { font-size: 14.5px; color: var(--ink2); }
 
@@ -132,7 +133,7 @@
   .faq p { margin-top: 8px; font-size: 14.5px; color: rgba(255,255,255,0.78); }
   .maker { max-width: 640px; margin: 34px auto 0; font-size: 14px; color: rgba(255,255,255,0.75); }
   .maker b { color: #fff; }
-  .maker a { color: var(--yellow); }
+  .maker a { color: var(--sage); }
   footer { padding: 18px 0 calc(26px + env(safe-area-inset-bottom)); background: var(--navy); color: rgba(255,255,255,0.45); font-size: 12px; }
 
   /* 넓은 화면: 위는 글·사진 2단, 걸음은 3단, 아픔별은 사진·글을 번갈아 */
@@ -150,7 +151,20 @@
     .biz-list { grid-template-columns: repeat(3, 1fr); gap: 28px; }
   }
 </style>
-</head>
+<style id="lightHero">
+  /* 먹색 머리 대신 밝은 머리: 버튼을 누르면 열리는 앱 첫 화면(따뜻한 흰 바탕 + 먹색 버튼)과 같은 인상으로 */
+  .hero, .final, footer { background: var(--paper); color: var(--ink); }
+  .hero { border-bottom: 1px solid var(--line); }
+  .final { border-top: 1px solid var(--line); }
+  .hero .scene, .safe, .compare-cap, .faq p, .maker { color: var(--ink2); }
+  .safe b, .maker b { color: var(--ink); }
+  .hero h1 em { color: #5f7d6c; }
+  .btn-main { background: var(--ink); color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+  .btn-sub { border-color: var(--ink); color: var(--ink); }
+  .faq details { border-color: var(--line) !important; }
+  footer { color: var(--ink3); }
+  .maker a { color: #3d5246; }
+</style></head>
 <body>
 
 <!-- 1. 맨 위: 같은 선반 사진 전/후 -->
@@ -291,7 +305,7 @@
       <details><summary>앱을 설치해야 하나요?</summary><p>링크로 바로 열려요. 자주 쓰시면 홈 화면에 추가해 앱처럼 쓸 수 있어요.</p></details>
       <details><summary>직원도 같이 볼 수 있어요?</summary><p>지도를 사진·PDF로 단톡방에 바로 보낼 수 있어요. 단톡방에 올려 두면 직원이 묻기 전에 지도를 보고 찾아가요. 링크로 같이 보는 기능도 준비하고 있어요.</p></details>
     </div>
-    <p class="maker"><b>혼자 만들고 있어요.</b> 써 보시고 불편한 점은 앱의 설정 › <b>의견 보내기</b>로 알려 주세요. 하나하나 읽고 고쳐요. · <a href="../">오브젯도 열기</a></p>
+    <p class="maker">써 보시고 불편한 점은 앱의 설정 › <b>의견 보내기</b>로 알려 주세요. 하나하나 읽고 고쳐요. · <a href="../">오브젯도 열기</a></p>
   </div>
 </section>
 <footer><div class="wrap">오브젯도 · 무료 베타</div></footer>
