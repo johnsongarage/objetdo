@@ -8,6 +8,9 @@
  * 설정 (프로젝트 설정 ⚙ → 스크립트 속성)
  *   ROBOFLOW_KEY : Roboflow API 키 (필수)
  *   DAILY_LIMIT  : 하루 최대 분석 횟수 (선택, 기본 300) — 키를 누가 몰래 쓰더라도 사용량이 이 안에서 멈춘다
+ *   DEVICE_DAILY_LIMIT : 기기(앱이 보내는 6자리 번호) 하나당 하루 최대 분석 횟수 (선택, 기본 15)
+ *                        앱은 기기마다 무료 10번만 쓰게 하지만, 앱 저장소를 지우거나 앱을 거치지 않고 부르는 경우를 여기서 막는다
+ *                        번호 없이 오는 요청(예전 앱)은 한데 묶어 하루 이만큼만
  *   STATS_SHEET_ID : 사용 통계 구글 시트 ID (적지 않아도 됨 — testStats()를 한 번 실행하면 시트를 만들고 저절로 채운다)
  *
  * 📊 사용 통계 (doGet ?t=stats): 앱이 무작위 번호와 "앱을 쓴 날짜"만 보낸다 → 구글 시트 두 장에 적는다
@@ -33,6 +36,9 @@ function doPost(e) {
     var key = props.getProperty('ROBOFLOW_KEY');
     if (!key) return json_({ status: 'error', message: '서버 설정이 아직 안 됐어요' });
 
+    var id = String((e.parameter && e.parameter.id) || '');
+    if (!/^[A-Z0-9]{6}$/.test(id)) id = 'ANON';
+    if (!takeDeviceQuota_(props, id)) return json_({ status: 'limit', message: '오늘 이 기기의 AI 칸 찾기를 다 썼어요. 내일 다시 쓸 수 있어요' });
     if (!takeDailyQuota_(props)) return json_({ status: 'limit', message: '오늘 AI 사용량이 다 찼어요. 직접 그려 주세요' });
 
     var res = UrlFetchApp.fetch('https://detect.roboflow.com/' + ROBOFLOW_MODEL + '?api_key=' + encodeURIComponent(key), {
@@ -126,6 +132,27 @@ function takeStatsQuota_(props) {
   if (count >= STATS_DAILY_LIMIT) return false;
   props.setProperty('STATS_COUNT', String(count + 1));
   return true;
+}
+
+// 기기 하나당 하루 사용량 (번호별 칸은 날짜가 바뀌면 어제 것을 한꺼번에 지운다)
+function takeDeviceQuota_(props, id) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(5000);
+  try {
+    var today = Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd');
+    if (props.getProperty('DEV_DAY') !== today) {
+      var all = props.getProperties();
+      Object.keys(all).forEach(function (k) { if (k.indexOf('DEV_') === 0 && k !== 'DEV_DAY') props.deleteProperty(k); });
+      props.setProperty('DEV_DAY', today);
+    }
+    var limit = parseInt(props.getProperty('DEVICE_DAILY_LIMIT') || '15', 10);
+    var key = 'DEV_' + id, count = parseInt(props.getProperty(key) || '0', 10);
+    if (count >= limit) return false;
+    props.setProperty(key, String(count + 1));
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // 하루 사용량 세기 (동시에 여러 요청이 와도 숫자가 꼬이지 않게 잠금)
