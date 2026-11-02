@@ -10,7 +10,7 @@
 <meta property="og:description" content="선반 사진 한 장이 물건 지도가 돼요. 검색 한 번이면 그 칸이 빛나요. 가입·결제 없음.">
 <meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=22">
 <meta property="og:url" content="https://johnsongarage.github.io/udigo/start/">
-<meta name="theme-color" content="#2b2a28">
+<meta name="theme-color" content="#f7f5f1">
 <link rel="icon" href="../icon-192.png?v=14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,7 +151,20 @@
     .biz-list { grid-template-columns: repeat(3, 1fr); gap: 28px; }
   }
 </style>
-</head>
+<style id="lightHero">
+  /* 먹색 머리 대신 밝은 머리: 버튼을 누르면 열리는 앱 첫 화면(따뜻한 흰 바탕 + 먹색 버튼)과 같은 인상으로 */
+  .hero, .final, footer { background: var(--paper); color: var(--ink); }
+  .hero { border-bottom: 1px solid var(--line); }
+  .final { border-top: 1px solid var(--line); }
+  .hero .scene, .safe, .compare-cap, .faq p, .maker { color: var(--ink2); }
+  .safe b, .maker b { color: var(--ink); }
+  .hero h1 em { color: #5f7d6c; }
+  .btn-main { background: var(--ink); color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+  .btn-sub { border-color: var(--ink); color: var(--ink); }
+  .faq details { border-color: var(--line) !important; }
+  footer { color: var(--ink3); }
+  .maker a { color: #3d5246; }
+</style></head>
 <body>
 
 <!-- 1. 맨 위: 같은 선반 사진 전/후 -->
@@ -292,7 +305,7 @@
       <details><summary>앱을 설치해야 하나요?</summary><p>링크로 바로 열려요. 자주 쓰시면 홈 화면에 추가해 앱처럼 쓸 수 있어요.</p></details>
       <details><summary>직원도 같이 볼 수 있어요?</summary><p>지도를 사진·PDF로 단톡방에 바로 보낼 수 있어요. 단톡방에 올려 두면 직원이 묻기 전에 지도를 보고 찾아가요. 링크로 같이 보는 기능도 준비하고 있어요.</p></details>
     </div>
-    <p class="maker"><b>혼자 만들고 있어요.</b> 써 보시고 불편한 점은 앱의 설정 › <b>의견 보내기</b>로 알려 주세요. 하나하나 읽고 고쳐요. · <a href="../">오브젯도 열기</a></p>
+    <p class="maker">써 보시고 불편한 점은 앱의 설정 › <b>의견 보내기</b>로 알려 주세요. 하나하나 읽고 고쳐요. · <a href="../">오브젯도 열기</a></p>
   </div>
 </section>
 <footer><div class="wrap">오브젯도 · 무료 베타</div></footer>
