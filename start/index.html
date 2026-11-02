@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- 손글씨는 포스트잇(직원이 묻는 말)에만 -->
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=East+Sea+Dokdo&family=Nanum+Brush+Script&display=swap" rel="stylesheet">
 <!-- 방문자 통계: 앱·qr 페이지와 같은 토큰 (쿠키 없음). 버튼마다 go/ 아래 다른 주소를 거쳐 가서 "어느 카드에서 눌렀나"를 센다 -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "273e5309e3764e809f02aab7f9942c5c"}'></script>
 <style>
@@ -75,6 +75,11 @@
   .note:nth-child(1) { transform: rotate(-3deg); }
   .note:nth-child(2) { transform: rotate(2deg) translateY(6px); }
   .note:nth-child(3) { transform: rotate(-1.5deg); }
+  /* 실제 포스트잇처럼: 쓴 사람마다 글씨가 다르다 (네임펜으로 급하게 · 볼펜 · 붓펜), 잉크는 검정에 가깝게 */
+  .note { color: #24262e; }
+  .note:nth-child(1) { font-family: "East Sea Dokdo", "Nanum Pen Script", cursive; font-size: 35px; line-height: 1.02; }
+  .note:nth-child(2) { font-family: "Nanum Pen Script", cursive; font-size: 30px; color: #1f2a4a; } /* 파란 볼펜 */
+  .note:nth-child(3) { font-family: "Nanum Brush Script", "Nanum Pen Script", cursive; font-size: 30px; }
   .asks .after-notes { max-width: 560px; margin: 0 auto; text-align: center; font-size: 16px; color: var(--ink2); }
   .asks .after-notes b { color: var(--ink); }
 
