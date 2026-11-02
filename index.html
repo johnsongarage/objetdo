@@ -502,6 +502,30 @@
         .sm-tx { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .sm-tx b { font-weight: 500; }
         .sm-head { display: none; }
+        /* 📖 사용법 창: 폰은 아래에서 올라오는 시트, PC는 가운데 카드 */
+        #videoGuideModal { display: none; position: fixed; inset: 0; z-index: 10050; background: rgba(20,20,18,0.55); align-items: flex-end; justify-content: center; }
+        #videoGuideModal.is-open { display: flex; }
+        .gd-card { width: 100%; max-width: 440px; max-height: 96dvh; overflow-y: auto; background: var(--card); color: var(--text); border-radius: 22px 22px 0 0; padding: 14px 18px calc(16px + env(safe-area-inset-bottom)); }
+        @media (min-width: 600px) { #videoGuideModal { align-items: center; } .gd-card { border-radius: 22px; } }
+        .gd-head { display: flex; align-items: center; gap: 10px; }
+        .gd-head b { font-size: 17px; font-weight: 800; }
+        .gd-head span { font-size: 12.5px; color: var(--text3); }
+        .gd-x { margin-left: auto; width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--bg); color: var(--text2); font-size: 15px; cursor: pointer; }
+        .gd-tabs { display: flex; gap: 6px; margin: 12px 0 10px; overflow-x: auto; scrollbar-width: none; }
+        .gd-tabs button { flex: none; display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 6px; border: 1px solid var(--border); border-radius: 17px; background: var(--card); color: var(--text2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .gd-tabs button span { width: 22px; height: 22px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+        .gd-tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+        .gd-tabs button[aria-pressed="true"] span { background: rgba(255,255,255,0.2); }
+        .gd-stage { display: flex; justify-content: center; padding: 12px; border-radius: 18px; background: var(--bg); }
+        .gd-stage video { display: block; height: min(52dvh, 460px); aspect-ratio: 390 / 760; border-radius: 14px; background: var(--card); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .gd-title { margin: 14px 2px 4px; font-size: 17px; font-weight: 800; }
+        .gd-text { margin: 0 2px; font-size: 14px; line-height: 1.6; color: var(--text2); }
+        .gd-text b { color: var(--text); }
+        .gd-nav { display: flex; gap: 8px; margin-top: 14px; }
+        .gd-btn { flex: 1; height: 48px; border: 1px solid var(--border); border-radius: 24px; background: var(--card); color: var(--text); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .gd-btn:disabled { opacity: .4; cursor: default; }
+        .gd-next { flex: 2; border: 0; background: var(--accent); color: var(--on-accent); }
+        .gd-note { margin: 10px 0 0; text-align: center; font-size: 11.5px; color: var(--text3); }
         /* 📋 물건 전체 목록: 인쇄물 내용을 화면으로 (공간 → 칸 → 물건 / 가나다순) */
         .hs-all { border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--hero-text); cursor: pointer; }
         #listView { position: fixed; inset: 0; z-index: 1075; background: var(--bg); color: var(--text); overflow-y: auto; overscroll-behavior: contain; }
@@ -2428,7 +2452,7 @@
         <!-- 정리 전/후 비교 + 업종별 예시 (예시 사진으로 그린다: renderWelcomeShowcase) -->
         <div id="welcomeShowcase" class="ws"></div>
         <div class="welcome-links">
-            <button type="button" onclick="document.getElementById('guideModal').style.setProperty('display', 'block', 'important')">사용방법 보기</button>
+            <button type="button" onclick="openVideoGuideModal()">사용방법 보기</button>
             <span aria-hidden="true">·</span>
             <button type="button" onclick="document.getElementById('backupFileInput').click()">백업 파일로 복구</button>
             <span aria-hidden="true">·</span>
@@ -2772,7 +2796,7 @@
         <h4 class="settings-sec-title">도움</h4>
         <div class="settings-list">
             <button id="installAppRow" class="settings-row" onclick="installApp()"><i class="ti ti-device-mobile"></i> 홈 화면에 앱으로 설치</button>
-            <button class="settings-row" onclick="closeSettingsModal(); document.getElementById('guideModal').style.setProperty('display', 'block', 'important');"><i class="ti ti-help-circle"></i> 사용법 다시 보기</button>
+            <button class="settings-row" onclick="closeSettingsModal(); openVideoGuideModal();"><i class="ti ti-help-circle"></i> 사용법 다시 보기</button>
             <button class="settings-row" onclick="openFeedbackForm()"><i class="ti ti-message-2"></i> 의견 보내기</button>
             <button class="settings-row" onclick="shareApp()"><i class="ti ti-share"></i> <span data-app-name>창고여지도</span> 알려주기</button>
             <button id="contactRow" class="settings-row" onclick="openContact()" hidden><i class="ti ti-headset"></i> 문의하기 <small id="contactText" style="margin-left: auto; color: var(--text3); font-weight: 400;"></small></button>
@@ -5639,7 +5663,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.5';
+    const APP_VERSION = '베타 2026.11.02.6';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8379,11 +8403,34 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startApp); else startApp();
 
     // ─── 사용방법 영상보기 모달 제어 함수 추가 ───
-    function openVideoGuideModal() {
-        document.getElementById('videoGuideModal').style.display = 'flex';
+    const GUIDE_STEPS = [
+        { k: 'ai', tab: '공간 만들기', title: '사진 한 장 → 칸 나누기', text: '선반·수납장 사진을 한 장 올리고 <b>[AI로 구역 찾기]</b>를 누르면 칸이 생겨요. 손가락으로 직접 그려도 돼요.' },
+        { k: 'put', tab: '넣기', title: '칸을 누르고 말로 넣기', text: '마이크에 <b>"가위, 테이프, 줄자"</b>처럼 한 번에 말하면 알아들은 걸 보여 줘요. 넣을 것만 체크하고 <b>[넣기]</b>.' },
+        { k: 'find', tab: '찾기', title: '말하면 그 칸이 보여요', text: '첫 화면 마이크를 누르고 <b>"건전지 어디 있어"</b>. 글로 칠 땐 앞 글자만 쳐도 돼요 (ㄱㅈㅈ).' },
+        { k: 'list', tab: '목록·인쇄', title: '뭐가 어디 있는지 한눈에', text: '<b>☰ → 물건 전체 목록</b>에서 훑어보고, 번호 스티커·지도를 인쇄해 붙여 두면 폰 없이도 찾아요.' }
+    ];
+    let guideIdx = 0;
+    function guideGo(i) {
+        guideIdx = Math.max(0, Math.min(GUIDE_STEPS.length - 1, i));
+        const st = GUIDE_STEPS[guideIdx], v = document.getElementById('gdVideo');
+        document.getElementById('gdTabs').innerHTML = GUIDE_STEPS.map((x, n) => `<button type="button" aria-pressed="${n === guideIdx}" onclick="guideGo(${n})"><span>${n + 1}</span>${x.tab}</button>`).join('');
+        document.getElementById('gdStep').textContent = `${guideIdx + 1} / ${GUIDE_STEPS.length}`;
+        document.getElementById('gdTitle').textContent = st.title;
+        document.getElementById('gdText').innerHTML = st.text;
+        document.getElementById('gdPrev').disabled = guideIdx === 0;
+        const last = guideIdx === GUIDE_STEPS.length - 1, nx = document.getElementById('gdNext');
+        nx.textContent = last ? '시작하기' : '다음'; nx.onclick = last ? closeVideoGuideModal : () => guideGo(guideIdx + 1);
+        v.poster = `guide/${st.k}.jpg`; v.innerHTML = `<source src="guide/${st.k}.mp4" type="video/mp4"><source src="guide/${st.k}.webm" type="video/webm">`; v.load(); // 아이폰은 mp4, 일부 브라우저는 webm
+        const p = v.play(); if (p && p.catch) p.catch(() => {});
+    }
+    function openVideoGuideModal(step = 0) {
+        closeGuideModal && document.getElementById('guideModal').style.display === 'block' && closeGuideModal();
+        document.getElementById('videoGuideModal').classList.add('is-open');
+        guideGo(step);
     }
     function closeVideoGuideModal() {
-        document.getElementById('videoGuideModal').style.display = 'none';
+        const v = document.getElementById('gdVideo'); if (v) { v.pause(); v.innerHTML = ''; v.load(); }
+        document.getElementById('videoGuideModal').classList.remove('is-open');
     }
     window.addEventListener('click', function(event) {
         const videoModal = document.getElementById('videoGuideModal');
@@ -8394,13 +8441,16 @@
 </script>
 
 <!-- 사용방법 가이드 영상 모달 추가 -->
-<div id="videoGuideModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10050; justify-content: center; align-items: center;">
-    <div style="background: var(--card); padding: 24px 16px; border-radius: 16px; max-width: 96%; width: 680px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); box-sizing: border-box; text-align: center;">
-        <button onclick="closeVideoGuideModal()" style="position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); display: flex;"><i class="ti ti-x"></i></button>
-        <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text); display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="ti ti-video" style="color: var(--accent); font-size: 18px;"></i> 사용방법 가이드 영상</h3>
-        <div style="margin-top: 10px;">
-            <img src="guide.gif?v=5" alt="사용 방법: 사진 올리기, 구역 만들고 물건 적기, 물건 이름으로 찾기" style="display: block; width: auto; max-width: 100%; max-height: 72vh; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-        </div>
+<!-- 📖 사용법: 실제 앱을 폰 크기로 녹화한 짧은 영상 4개 (guide/*.mp4, 예시 그림·시연용 음성/AI 응답) -->
+<div id="videoGuideModal" role="dialog" aria-modal="true" aria-label="사용법" onclick="if (event.target === this) closeVideoGuideModal()">
+    <div class="gd-card">
+        <div class="gd-head"><b>사용법</b><span id="gdStep">1 / 4</span><button type="button" class="gd-x" onclick="closeVideoGuideModal()" aria-label="닫기">✕</button></div>
+        <div class="gd-tabs" id="gdTabs"></div>
+        <div class="gd-stage"><video id="gdVideo" muted playsinline loop autoplay preload="metadata"></video></div>
+        <h3 class="gd-title" id="gdTitle"></h3>
+        <p class="gd-text" id="gdText"></p>
+        <div class="gd-nav"><button type="button" class="gd-btn" id="gdPrev" onclick="guideGo(guideIdx - 1)">이전</button><button type="button" class="gd-btn gd-next" id="gdNext" onclick="guideGo(guideIdx + 1)">다음</button></div>
+        <p class="gd-note">영상 속 사진은 예시 그림이에요</p>
     </div>
 </div>
 

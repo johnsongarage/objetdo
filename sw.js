@@ -19,7 +19,7 @@ self.addEventListener('fetch', (event) => {
     const req = event.request;
     if (req.method !== 'GET') return;
     const url = new URL(req.url);
-    if (!CACHE_HOSTS.includes(url.host) || url.pathname.endsWith('.gif')) return;
+    if (!CACHE_HOSTS.includes(url.host) || /\.(gif|mp4|webm)$/.test(url.pathname)) return; // 움짤·영상은 브라우저에 맡긴다 (영상은 조각 요청이라 캐시에 넣으면 깨진다)
     event.respondWith(
         fetch(req)
             .then((res) => {
