@@ -5686,7 +5686,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.02.13';
+    const APP_VERSION = '베타 2026.11.03.1';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5750,9 +5750,27 @@
     // 크롬은 공유할 수 있는 파일 종류가 정해져 있어 .json은 거절되고, .txt로 보내면 카톡이 파일이 아닌 글(메시지)로 붙여 보낸다.
     // → 백업 내용을 PDF 파일 안에 넣어 보낸다. 열면 "복구하는 법" 안내 한 장이 보이고, 불러오기는 PDF 속 백업 내용을 꺼내 쓴다.
     const BACKUP_PDF_BEGIN = '%%CHANGGOJIGI-BACKUP-BEGIN', BACKUP_PDF_END = '%%CHANGGOJIGI-BACKUP-END';
+    // 📄 백업 PDF의 "사람이 읽는 쪽": 전체 찾아보기 + 사진마다 칸 번호 지도 (인쇄 [사진 지도 · 전체]와 같은 그림)
+    //    앱이 바뀌거나 없어져도, 고객 손에 남은 이 PDF만 열면 물건이 어디 있는지 보인다 (정리 인계물·서비스 종료 대비)
+    //    종이보다 조금 낮은 해상도(5px/mm)로 그려 파일이 너무 커지지 않게. 그리다 실패하면 예전처럼 안내 한 장만
+    function backupReadablePages() {
+        const photos = imageList.filter(d => d.id !== 'dummy_root' && d.canvas && d.zones);
+        if (!photos.some(d => d.zones.some(z => z.items && z.items.length))) return [];
+        const px = PRINT.pxPerMm, raw = PRINT.raw, ink = printOpts.ink;
+        PRINT.pxPerMm = 5; PRINT.raw = false; printOpts.ink = false;
+        try {
+            const ds = printDateStr(), multi = photos.length > 1, urls = [];
+            if (multi) urls.push(...buildMasterIndexPages(photos, ds));
+            photos.forEach((d, i) => urls.push(...buildPrintPages(d, i, ds, multi ? photoLetter(i) : null)));
+            const w = printPx(PRINT.pageWmm), h = printPx(PRINT.pageHmm);
+            return urls.map(u => ({ w, h, jpg: atob(String(u).split(',')[1]) }));
+        } catch (e) { return []; }
+        finally { PRINT.pxPerMm = px; PRINT.raw = raw; printOpts.ink = ink; }
+    }
     function buildBackupPdf(json) {
+        const extra = backupReadablePages();
         // 안내 그림 (PDF 기본 글꼴에는 한글이 없어서 글자를 그림으로 그려 넣는다)
-        const W = 1240, H = 700, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+        const W = 1240, H = extra.length ? 780 : 700, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
         const g = cv.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
         g.fillStyle = '#3b3577'; g.font = 'bold 64px sans-serif'; g.fillText(`${APP_NAME} 백업 파일`, 80, 150);
         g.fillStyle = '#1a1a18'; g.font = '38px sans-serif';
@@ -5760,7 +5778,8 @@
         g.fillStyle = '#c44444'; g.font = '30px sans-serif'; g.fillText('PDF 편집 앱으로 고쳐서 다시 저장하면 백업이 지워질 수 있어요.', 80, 295);
         g.fillStyle = '#1a1a18';
         ['복구하는 법', '1. 이 파일을 폰에 저장해요.', `2. ${APP_NAME} → 설정 → [백업 파일로 복구]`, '3. 이 파일을 골라요.'].forEach((t, i) => { g.font = i ? '38px sans-serif' : 'bold 40px sans-serif'; g.fillText(t, 80, 385 + i * 62); });
-        g.fillStyle = '#6b6960'; g.font = '30px sans-serif'; g.fillText(`만든 날: ${fileDateTime().replace('_', ' ')}`, 80, 660);
+        if (extra.length) { g.fillStyle = '#3b3577'; g.font = 'bold 34px sans-serif'; g.fillText('2쪽부터: 물건 찾아보기와 칸 번호 지도 (앱 없이 이 PDF로도 보여요)', 80, 650, W - 160); }
+        g.fillStyle = '#6b6960'; g.font = '30px sans-serif'; g.fillText(`만든 날: ${fileDateTime().replace('_', ' ')}`, 80, extra.length ? 740 : 660);
         const jpg = atob(cv.toDataURL('image/jpeg', 0.85).split(',')[1]);
         const ascii = (t) => Uint8Array.from(t, c => c.charCodeAt(0) & 0xff);
         const chunks = [], offsets = []; let len = 0;
@@ -5771,16 +5790,23 @@
             put(ascii(`${n} 0 obj\n${head.replace('LEN', streamBytes.length)}\nstream\n`)); put(streamBytes); put(ascii('\nendstream\nendobj\n'));
         };
         const pageW = 595, pageH = 842, imgW = 515, imgH = imgW * H / W;
+        // 쪽마다 [페이지, 내용, 그림] 세 개씩: 1쪽은 안내 그림(위쪽), 2쪽부터는 A4 한 장 그대로
+        const pages = [{ w: W, h: H, jpg, draw: `q ${imgW} 0 0 ${imgH.toFixed(1)} 40 ${(pageH - 40 - imgH).toFixed(1)} cm /Im1 Do Q` }]
+            .concat(extra.map(p => ({ ...p, draw: `q ${pageW} 0 0 ${pageH} 0 0 cm /Im1 Do Q` })));
+        const pageNo = (k) => 3 + k * 3, dataNo = 3 + pages.length * 3, size = dataNo + 1;
         put(ascii('%PDF-1.4\n'));
         obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
-        obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-        obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im1 5 0 R >> >> /Contents 4 0 R >>`);
-        obj(4, '<< /Length LEN >>', ascii(`q ${imgW} 0 0 ${imgH.toFixed(1)} 40 ${(pageH - 40 - imgH).toFixed(1)} cm /Im1 Do Q`));
-        obj(5, `<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length LEN >>`, ascii(jpg));
+        obj(2, `<< /Type /Pages /Kids [${pages.map((_, k) => `${pageNo(k)} 0 R`).join(' ')}] /Count ${pages.length} >>`);
+        pages.forEach((p, k) => {
+            const n = pageNo(k);
+            obj(n, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im1 ${n + 2} 0 R >> >> /Contents ${n + 1} 0 R >>`);
+            obj(n + 1, '<< /Length LEN >>', ascii(p.draw));
+            obj(n + 2, `<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length LEN >>`, ascii(p.jpg));
+        });
         // 백업 내용: 페이지에 연결하지 않은 별도 스트림 (PDF 보기 앱은 무시하고, 이 앱의 불러오기만 찾아 쓴다)
-        obj(6, '<< /Length LEN >>', new TextEncoder().encode(`${BACKUP_PDF_BEGIN}\n${json}\n${BACKUP_PDF_END}`));
+        obj(dataNo, '<< /Length LEN >>', new TextEncoder().encode(`${BACKUP_PDF_BEGIN}\n${json}\n${BACKUP_PDF_END}`));
         const xref = len;
-        put(ascii(`xref\n0 7\n0000000000 65535 f \n${offsets.slice(1).map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('')}trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`));
+        put(ascii(`xref\n0 ${size}\n0000000000 65535 f \n${offsets.slice(1, size).map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('')}trailer\n<< /Size ${size} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`));
         return new Blob(chunks, { type: 'application/pdf' });
     }
     // 불러오기용: PDF로 받은 백업이면 안의 백업 내용만 꺼낸다 (json·예전 txt 백업은 그대로)
