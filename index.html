@@ -2806,6 +2806,10 @@
             <label class="settings-label" for="storeNameInput"><span class="only-store">매장 이름</span><span class="only-home">머리글 이름</span> <small style="font-weight: 400; color: var(--text3);">인쇄물 머리글·파일 이름에 들어가요</small></label>
             <input type="text" id="storeNameInput" class="store-name-input" maxlength="20" placeholder="예: 다산점 창고" autocomplete="off" oninput="setStoreName(this.value)" data-ph-home="예: 우리 집">
         </div>
+        <div class="settings-group">
+            <label class="settings-label" for="organizerInput">정리 업체 이름 <small style="font-weight: 400; color: var(--text3);">정리해 드린 분이 넣으면 인쇄물·백업 PDF 아래에 '정리 · 이름'으로 들어가요</small></label>
+            <input type="text" id="organizerInput" class="store-name-input" maxlength="30" placeholder="예: 다산정리수납 010-1234-5678" autocomplete="off" oninput="setOrganizerName(this.value)">
+        </div>
         <small id="stockRowText" hidden></small>
         <div class="settings-group">
             <label class="settings-label" for="industrySelect">업종 기본 품목</label>
@@ -4107,7 +4111,7 @@
         document.getElementById('installAppRow').hidden = isInstalledApp();
         syncLastBackupText();
         document.getElementById('promoRow').hidden = !setupPromoOn();
-        syncSettingsFooter(); syncStatsRow(); syncStockRow(); syncFontSeg(); { const sn = document.getElementById('storeNameInput'); sn.value = storeName(); sn.placeholder = useMode() === 'home' ? sn.dataset.phHome : '예: 다산점 창고'; }
+        syncSettingsFooter(); syncStatsRow(); syncStockRow(); syncFontSeg(); { const og = document.getElementById('organizerInput'); if (og && og !== document.activeElement) og.value = organizerName(); } { const sn = document.getElementById('storeNameInput'); sn.value = storeName(); sn.placeholder = useMode() === 'home' ? sn.dataset.phHome : '예: 다산점 창고'; }
         document.getElementById('resetRow').parentElement.hidden = isSamplePreview || !hasSavedData(); // 지울 게 없으면 묶음째 숨김
         document.getElementById('contactRow').hidden = !CONTACT.url;
         document.getElementById('contactText').textContent = CONTACT.label || '';
@@ -5686,7 +5690,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.03.1';
+    const APP_VERSION = '베타 2026.11.03.2';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5731,7 +5735,7 @@
         reloadAfterSave();
     }
     function backupJson() {
-        return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: "백업", savedSystemData: JSON.parse(safeStorage.getItem('savedSystemData') || "[]"), baseItems: JSON.parse(safeStorage.getItem('baseItems') || "[]"), stockLog: JSON.parse(safeStorage.getItem('stockLog') || "[]") });
+        return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: "백업", savedSystemData: JSON.parse(safeStorage.getItem('savedSystemData') || "[]"), baseItems: JSON.parse(safeStorage.getItem('baseItems') || "[]"), stockLog: JSON.parse(safeStorage.getItem('stockLog') || "[]"), organizerName: organizerName() });
     }
     function markBackedUp() {
         if (!isSamplePreview) { try { safeStorage.setItem('lastBackupAt', String(Date.now())); } catch (e) {} }
@@ -5852,6 +5856,7 @@
             safeStorage.setItem('savedSystemData', JSON.stringify(imported.savedSystemData));
             safeStorage.setItem('baseItems', JSON.stringify(imported.baseItems));
             if (Array.isArray(imported.stockLog)) safeStorage.setItem('stockLog', JSON.stringify(imported.stockLog)); else safeStorage.removeItem('stockLog'); // 예전 백업엔 없음
+            if (typeof imported.organizerName === 'string' && imported.organizerName.trim()) setOrganizerName(imported.organizerName); // 정리 업체가 넘겨준 백업이면 고객 폰에서 다시 뽑아도 업체 이름이 남게
             safeStorage.removeItem('isSampleData'); // 예시를 불러온 적 있는 폰에서 복구한 데이터가 예시로 취급되지 않게
             safeStorage.setItem('lastBackupAt', String(Date.now())); safeStorage.setItem('dataChangedAt', '0');
             reloadAfterSave();
@@ -6951,6 +6956,10 @@
         try { localStorage.setItem('storeName', String(v || '').slice(0, 20)); } catch (e) {}
         ['storeNameInput', 'printStoreName'].forEach(id => { const el = document.getElementById(id); if (el && el !== document.activeElement) el.value = v; });
     }
+    // 정리 업체 이름 (선택): 정리수납 전문가가 고객 집을 정리하고 지도를 넘겨줄 때, 종이·백업 PDF 아래에 "정리 · 이름"으로 남는다
+    //   백업 파일에도 넣어서, 고객 폰에서 불러와 다시 뽑아도 그대로 남는다 (모든 데이터 지우기로는 지우지 않는다 — 업체 폰의 설정)
+    function organizerName() { try { return (localStorage.getItem('organizerName') || '').trim().slice(0, 30); } catch (e) { return ''; } }
+    function setOrganizerName(v) { try { localStorage.setItem('organizerName', String(v || '').slice(0, 30)); } catch (e) {} }
     function printHeadDate(dateStr) { const n = storeName(); return n ? `${n} · ${dateStr}` : dateStr; }
     function storeFileName() { return storeName().replace(/[\\/:*?"<>|\s.]+/g, ''); } // 파일 이름에 못 쓰는 글자·띄어쓰기 빼고
     // 쪽 하나를 다 그린 캔버스 → PDF용 JPEG. 미리보기는 PRINT.raw로 캔버스를 그대로 받아 작게 줄여 쓴다 (큰 JPEG 만들기가 가장 느렸다)
@@ -7356,8 +7365,15 @@
         ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'right';
         ctx.font = `bold ${printPx(3.2)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.fillText(APP_NAME, right, base); const brandW = ctx.measureText(APP_NAME).width;
         ctx.font = `${printPx(2.6)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.fillText('이 종이를 만든 앱 · QR로 열기', right, base + printPx(4.5));
-        ctx.font = `${printPx(3.2)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.textAlign = 'left';
-        ctx.fillText(text, m, base, Math.max(printPx(40), right - m - brandW - printPx(4))); // 길면 살짝 좁혀서 겹치지 않게
+        const leftW = Math.max(printPx(40), right - m - brandW - printPx(4)); // 길면 살짝 좁혀서 겹치지 않게
+        const org = organizerName(); ctx.textAlign = 'left';
+        if (org) { // 정리 업체가 있으면 오른쪽(앱 이름 + 작은 안내)과 같은 두 줄 모양: 위 "정리 · 업체", 아래 작은 안내
+            ctx.font = `bold ${printPx(3.2)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.fillText(`정리 · ${org}`, m, base, leftW);
+            ctx.font = `${printPx(2.6)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.fillText(text, m, base + printPx(4.5), leftW);
+            return;
+        }
+        ctx.font = `${printPx(3.2)}px sans-serif`; ctx.fillStyle = PRINT.sub;
+        ctx.fillText(text, m, base, leftW);
     }
     // 📱 인쇄물 QR: 찍으면 qr/ 페이지 → 바로 앱 첫 화면 (방문자 통계에서 /udigo/qr/ 방문 수 = 인쇄물로 들어온 사람)
     //   이 매장 지도가 열리는 게 아니라 "이 종이를 만든 앱"이 열린다 (지도는 사장님 폰에만 있음)
@@ -7648,7 +7664,7 @@
         panel.hidden = !open; optBtn.setAttribute('aria-expanded', String(open));
         // PDF는 양식·범위 모두 미리보기에 보이는 그대로 (예전엔 지도만 범위와 상관없이 전부 받아져 헷갈렸다)
         const label = form === 'map' ? (printScope === 'all' && multi ? '사진 전체' : (data.title || '')) : F.title;
-        const key = JSON.stringify([form, multi && printScope === 'all', printPreviewId, printOpts.sort, printOpts.memo, printOpts.size, printOpts.ink, storeName()]);
+        const key = JSON.stringify([form, multi && printScope === 'all', printPreviewId, printOpts.sort, printOpts.memo, printOpts.size, printOpts.ink, storeName(), organizerName()]);
         fillPrintPreview(++printJob, key, label);
     }
     async function fillPrintPreview(job, key, label) {
