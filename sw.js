@@ -26,8 +26,12 @@ self.addEventListener('fetch', (event) => {
                 if (res.ok || res.type === 'opaque') {
                     const copy = res.clone();
                     caches.open(CACHE).then((c) => c.put(req, copy));
+                    return res;
                 }
-                return res;
+                // 404·서버 오류(사이트 주소가 바뀌거나 내려간 경우)여도 이미 받아 둔 앱은 열리게: 저장본이 있으면 그걸, 없으면 받은 응답 그대로
+                return caches.match(req, { ignoreSearch: true })
+                    .then((hit) => hit || (req.mode === 'navigate' ? caches.match('./') : null))
+                    .then((hit) => hit || res);
             })
             .catch(() => caches.match(req, { ignoreSearch: true })
                 .then((hit) => hit || (req.mode === 'navigate' ? caches.match('./') : Response.error())))
