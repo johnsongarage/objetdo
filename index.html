@@ -486,7 +486,7 @@
         .sa-path { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13.5px; color: var(--text2); }
         .sa-path span { padding: 5px 11px; border-radius: 14px; background: var(--bg); }
         .sa-path i { font-style: normal; color: var(--text3); }
-        .sa-pic { margin-top: 16px; width: 100%; border-radius: 16px; display: block; background: var(--bg); }
+        .sa-pic { margin-top: 16px; width: 100%; border-radius: 16px; display: block; background: var(--bg); cursor: zoom-in; } .sa-pic.is-zoomed { cursor: zoom-out; }
         .sa-with-h { margin-top: 18px; font-size: 12.5px; font-weight: 700; color: var(--text3); letter-spacing: 0.2px; }
         .sa-with { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
         .sa-with span { padding: 7px 12px; border-radius: 16px; border: 1px solid var(--border); font-size: 14px; color: var(--text); }
@@ -5751,7 +5751,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.04.2';
+    const APP_VERSION = '베타 2026.11.04.3';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8088,6 +8088,7 @@
     function closeSimpleMenu() { document.getElementById('simpleMenu').classList.remove('is-open'); }
     function closeSimpleAnswer(refocus) {
         const el = document.getElementById('simpleAnswer'); if (!el) return;
+        cancelAnimationFrame(saAnim);
         el.classList.remove('is-open');
         if (refocus && listFrom) { listFrom = false; openListView(); return; }
         listFrom = false;
@@ -8109,19 +8110,86 @@
         document.getElementById('saWithH').hidden = !names.length;
         document.getElementById('saWith').innerHTML = names.map(n => `<span${nq && normalizeForSearch(n).includes(nq) ? ' class="is-hit"' : ''}>${escapeHtml(n)}</span>`).join('');
         const c = document.getElementById('saPic'), img = d.img;
-        if (img && img.width) {
-            const W = img.width, H = img.height, k = W / 800;
-            c.width = W; c.height = H; const x = c.getContext('2d');
+        const hit = z.items.find(it => nq && normalizeForSearch(it.name).includes(nq)) || null;
+        if (img && img.width) { c.hidden = false; drawSimpleAnswerPic(c, d, z, index, hit, feat('fx')); } else c.hidden = true;
+        const el = document.getElementById('simpleAnswer'); el.classList.add('is-open'); el.scrollTop = 0;
+    }
+    // 답 카드 사진: 효과를 켜면 레이더 연출 — ① 사진 전체에서 막이 내려앉고 ② 찾은 칸에 고리가 퍼진 뒤 ③ 그 칸으로 다가가(확대)
+    //   찾은 물건 이름·세부 위치 메모를 붙인다. "어느 사진 → 어느 칸 → 칸의 어디"가 차례로 보이게. 사진을 누르면 전체 ↔ 칸 확대
+    //   효과를 끄면 예전처럼 한 장 (어둡게 + 테두리 + 번호)
+    let saAnim = 0;
+    function drawSimpleAnswerPic(c, d, z, index, hit, fx) {
+        cancelAnimationFrame(saAnim);
+        const img = d.img, W = img.width, H = img.height, k = W / 800;
+        c.width = W; c.height = H; const x = c.getContext('2d');
+        const badge = (sc) => { // 칸 번호 동그라미 (확대해도 화면에서 같은 크기)
+            const r = 24 * k / sc, cx = z.x + r * 0.6, cy = z.y + r * 0.6;
+            x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fillStyle = fx ? `rgb(${RADAR_DIM_RGB})` : `rgb(${themeColors.accentRgb})`; x.fill();
+            x.lineWidth = 3 * k / sc; x.strokeStyle = fx ? NEON_ZONE : '#fff'; x.stroke();
+            x.fillStyle = fx ? NEON_ZONE : '#fff'; x.font = `800 ${Math.round(24 * k / sc)}px sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(index + 1), cx, cy + 1 * k / sc);
+        };
+        if (!fx) {
             x.drawImage(img, 0, 0, W, H);
             x.save(); x.beginPath(); x.rect(0, 0, W, H); x.rect(z.x, z.y, z.w, z.h); x.fillStyle = 'rgba(43,42,40,0.45)'; x.fill('evenodd'); x.restore();
             x.lineWidth = 7 * k; x.strokeStyle = '#ffffff'; x.strokeRect(z.x, z.y, z.w, z.h);
             x.lineWidth = 4 * k; x.strokeStyle = `rgb(${themeColors.accentRgb})`; x.strokeRect(z.x, z.y, z.w, z.h);
-            const r = 24 * k, cx = z.x + r * 0.6, cy = z.y + r * 0.6;
-            x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fillStyle = `rgb(${themeColors.accentRgb})`; x.fill(); x.lineWidth = 3 * k; x.strokeStyle = '#fff'; x.stroke();
-            x.fillStyle = '#fff'; x.font = `800 ${Math.round(24 * k)}px sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(index + 1), cx, cy + 1 * k);
-            c.hidden = false;
-        } else c.hidden = true;
-        const el = document.getElementById('simpleAnswer'); el.classList.add('is-open'); el.scrollTop = 0;
+            badge(1); c.onclick = null; c.classList.remove('is-zoomed'); return;
+        }
+        // 다가갈 자리: 칸이 화면 폭의 약 65%가 되게, 사진 밖으로 나가지 않게
+        let tw = Math.max(z.w / 0.65, (z.h / 0.65) * W / H, W * 0.28); tw = Math.min(W, tw); const th = tw * H / W;
+        const tx = Math.min(W - tw, Math.max(0, z.x + z.w / 2 - tw / 2)), ty = Math.min(H - th, Math.max(0, z.y + z.h / 2 - th / 2));
+        const full = { x: 0, y: 0, w: W, h: H }, near = { x: tx, y: ty, w: tw, h: th };
+        const edges = d._neonEdgesGlow || null, cx = z.x + z.w / 2, cy = z.y + z.h / 2, maxR = Math.max(z.w, z.h) * 0.9 + 40 * k;
+        const label = hit ? hit.name + (hit.comment ? ` · ${hit.comment}` : '') : '';
+        const frame = (el, from, to, zoomT) => {
+            const e = easeInOutCubic(zoomT), v = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, w: from.w + (to.w - from.w) * e, h: from.h + (to.h - from.h) * e };
+            const sc = W / v.w;
+            x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, H);
+            x.setTransform(sc, 0, 0, H / v.h, -v.x * sc, -v.y * H / v.h);
+            x.drawImage(img, 0, 0, W, H);
+            const dim = Math.min(1, el / 450);
+            x.save(); x.beginPath(); x.rect(0, 0, W, H); x.rect(z.x, z.y, z.w, z.h); x.fillStyle = `rgba(${RADAR_DIM_RGB},${0.72 * dim})`; x.fill('evenodd');
+            if (edges) { x.clip('evenodd'); x.globalAlpha = 0.45 * dim; x.drawImage(edges, 0, 0, W, H); } x.restore();
+            for (let r0 = 300; r0 <= Math.min(el, 1500); r0 += 600) { // 레이더 고리 두 번
+                const age = el - r0; if (age < 0 || age > 900) continue;
+                const p = age / 900, r = 10 * k + maxR * easeOutCubic(p);
+                x.save(); x.strokeStyle = `rgb(${NEON_EDGE_RGB})`; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2);
+                x.globalAlpha = (1 - p) * 0.25; x.lineWidth = 16 * k / sc; x.stroke(); x.globalAlpha = (1 - p) * 0.9; x.lineWidth = 4 * k / sc; x.stroke(); x.restore();
+            }
+            const pulse = el < 2400 ? 0.5 - 0.5 * Math.cos(el / 160) : 0;
+            x.save(); x.fillStyle = `rgba(${RADAR_HIT_RGB},${0.08 + 0.1 * pulse})`; x.fillRect(z.x, z.y, z.w, z.h);
+            [[22, 0.12], [12, 0.2]].forEach(([w, a]) => { x.globalAlpha = a; x.lineWidth = (w + 10 * pulse) * k / sc; x.strokeStyle = NEON_ZONE; x.strokeRect(z.x, z.y, z.w, z.h); });
+            x.globalAlpha = 1; x.lineWidth = 5 * k / sc; x.strokeStyle = NEON_ZONE; x.strokeRect(z.x, z.y, z.w, z.h);
+            x.lineWidth = 2 * k / sc; x.strokeStyle = RADAR_CORE; x.strokeRect(z.x, z.y, z.w, z.h); x.restore();
+            badge(sc);
+            // 찾은 물건 꼬리표: 확대가 끝나 갈 때 칸 아래(자리가 없으면 위)에 화면 크기 그대로
+            x.setTransform(1, 0, 0, 1, 0, 0);
+            const la = label ? Math.max(0, Math.min(1, (zoomT - 0.6) / 0.4)) : 0;
+            if (la > 0) {
+                const fs = Math.round(30 * k), padX = 22 * k, hgt = fs + 24 * k;
+                x.font = `800 ${fs}px sans-serif`; const tw2 = Math.min(W - 24 * k, x.measureText(label).width + padX * 2);
+                const zx = (z.x - v.x) * sc, zy = (z.y - v.y) * H / v.h, zw = z.w * sc, zh = z.h * H / v.h;
+                let ly = zy + zh + 14 * k; if (ly + hgt > H - 8 * k) ly = Math.max(8 * k, zy - hgt - 14 * k);
+                const lx = Math.min(W - tw2 - 12 * k, Math.max(12 * k, zx + zw / 2 - tw2 / 2));
+                x.save(); x.globalAlpha = la; x.fillStyle = `rgba(${RADAR_DIM_RGB},0.92)`; x.beginPath(); drawSafeRoundRect(x, lx, ly, tw2, hgt, hgt / 2); x.fill();
+                x.lineWidth = 3 * k; x.strokeStyle = NEON_ZONE; x.stroke();
+                x.fillStyle = '#f9f6f0'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(label, lx + tw2 / 2, ly + hgt / 2 + 1 * k, tw2 - padX * 2); x.restore();
+            }
+        };
+        const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let zoomed = true;
+        const play = (from, to, delay) => {
+            cancelAnimationFrame(saAnim); const t0 = performance.now();
+            const tick = (now) => {
+                const el = now - t0, zt = reduce ? 1 : Math.max(0, Math.min(1, (el - delay) / 900));
+                frame(reduce ? 3000 : el, from, to, zt);
+                if (!reduce && el < Math.max(delay + 950, 2500)) saAnim = requestAnimationFrame(tick);
+            };
+            saAnim = requestAnimationFrame(tick);
+        };
+        play(full, near, 1300); // 사진 전체 → (레이더) → 칸으로 다가가기
+        c.classList.add('is-zoomed');
+        c.onclick = () => { zoomed = !zoomed; c.classList.toggle('is-zoomed', zoomed); play(zoomed ? full : near, zoomed ? near : full, 0); };
     }
     function applyFeatures() {
         const r = document.documentElement;
