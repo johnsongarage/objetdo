@@ -974,13 +974,13 @@
         .zone-note .it.is-exp-line { color: #c81e33; font-weight: 800; }
         .zone-note .it.is-low-line { color: #b85a00; font-weight: 800; }
         @keyframes low-breath { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.25; } }
-        .zone-note.is-focus { outline: 2.5px solid #ff6ee0; outline-offset: 1px; box-shadow: 0 0 12px rgba(255, 90, 217, 0.85); } /* 찾은 칸 쪽지도 네온 */
+        .zone-note.is-focus { outline: 2.5px solid var(--radar-hit, #ff6ee0); outline-offset: 1px; box-shadow: 0 0 12px rgba(var(--radar-hit-rgb, 255, 90, 217), 0.85); } /* 찾은 칸 쪽지도 네온 */
         .note-layer.has-focus .zone-note:not(.is-focus), .note-layer.has-focus .is-empty:not(.is-focus) { opacity: 0.3; }
         .zone-note-slot.is-empty { transition: opacity 0.45s ease; }
         /* 칸 번호: 쪽지 왼쪽 위 구석의 동그라미 (빈 칸은 번호만). 칸이 붙어 있어도 어느 칸 번호인지 헷갈리지 않게 동그라미 전체가 칸 안에 들어온다 */
         .zone-num { position: absolute; top: calc(var(--num-off, 6px) * -1); left: calc(var(--num-off, 6px) * -1); min-width: 1.6em; height: 1.6em; padding: 0 0.3em; border-radius: 0.8em; display: inline-flex; align-items: center; justify-content: center; background: #2b2716; color: #fff3a3; font-size: var(--num-fs, 8.5px); font-weight: 800; line-height: 1; text-indent: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .is-empty .zone-num { position: static; background: rgba(43,39,22,0.62); color: #fff; }
-        .zone-note.is-focus .zone-num, .is-empty.is-focus .zone-num { background: #d936b8; color: #fff; }
+        .zone-note.is-focus .zone-num, .is-empty.is-focus .zone-num { background: rgb(var(--radar-dim-rgb, 217, 54, 184)); color: var(--radar-hit, #fff); box-shadow: 0 0 0 2px var(--radar-hit, #fff); } /* 찾은 칸 번호: 어두운 막 색 바탕 + 레이더 색 글자·테두리 (테마를 따른다) */
         html[data-f-fx="0"] .zone-note.is-focus { outline-color: rgb(var(--accent-rgb)); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
         html[data-f-fx="0"] .zone-note.is-focus .zone-num, html[data-f-fx="0"] .is-empty.is-focus .zone-num { background: rgb(var(--accent-rgb)); }
         .zoom-ctl { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; z-index: 2; }
@@ -1806,14 +1806,14 @@
         @keyframes voice-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
         @media (prefers-reduced-motion: reduce) { .icon-btn.is-listening, .voice-bars span { animation: none; } }
         /* 🎙 말로 찾기 네온 판: 아래에서 올라와 파형이 출렁이고, 알아들은 말이 크게 찍힌다 (누르면 멈춤) */
-        #voiceSheet { position: fixed; left: 50%; bottom: 0; z-index: 1300; width: min(520px, 100%); transform: translate(-50%, 110%); transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 22px 22px 0 0; background: #0b1026; box-shadow: 0 -8px 30px rgba(11,16,38,0.45), inset 0 1px 0 rgba(70,235,255,0.35); color: #e6fdff; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        #voiceSheet { position: fixed; left: 50%; bottom: 0; z-index: 1300; width: min(520px, 100%); transform: translate(-50%, 110%); transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 22px 22px 0 0; background: #0b1026; box-shadow: 0 -8px 30px rgba(11,16,38,0.45), inset 0 1px 0 rgba(var(--radar-edge-rgb, 70, 235, 255), 0.35); color: #e6fdff; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         #voiceSheet.on { transform: translate(-50%, 0); }
         #voiceSheet canvas { display: block; width: 100%; max-width: none; height: 74px; margin: 0; border: 0; border-radius: 0; }
-        .vs-text { min-height: 34px; margin-top: 4px; font-size: 24px; font-weight: 800; letter-spacing: -0.3px; color: #fff; text-shadow: 0 0 12px rgba(70,235,255,0.7); word-break: keep-all; }
+        .vs-text { min-height: 34px; margin-top: 4px; font-size: 24px; font-weight: 800; letter-spacing: -0.3px; color: #fff; text-shadow: 0 0 12px rgba(var(--radar-edge-rgb, 70, 235, 255), 0.7); word-break: keep-all; }
         .vs-text.is-empty { font-size: 15px; font-weight: 600; color: rgba(200,245,255,0.75); text-shadow: none; }
         .vs-text .caret { display: inline-block; width: 2px; height: 0.9em; margin-left: 3px; vertical-align: -0.08em; background: #46ebff; box-shadow: 0 0 8px #46ebff; animation: vs-caret 0.9s steps(1) infinite; }
         @keyframes vs-caret { 50% { opacity: 0; } }
-        .vs-text.is-final { color: #ffd6f6; text-shadow: 0 0 14px rgba(255,90,217,0.85); }
+        .vs-text.is-final { color: var(--radar-core, #ffd6f6); text-shadow: 0 0 14px rgba(var(--radar-hit-rgb, 255, 90, 217), 0.85); }
         .vs-hint { margin-top: 6px; font-size: 12.5px; color: rgba(200,245,255,0.6); }
         /* 효과를 끈 정돈 톤에서는 네온 남색 대신 앱 먹색 판으로 (네온은 효과 켤 때만) */
         html[data-f-fx="0"] #voiceSheet { background: #2b2a28; box-shadow: 0 -8px 30px rgba(43,42,40,0.3); color: #fff; }
@@ -1848,7 +1848,7 @@
         .zm-voice-big b { font-size: 15.5px; font-weight: 800; }
         .zm-voice-big small { display: block; font-size: 12px; font-weight: 500; color: var(--text3); }
         .zm-voice-big span { text-align: left; line-height: 1.3; }
-        .zm-voice-big.is-listening > .ti { background: #ff4fd8; color: #fff; }
+        .zm-voice-big.is-listening > .ti { background: var(--radar-hit, #ff4fd8); color: rgb(var(--radar-dim-rgb, 255, 255, 255)); }
         .zm-voice-big[hidden] { display: none; }
         .zm-add-new-icon { width: 22px; height: 22px; border-radius: 6px; background: var(--accent2); color: var(--on-accent2); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
         .zm-add-new[hidden], .zm-item[hidden], .zm-review[hidden] { display: none !important; }
@@ -3354,7 +3354,30 @@
     // ─── ✨ AI 구역 찾기 연출 ─────────────────────────────────────────────────
     // AI가 일하는 동안: 사진이 어두워지고 레이더 선이 훑으며 물체 테두리(엣지)가 네온으로 떠오른다
     // → 결과가 오면 구역이 하나씩 "탁탁탁" 박힌다 → 막이 걷히고 원본 사진 위에 네온 테두리만 남는다. 화면을 누르면 건너뜀
-    const NEON_ZONE = '#ff6ee0', NEON_ZONE_GLOW = 'rgba(255,90,217,0.95)', NEON_EDGE_RGB = [70, 235, 255];
+    // 🎨 레이더(화려한 효과) 색은 테마를 따른다 (11/4 사용자 결정: 정돈 톤에 분홍·청록 네온이 어색했다)
+    //   hit = 찾은 칸 테두리·고리·쪽지 / edge = 훑는 선·격자·물체 테두리 / dim = 어두운 막 / core = 테두리 가운데 밝은 심 / scan = 훑는 선 한가운데
+    //   테마 색과 같은 계열로 고르되, 어두운 막 위에서 또렷하게 보이도록 밝게. 부족(주황)·유통기한(빨강)은 뜻이 있는 색이라 그대로
+    const RADAR_PALETTES = {
+        calm:      { hit: [230, 194, 122], edge: [143, 190, 160], dim: [30, 29, 27],  core: '#fff6e3', scan: '#e6f4ea' }, // 정돈: 모래 금색 + 세이지 (아이콘과 같은 두 색)
+        shop:      { hit: [242, 182, 90],  edge: [110, 196, 212], dim: [18, 26, 31],  core: '#fff3df', scan: '#ddf6fb' }, // 매장 정돈: 호박색 + 청록
+        champagne: { hit: [227, 194, 126], edge: [236, 214, 170], dim: [28, 26, 24],  core: '#fff7e6', scan: '#fff4dc' }, // 샴페인: 금색 + 아이보리
+        mono:      { hit: [201, 184, 255], edge: [150, 170, 255], dim: [14, 12, 34],  core: '#f4f0ff', scan: '#e8ecff' }, // 인디고: 라벤더 + 페리윙클
+        pastel:    { hit: [255, 143, 191], edge: [255, 196, 222], dim: [40, 18, 30],  core: '#fff0f6', scan: '#fff0f7' }, // 파스텔: 장미 + 연분홍
+        yellow:    { hit: [255, 210, 0],   edge: [110, 170, 255], dim: [8, 18, 44],   core: '#fff8d6', scan: '#e3efff' }, // 옐로우 & 네이비
+        default:   { hit: [255, 214, 107], edge: [120, 230, 180], dim: [6, 22, 16],   core: '#fff8e3', scan: '#e3fff2' }  // 그린 & 아이보리: 금색 + 민트
+    };
+    let NEON_ZONE = '#ff6ee0', NEON_ZONE_GLOW = 'rgba(255,90,217,0.95)', NEON_EDGE_RGB = [70, 235, 255];
+    let RADAR_HIT_RGB = '255,90,217', RADAR_DIM_RGB = '4,8,22', RADAR_CORE = '#fff3fd', RADAR_SCAN = '#c9fbff';
+    function applyRadarPalette() {
+        const P = RADAR_PALETTES[document.documentElement.dataset.theme] || RADAR_PALETTES.default;
+        const edgeChanged = String(P.edge) !== String(NEON_EDGE_RGB);
+        RADAR_HIT_RGB = P.hit.join(','); NEON_ZONE = `rgb(${RADAR_HIT_RGB})`; NEON_ZONE_GLOW = `rgba(${RADAR_HIT_RGB},0.95)`;
+        NEON_EDGE_RGB = P.edge; RADAR_DIM_RGB = P.dim.join(','); RADAR_CORE = P.core; RADAR_SCAN = P.scan;
+        const st = document.documentElement.style;
+        st.setProperty('--radar-hit', NEON_ZONE); st.setProperty('--radar-hit-rgb', P.hit.join(', ')); st.setProperty('--radar-edge-rgb', P.edge.join(', ')); st.setProperty('--radar-core', P.core); st.setProperty('--radar-dim-rgb', P.dim.join(', '));
+        // 물체 테두리(엣지) 그림은 색을 넣어 미리 구워 두므로, 테마가 바뀌면 다시 굽게 비운다
+        if (edgeChanged && typeof imageList !== 'undefined') imageList.forEach(d => { d._neonEdges = null; d._neonEdgesGlow = null; d._neonEdgesSrc = null; d._neonWarm = null; });
+    }
     // 재고가 기준보다 모자란 물건이 있는 칸은 주황 네온 (부족 레이더)
     const NEON_LOW = '#ffa23a', NEON_LOW_GLOW = 'rgba(255,140,30,0.95)';
     function zoneLow(z) {
@@ -3383,7 +3406,7 @@
     function expLabel(it) { const d = expDays(it); return d === null ? '' : d < 0 ? '기한 지남' : d === 0 ? '오늘까지' : `D-${d}`; }
     function zoneExp(z) { let st = null; z.items.forEach(it => { const e = expState(it); if (e === 'over') st = 'over'; else if (e === 'soon' && !st) st = 'soon'; }); return st; }
     function strokeNeon(ctx, z, k, kind) { // kind: 없음=분홍(찾은 칸), true/'low'=주황(부족), 'exp'=빨강(유통기한)
-        const [c, glow, core] = kind === 'exp' ? ['#ff4d5e', 'rgba(255,60,80,0.95)', '#ffe9eb'] : kind ? [NEON_LOW, NEON_LOW_GLOW, '#fff4e3'] : [NEON_ZONE, NEON_ZONE_GLOW, '#fff3fd'];
+        const [c, glow, core] = kind === 'exp' ? ['#ff4d5e', 'rgba(255,60,80,0.95)', '#ffe9eb'] : kind ? [NEON_LOW, NEON_LOW_GLOW, '#fff4e3'] : [NEON_ZONE, NEON_ZONE_GLOW, RADAR_CORE];
         ctx.save();
         ctx.shadowColor = glow; ctx.shadowBlur = Math.max(8, 6 * k);
         ctx.lineWidth = Math.max(2, 1.5 * k); ctx.strokeStyle = c; ctx.strokeRect(z.x, z.y, z.w, z.h);
@@ -3500,7 +3523,7 @@
             ctx.font = '800 12.5px sans-serif';
             const bw = Math.min(W - 24, Math.max(...lines.map(l => ctx.measureText(full(l) + '...').width)) + 28), bh = lines.length * lh + 16;
             const bx = (W - bw) / 2, by = (H - bh) / 2;
-            ctx.globalAlpha = a; ctx.fillStyle = 'rgba(4,8,22,0.72)'; ctx.beginPath(); drawSafeRoundRect(ctx, bx, by, bw, bh, 12); ctx.fill();
+            ctx.globalAlpha = a; ctx.fillStyle = `rgba(${RADAR_DIM_RGB},0.72)`; ctx.beginPath(); drawSafeRoundRect(ctx, bx, by, bw, bh, 12); ctx.fill();
             ctx.strokeStyle = `rgba(${NEON_EDGE_RGB},0.35)`; ctx.lineWidth = 1; ctx.stroke();
             lines.forEach((l, i) => {
                 const y = by + 8 + lh / 2 + i * lh, inA = Math.min(1, (now - l.at) / 220), done = l.done && now >= l.done;
@@ -3509,7 +3532,7 @@
                 ctx.font = (l.hi ? '800 ' : '700 ') + '12.5px sans-serif';
                 ctx.shadowColor = l.hi ? NEON_ZONE_GLOW : `rgba(${NEON_EDGE_RGB},0.9)`; ctx.shadowBlur = 8;
                 const mark = done ? '✓' : '›', dots = done ? '' : '.'.repeat(1 + Math.floor(now / 330) % 3);
-                ctx.fillStyle = l.hi ? '#ffd6f6' : done ? 'rgba(160,240,255,0.9)' : '#e6fdff';
+                ctx.fillStyle = l.hi ? RADAR_CORE : done ? `rgba(${NEON_EDGE_RGB},0.9)` : RADAR_SCAN;
                 ctx.fillText(`${mark} ${l.text}${dots}${done && l.detail ? `  ${l.detail}` : ''}`, W / 2, y + (1 - inA) * 5);
             });
             ctx.restore();
@@ -3520,7 +3543,7 @@
             if (S.phase === 'fade') { all = Math.max(0, 1 - (now - S.fadeAt) / (S.skip ? 220 : 650)); if (all <= 0) return end(); }
             ctx.clearRect(0, 0, W, H);
             // 어두운 막 + 레이더 격자
-            ctx.fillStyle = `rgba(4,8,22,${0.74 * all})`; ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = `rgba(${RADAR_DIM_RGB},${0.74 * all})`; ctx.fillRect(0, 0, W, H);
             ctx.strokeStyle = `rgba(${NEON_EDGE_RGB},${0.07 * all})`; ctx.lineWidth = 1; ctx.beginPath();
             for (let gx = 0; gx < W; gx += 26) { ctx.moveTo(gx + 0.5, 0); ctx.lineTo(gx + 0.5, H); }
             for (let gy = 0; gy < H; gy += 26) { ctx.moveTo(0, gy + 0.5); ctx.lineTo(W, gy + 0.5); }
@@ -3537,7 +3560,7 @@
                 const gr = ctx.createLinearGradient(0, sweepY - 70, 0, sweepY);
                 gr.addColorStop(0, `rgba(${NEON_EDGE_RGB},0)`); gr.addColorStop(1, `rgba(${NEON_EDGE_RGB},0.28)`);
                 ctx.fillStyle = gr; ctx.fillRect(0, sweepY - 70, W, 70);
-                ctx.save(); ctx.shadowColor = `rgba(${NEON_EDGE_RGB},1)`; ctx.shadowBlur = 14; ctx.fillStyle = '#c9fbff'; ctx.fillRect(0, sweepY - 1, W, 2); ctx.restore();
+                ctx.save(); ctx.shadowColor = `rgba(${NEON_EDGE_RGB},1)`; ctx.shadowBlur = 14; ctx.fillStyle = RADAR_SCAN; ctx.fillRect(0, sweepY - 1, W, 2); ctx.restore();
             }
             // 구역이 하나씩 박힌다: 크게 나타나 제자리로 "탁" + 번호
             S.zones.forEach((z, i) => {
@@ -3545,11 +3568,11 @@
                 const age = now - at, pop = age < 170 ? 1.28 - 0.28 * (age / 170) : 1, flash = age < 240 ? 1 - age / 240 : 0;
                 const w = z.w * sc * pop, h = z.h * sc * pop, x = z.x * sc + (z.w * sc - w) / 2, y = z.y * sc + (z.h * sc - h) / 2;
                 ctx.save(); ctx.globalAlpha = all;
-                if (flash) { ctx.fillStyle = `rgba(255,110,224,${0.35 * flash})`; ctx.fillRect(x, y, w, h); }
+                if (flash) { ctx.fillStyle = `rgba(${RADAR_HIT_RGB},${0.35 * flash})`; ctx.fillRect(x, y, w, h); }
                 ctx.shadowColor = NEON_ZONE_GLOW; ctx.shadowBlur = 14; ctx.lineWidth = 2.5; ctx.strokeStyle = NEON_ZONE; ctx.strokeRect(x, y, w, h);
-                ctx.shadowBlur = 4; ctx.lineWidth = 1; ctx.strokeStyle = '#fff3fd'; ctx.strokeRect(x, y, w, h);
+                ctx.shadowBlur = 4; ctx.lineWidth = 1; ctx.strokeStyle = RADAR_CORE; ctx.strokeRect(x, y, w, h);
                 const r = 10, cx = x + r + 3, cy = y + r + 3;
-                ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(20,4,30,0.9)'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+                ctx.shadowBlur = 8; ctx.fillStyle = `rgba(${RADAR_DIM_RGB},0.9)`; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
                 ctx.strokeStyle = NEON_ZONE; ctx.lineWidth = 1.5; ctx.stroke();
                 ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.font = '700 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i + 1), cx, cy + 0.5);
                 ctx.restore();
@@ -3727,6 +3750,7 @@
     function readThemeColors() {
         const cs = getComputedStyle(document.documentElement), v = (n) => cs.getPropertyValue(n).trim();
         themeColors = { bg: v('--bg'), onAccent: v('--on-accent'), danger: v('--danger') || '#c44444', accent: v('--accent'), accent2: v('--accent2'), accentRgb: v('--accent-rgb'), zoneStroke: v('--zone-stroke'), zoneFillRgb: v('--zone-fill-rgb'), zoneFillAlpha: parseFloat(v('--zone-fill-alpha')) || 0.25 };
+        applyRadarPalette();
     }
     readThemeColors();
 
@@ -4008,7 +4032,7 @@
             const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
             energy *= 0.94; const t = (now - t0) / 1000, amp = H * (0.08 + 0.36 * energy);
             const fx = feat('fx');
-            (fx ? [[`rgba(255,90,217,0.55)`, 1.6, 0.9, 2.2], [`rgba(70,235,255,0.6)`, 2.3, 1.4, 1.6], [`#c9fbff`, 1.2, 2.0, 2.4]] : [[`rgba(255,255,255,0.25)`, 1.6, 0.9, 2], [`rgba(243,226,176,0.55)`, 2.3, 1.4, 1.6], [`rgba(255,255,255,0.9)`, 1.2, 2.0, 2.2]]).forEach(([c, f, sp, lw], k) => {
+            (fx ? [[`rgba(${RADAR_HIT_RGB},0.55)`, 1.6, 0.9, 2.2], [`rgba(${NEON_EDGE_RGB},0.6)`, 2.3, 1.4, 1.6], [RADAR_SCAN, 1.2, 2.0, 2.4]] : [[`rgba(255,255,255,0.25)`, 1.6, 0.9, 2], [`rgba(243,226,176,0.55)`, 2.3, 1.4, 1.6], [`rgba(255,255,255,0.9)`, 1.2, 2.0, 2.2]]).forEach(([c, f, sp, lw], k) => {
                 ctx.beginPath();
                 for (let x = 0; x <= W; x += 3) {
                     const u = x / W, env = Math.sin(Math.PI * u); // 가운데가 가장 크게 출렁이고 양끝은 잦아든다
@@ -4946,7 +4970,7 @@
         const outside = (x, y, w, h, dim, edgeA) => { // 스포트라이트 바깥만 어둡게 + 네온 엣지
             ctx.save();
             ctx.beginPath(); ctx.rect(0, 0, canvas.width, canvas.height); ctx.rect(x, y, w, h);
-            ctx.fillStyle = `rgba(4,8,22,${dim})`; ctx.fill('evenodd');
+            ctx.fillStyle = `rgba(${RADAR_DIM_RGB},${dim})`; ctx.fill('evenodd');
             if (anim.edges && edgeA > 0) {
                 ctx.clip('evenodd'); ctx.globalAlpha = edgeA;
                 ctx.drawImage(anim.edges, 0, 0, canvas.width, canvas.height); // 빛 번짐은 미리 구워 둠 (ensureNeonEdges)
@@ -4956,10 +4980,10 @@
         // 빛 번짐은 shadowBlur 대신 굵고 옅은 선을 겹쳐 흉내 낸다 (매 프레임 번짐 계산이 폰에서 끊김의 원인)
         const glowRect = (x, y, w, h, blur, width) => {
             ctx.save();
-            ctx.strokeStyle = 'rgb(255,90,217)';
+            ctx.strokeStyle = NEON_ZONE;
             [[1.1, 0.1], [0.65, 0.16], [0.3, 0.3]].forEach(([f, a]) => { ctx.globalAlpha = a; ctx.lineWidth = width + blur * f; ctx.strokeRect(x, y, w, h); });
             ctx.globalAlpha = 1; ctx.lineWidth = width; ctx.strokeStyle = NEON_ZONE; ctx.strokeRect(x, y, w, h);
-            ctx.lineWidth = Math.max(1, width * 0.4); ctx.strokeStyle = '#fff3fd'; ctx.strokeRect(x, y, w, h);
+            ctx.lineWidth = Math.max(1, width * 0.4); ctx.strokeStyle = RADAR_CORE; ctx.strokeRect(x, y, w, h);
             ctx.restore();
         };
         if (anim.blinkStart === null) {
@@ -4988,7 +5012,7 @@
                 ctx.globalAlpha = (1 - p) * 0.22; ctx.lineWidth = 9 * k; ctx.stroke(); // 번짐 (선 겹치기)
                 ctx.globalAlpha = (1 - p) * 0.85; ctx.lineWidth = 2 * k; ctx.stroke(); ctx.restore();
             }
-            ctx.save(); ctx.fillStyle = `rgba(255,90,217,${(0.06 + 0.12 * pulse) * fillIn})`; ctx.fillRect(to.x, to.y, to.w, to.h); ctx.restore();
+            ctx.save(); ctx.fillStyle = `rgba(${RADAR_HIT_RGB},${(0.06 + 0.12 * pulse) * fillIn})`; ctx.fillRect(to.x, to.y, to.w, to.h); ctx.restore();
             glowRect(to.x, to.y, to.w, to.h, (10 + 14 * pulse) * k, (2.5 + 1.2 * pulse) * k);
         }
     }
@@ -5066,7 +5090,7 @@
                 else { ctx.fillStyle = `rgba(${themeColors.accentRgb}, 0.3)`; ctx.strokeStyle = themeColors.accent2; ctx.lineWidth = 5; }
             }
             else if (isHovered) { ctx.fillStyle = 'rgba(255, 243, 196, 0.35)'; ctx.strokeStyle = '#c8960a'; ctx.lineWidth = 3; }
-            else if (z === activeZone && !flyIntro) { const fx = feat('fx'); ctx.fillStyle = fx ? 'rgba(255, 90, 217, 0.14)' : `rgba(${themeColors.accentRgb}, 0.12)`; ctx.strokeStyle = fx ? NEON_ZONE : `rgb(${themeColors.accentRgb})`; ctx.lineWidth = Math.max(3, 2.5 * displayScale(canvas)); }
+            else if (z === activeZone && !flyIntro) { const fx = feat('fx'); ctx.fillStyle = fx ? `rgba(${RADAR_HIT_RGB},0.14)` : `rgba(${themeColors.accentRgb}, 0.12)`; ctx.strokeStyle = fx ? NEON_ZONE : `rgb(${themeColors.accentRgb})`; ctx.lineWidth = Math.max(3, 2.5 * displayScale(canvas)); }
             else if (cleanView) { /* 보기 모드 기본: 아래에서 테두리만 그림 */ }
             else { ctx.fillStyle = `rgba(${themeColors.zoneFillRgb}, ${themeColors.zoneFillAlpha})`; ctx.strokeStyle = themeColors.zoneStroke; ctx.lineWidth = 2; }
             if (!hideBox) {
@@ -5101,7 +5125,7 @@
             ctx.save();
             ctx.beginPath(); ctx.rect(0, 0, canvas.width, canvas.height); ctx.rect(z.x, z.y, z.w, z.h);
             const fx = feat('fx'); // 효과를 끄면: 살짝만 어둡게, 네온 대신 차분한 초록 테두리
-            ctx.fillStyle = fx ? 'rgba(8, 10, 24, 0.6)' : 'rgba(43, 42, 40, 0.42)'; ctx.fill('evenodd');
+            ctx.fillStyle = fx ? `rgba(${RADAR_DIM_RGB},0.6)` : 'rgba(43, 42, 40, 0.42)'; ctx.fill('evenodd');
             if (fx && data._neonEdgesGlow) { ctx.clip('evenodd'); ctx.globalAlpha = 0.3; ctx.drawImage(data._neonEdgesGlow, 0, 0, canvas.width, canvas.height); } // 어두운 바깥에 물체 테두리가 은은히
             ctx.restore();
             if (!hideBox && fx) strokeNeon(ctx, z, k * 1.8);
@@ -5690,7 +5714,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.03.2';
+    const APP_VERSION = '베타 2026.11.04.1';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8125,7 +8149,7 @@
                 const el = now - t0; ctx.clearRect(0, 0, W, H);
                 if (el > DUR) { cv.remove(); return; }
                 const veil = Math.sin(Math.PI * Math.min(1, el / DUR)) * 0.32; // 살짝 어두워졌다 걷힌다
-                ctx.fillStyle = `rgba(4,8,22,${veil})`; ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = `rgba(${RADAR_DIM_RGB},${veil})`; ctx.fillRect(0, 0, W, H);
                 low.forEach((z, i) => {
                     const x = z.x * sc, y = z.y * sc, w = z.w * sc, h = z.h * sc, cx = x + w / 2, cy = y + h / 2, maxR = Math.max(w, h) * 0.75 + 18;
                     ctx.save(); ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = `rgba(0,0,0,${veil ? 1 : 0})`; ctx.fillRect(x, y, w, h); ctx.restore(); // 부족한 칸은 밝게
