@@ -976,6 +976,17 @@
         @keyframes low-breath { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.25; } }
         .zone-note.is-focus { outline: 2.5px solid var(--radar-hit, #ff6ee0); outline-offset: 1px; box-shadow: 0 0 12px rgba(var(--radar-hit-rgb, 255, 90, 217), 0.85); } /* 찾은 칸 쪽지도 네온 */
         .note-layer.has-focus .zone-note:not(.is-focus), .note-layer.has-focus .is-empty:not(.is-focus) { opacity: 0.3; }
+        /* 찾은 칸 쪽지: 찾은 물건 한 줄만 크게 + 나머지는 "+N개 더" (칸에 든 물건이 다 보이면 뭘 찾았는지 묻혔다) */
+        .zone-note.is-found-one .found-it { font-weight: 800; font-size: 1.12em; line-height: 1.22; word-break: keep-all; overflow-wrap: anywhere; }
+        .zone-note.is-found-one .more { font-size: 0.86em; }
+        /* 찾은 자리 꼬리표: 사진 위(찾은 칸과 먼 쪽)에 "공간 › 번호 · 칸 이름" — 칸만 빛나면 어느 선반인지 말로 전해지지 않았다 */
+        .found-loc { position: absolute; left: 50%; transform: translate(-50%, 6px); max-width: calc(100% - 16px); display: flex; align-items: baseline; gap: 8px; padding: 7px 14px; border-radius: 999px; background: rgba(var(--radar-dim-rgb, 30, 29, 27), 0.9); color: #f9f6f0; border: 1.5px solid var(--radar-hit, #e6c27a); font-size: 15px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; z-index: 3; }
+        .found-loc.show { opacity: 1; transform: translate(-50%, 0); }
+        .found-loc small { font-size: 12px; font-weight: 700; color: var(--radar-hit, #e6c27a); }
+        .found-loc b { overflow: hidden; text-overflow: ellipsis; }
+        .found-loc.at-top { top: 8px; } .found-loc.at-bottom { bottom: 50px; } /* 아래쪽은 [크게 보기] 버튼 위로 */
+        html[data-f-fx="0"] .found-loc { background: rgba(43, 42, 39, 0.88); border-color: rgb(var(--accent-rgb)); }
+        html[data-f-fx="0"] .found-loc small { color: #f3e2b0; }
         .zone-note-slot.is-empty { transition: opacity 0.45s ease; }
         /* 칸 번호: 쪽지 왼쪽 위 구석의 동그라미 (빈 칸은 번호만). 칸이 붙어 있어도 어느 칸 번호인지 헷갈리지 않게 동그라미 전체가 칸 안에 들어온다 */
         .zone-num { position: absolute; top: calc(var(--num-off, 6px) * -1); left: calc(var(--num-off, 6px) * -1); min-width: 1.6em; height: 1.6em; padding: 0 0.3em; border-radius: 0.8em; display: inline-flex; align-items: center; justify-content: center; background: #2b2716; color: #fff3a3; font-size: var(--num-fs, 8.5px); font-weight: 800; line-height: 1; text-indent: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
@@ -4615,6 +4626,7 @@
                 layer.dataset.focus = String(fi);
                 [...layer.children].forEach((slot, zi) => { const el = slot.classList.contains('is-empty') ? slot : slot.querySelector('.zone-note'); if (el) el.classList.toggle('is-focus', zi === fi); });
             }
+            syncFoundNote(layer, data, fi);
             return;
         }
         layer.dataset.key = key; layer.dataset.focus = String(fi);
@@ -4662,6 +4674,31 @@
             if (narrow) { fill([names[0]], false); const l = note.lastChild; l.style.maxHeight = Math.max(lineH, room - 6) + 'px'; l.style.overflow = 'hidden'; } // 쪽지가 아니라 글줄을 자른다 (쪽지를 자르면 번호도 잘림)
             else oneLine();
         });
+        syncFoundNote(layer, data, fi);
+    }
+    // 찾은 칸 표시 마무리: ① 쪽지는 찾은 물건 한 줄 + "+N개 더" ② 사진 위에 "공간 › 번호 · 칸 이름" 꼬리표
+    //   쪽지 원래 내용은 _orig에 두었다가 다른 칸을 고르거나 찾기를 끝내면 되돌린다 (쪽지를 다시 만들지 않아 가볍다)
+    function syncFoundNote(layer, data, fi) {
+        const slots = [...layer.children].filter(el => el.classList.contains('zone-note-slot'));
+        slots.forEach((slot, zi) => {
+            const note = slot.querySelector('.zone-note'); if (!note) return;
+            const z = data.zones[zi], want = zi === fi && focusItemName && z && z.items.length > 1 && z.items.some(it => it.name === focusItemName) ? focusItemName : '';
+            if (note._orig && note.dataset.foundItem !== want) { note.replaceChildren(...note._orig); note.className = note._origClass; note._orig = null; delete note.dataset.foundItem; }
+            if (!want || note._orig) return;
+            note._orig = [...note.childNodes]; note._origClass = note.className; note.dataset.foundItem = want;
+            const num = note.querySelector('.zone-num'), it = document.createElement('div'), more = document.createElement('div');
+            it.className = 'found-it'; it.textContent = want; more.className = 'more'; more.textContent = `+${z.items.length - 1}개 더`;
+            note.classList.remove('one-line'); note.classList.add('is-found-one'); note.replaceChildren(...[num, it, more].filter(Boolean));
+        });
+        let loc = layer.querySelector('.found-loc');
+        const z = fi >= 0 ? data.zones[fi] : null;
+        if (!z) { if (loc) loc.classList.remove('show'); return; }
+        if (!loc) { loc = document.createElement('div'); loc.className = 'found-loc'; layer.appendChild(loc); }
+        const label = `${fi + 1}번${z.name ? ' · ' + z.name : ' 칸'}`;
+        loc.innerHTML = `<small>여깃도!</small><b>${escapeHtml(data.title || '사진')} › ${escapeHtml(label)}</b>`;
+        const lower = (z.y + z.h / 2) / data.canvas.height > 0.5; // 찾은 칸과 먼 쪽에 붙여 칸을 가리지 않게
+        loc.classList.toggle('at-top', lower); loc.classList.toggle('at-bottom', !lower);
+        requestAnimationFrame(() => loc.classList.add('show'));
     }
 
     // 사진 확대: 휴대폰은 두 손가락으로 벌리면 사진을 화면 가득(전체 화면) 띄운 뒤 그 안에서 확대한다
@@ -5714,7 +5751,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.04.1';
+    const APP_VERSION = '베타 2026.11.04.2';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6678,7 +6715,9 @@
     let foundCtx = null; // { dataId, zone, itemName, stage: 'waiting' | 'pill' | 'bar', at, hiddenAt }
     let foundFallbackTimer = null;
 
+    let focusItemName = ''; // 검색으로 찾은 물건 이름 (찾은 칸 쪽지에 이것만 크게)
     function queueFoundCheck(dataId, index, itemName) {
+        focusItemName = itemName || '';
         hideFoundBar();
         return; // 11/1: "찾으셨나요?" 알림은 화면 소음이라 뺐다 (찾은 횟수는 결과를 누를 때 이미 센다)
         const data = imageList.find(d => d.id == dataId), zone = data && data.zones[index];
