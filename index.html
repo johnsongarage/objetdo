@@ -3016,7 +3016,7 @@
 
     // 예시 미리보기 중에도 화면 설정(모드·기능 켜고 끄기·글자 크기 등)은 진짜로 저장한다 — 데이터가 아니라 취향이라서
     //    (예전엔 미리보기에서 바꾼 설정이 새로고침하면 사라져 "설정이 리셋된다"고 보였다)
-    const PREF_KEYS = new Set(['useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint']);
+    const PREF_KEYS = new Set(['voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint']);
     const isPrefKey = (key) => PREF_KEYS.has(key) || String(key).startsWith('feat_');
     const safeStorage = {
         _storage: {},
@@ -3989,16 +3989,24 @@
     // ────────────────────────────────────────────────────────────
     const VOICE_SILENCE_MS = 7000;
     let activeVoice = null;
+    // 🎙 브라우저 음성 인식이 안 되는 기기(태블릿 일부·삼성 인터넷·아이패드 홈 화면 앱 등)는 키보드 받아쓰기로 넘긴다
+    //   (11/5: 태블릿에서 큰 마이크는 안 되는데 키보드의 🎤는 됐다). 한 번 실패한 기기는 다음부터 바로 키보드를 띄운다
+    const VOICE_FALLBACK_KEY = 'voiceFallback';
+    function keyboardDictation(input, why) {
+        try { input.focus(); } catch (e) {}
+        showToast(why === 'denied' ? '마이크 권한이 막혀 있어요. 키보드의 🎤를 눌러 말해도 돼요' : '키보드의 🎤 마이크를 눌러 말해 주세요', 5000);
+    }
     function startVoiceCapture({ btn, input, onFinal, onNoSpeech, onState, onText }) {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) { alert('음성 인식을 지원하지 않는 브라우저입니다.'); return; }
+        if (!SR || safeStorage.getItem(VOICE_FALLBACK_KEY) === '1') { keyboardDictation(input); return; }
         if (activeVoice) { const same = activeVoice.btn === btn; activeVoice.manual = true; activeVoice.stop(); if (same) return; } // 듣는 중에 다시 누르면 정지
 
         const wrap = input.closest('.search-input-wrap'), icon = btn.querySelector('i');
         const prev = { value: input.value, placeholder: input.placeholder, label: btn.getAttribute('aria-label') };
         const rec = new SR();
         rec.lang = 'ko-KR'; rec.interimResults = true; rec.maxAlternatives = 1;
-        let finalText = '', heard = false, error = null, silenceTimer = null;
+        let finalText = '', heard = false, error = null, silenceTimer = null, started = false, startedAt = 0, startTimer = null;
+        const giveUp = () => { try { safeStorage.setItem(VOICE_FALLBACK_KEY, '1'); } catch (e) {} keyboardDictation(input); };
         const session = { btn, stop: () => { try { rec.stop(); } catch (e) {} } };
         activeVoice = session;
 
@@ -4013,6 +4021,7 @@
         };
 
         rec.onstart = () => {
+            started = true; startedAt = Date.now(); clearTimeout(startTimer);
             setListening(true);
             input.value = '';
             if (navigator.vibrate) navigator.vibrate(30);
@@ -4030,17 +4039,22 @@
         };
         rec.onerror = (e) => { error = e.error; };
         rec.onend = () => {
-            clearTimeout(silenceTimer);
+            clearTimeout(silenceTimer); clearTimeout(startTimer);
             setListening(false);
             if (activeVoice === session) activeVoice = null;
             const text = (finalText || input.value).trim();
             if (text) { onFinal(text); return; }
             input.value = prev.value;
-            const denied = error === 'not-allowed' || error === 'service-not-allowed';
+            // 이 기기에선 음성 인식이 안 된다: 서비스·마이크·네트워크 오류, 또는 시작하자마자(1.5초 안) 아무것도 못 듣고 끝남
+            const broken = ['service-not-allowed', 'audio-capture', 'network', 'language-not-supported', 'bad-grammar'].includes(error) || !started || (!heard && !session.manual && Date.now() - startedAt < 1500);
+            if (broken && !session.manual) { giveUp(); return; }
+            if (error === 'not-allowed') { keyboardDictation(input, 'denied'); return; }
+            const denied = false;
             if (session.manual && !denied) return; // 사용자가 직접 멈춘 경우엔 "못 들었어요"를 띄우지 않음
             if (onNoSpeech) onNoSpeech(denied ? '마이크 권한을 허용해야 말로 입력할 수 있어요' : '못 들었어요. 마이크를 다시 눌러 말해주세요');
         };
-        try { rec.start(); } catch (e) { activeVoice = null; setListening(false); }
+        startTimer = setTimeout(() => { if (!started && activeVoice === session) { activeVoice = null; try { rec.abort(); } catch (e) {} setListening(false); giveUp(); } }, 3000); // 3초 안에 듣기를 시작하지 못하면
+        try { rec.start(); } catch (e) { clearTimeout(startTimer); activeVoice = null; setListening(false); giveUp(); }
     }
 
     // 말로 찾기 네온 판: 말이 들릴 때마다(인식 결과가 올 때마다) 파형이 크게 출렁이고 잦아든다.
@@ -4110,9 +4124,9 @@
     function syncVoiceButtons() {
         const hero = document.getElementById('heroMicBtn'), big = document.getElementById('voiceItemBig');
         const ok = voiceSupported(), inApp = typeof isInAppBrowser === 'function' && isInAppBrowser();
-        const zmic = document.getElementById('voiceItemBtn'); if (zmic) zmic.hidden = !ok || inApp;
+        const zmic = document.getElementById('voiceItemBtn'); if (zmic) zmic.hidden = inApp; // 음성 인식이 없어도 누르면 키보드 받아쓰기로 안내
         if (!hero) return;
-        const box = document.getElementById('heroVoice'); if (box) box.hidden = !ok && !inApp;
+        const box = document.getElementById('heroVoice'); if (box) box.hidden = false;
         hero.dataset.mode = inApp ? 'browser' : 'voice';
         const used = safeStorage.getItem('voiceUsed') === '1';
         document.getElementById('heroMicLabel').textContent = inApp ? '눌러서 브라우저로 열기' : '눌러서 말하기';
@@ -5781,7 +5795,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.05.7';
+    const APP_VERSION = '베타 2026.11.05.8';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
