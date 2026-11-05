@@ -416,7 +416,7 @@
         /* 🏠 집·정리 모드: 핵심만 (사진 지도 · 검색 · 말로 찾기/넣기 · 인쇄). 꺼진 기능은 지우지 않고 숨긴다 */
         .hero-ask, .hero-spaces { display: none; }
         html[data-mode="home"] .only-store, html:not([data-mode="home"]) .only-home { display: none; } /* 모드별 문구 */
-        html[data-mode="home"] #promoBanner, html[data-mode="home"] .setup-promo, html[data-mode="home"] #promoRow, html[data-mode="home"] .ws-setup { display: none !important; } /* 다산·구리 방문 세팅은 매장 대상 */
+        /* 11/5: 이벤트가 "수납장 1곳 무료(원격)"로 바뀌어 집 모드에서도 보인다 (예전 다산·구리 방문 세팅은 매장만) */
         body.welcome-open:not(.hero-search-active) .search-bar { display: none; } /* 시작 화면: 카드에 이름·로고가 있어 위 머리글 이름이 겹쳤다 */
         body.hero-search-active:not(.hero-search-focused) .hero-ask { display: block; }
         body.hero-search-active:not(.hero-search-focused) .hero-spaces { display: grid; }
@@ -458,6 +458,7 @@
         /* 찾기만 화면 꾸밈: 기능은 적어도 첫인상은 정돈되게 */
         .simple-brand, .simple-sub, .simple-foot { display: none; }
         .simple-foot .simple-count { display: block; }
+        .simple-foot .simple-offer { display: block; width: fit-content; margin: 0 auto 10px; padding: 6px 14px; border-radius: 999px; background: #fff6c7; border: 1px solid #f0d36a; color: #6b5310; font-size: 13px; font-weight: 700; text-decoration: none; }
         .simple-foot .simple-sample { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 6px 6px 6px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); color: var(--text2); font-size: 13px; font-weight: 700; box-shadow: 0 4px 14px rgba(43,42,40,0.06); }
         .simple-foot .simple-sample button { border: 0; border-radius: 999px; padding: 6px 12px; background: rgb(var(--accent-rgb)); color: #fff; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
         body.hero-search-active:not(.hero-search-focused) .simple-brand { display: flex; position: fixed; top: max(24px, calc(env(safe-area-inset-top) + 10px)); left: max(22px, calc(50% - 280px)); z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
@@ -2426,9 +2427,9 @@
     </div>
     <!-- 🎁 이벤트 띠: 이미 쓰고 있는 사람은 첫 화면을 다시 안 봐서 이벤트를 놓쳤다 → 기간 동안 위쪽 띠로 한 번 알림 -->
     <div id="promoBanner" class="sample-banner install-banner promo-banner" style="display: none;">
-        <span><i class="ti ti-gift"></i> 11월 30일까지 다산동·구리시 <b>무료 방문 세팅</b> (선착순 5팀)</span>
+        <span><i class="ti ti-gift"></i> <b>수납장 1곳 무료</b>로 지도 만들어 드려요 · 사진만 보내 주세요</span>
         <span class="install-banner-actions">
-            <a class="btn-xs is-accent" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener" onclick="dismissPromoBanner()">신청</a>
+            <a class="btn-xs is-accent" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener" onclick="dismissPromoBanner()">DM</a>
             <button type="button" class="btn-xs is-icon" onclick="dismissPromoBanner()" title="닫기" aria-label="닫기"><i class="ti ti-x"></i></button>
         </span>
     </div>
@@ -2484,10 +2485,10 @@
             <button class="btn-base btn-primary btn-lg" onclick="loadSampleData()"><i class="ti ti-player-play"></i> 예시로 먼저 둘러보기</button>
             <button class="btn-base btn-secondary btn-lg" id="welcomeStartBtn" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
             <p class="revisit-only welcome-revisit-note">지금 쓰던 지도는 그대로 있어요. 예시는 저장하지 않고 미리보기로 열려요.</p>
-            <a class="setup-promo" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener" hidden>
+            <a class="setup-promo" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener" hidden>
                 <i class="ti ti-gift setup-promo-ic" aria-hidden="true"></i>
-                <span class="setup-promo-text"><b>11/30까지 무료 방문 세팅</b> <span>다산·구리</span></span>
-                <span class="setup-promo-go">신청 <i class="ti ti-chevron-right"></i></span>
+                <span class="setup-promo-text"><b>수납장 1곳 무료로 만들어 드려요</b> <span>사진만 보내기</span></span>
+                <span class="setup-promo-go">DM <i class="ti ti-chevron-right"></i></span>
             </a>
             <p class="welcome-trust"><span class="trust-free"><i class="ti ti-gift"></i> 무료 베타</span><span><i class="ti ti-bolt"></i> 가입 없이</span><button type="button" class="trust-link" onclick="openDataInfo()"><i class="ti ti-device-mobile"></i> 내 폰에 저장</button></p>
         </div>
@@ -2849,7 +2850,7 @@
             <button class="settings-row" onclick="openFeedbackForm()"><i class="ti ti-message-2"></i> 의견 보내기</button>
             <button class="settings-row" onclick="shareApp()"><i class="ti ti-share"></i> <span data-app-name>오브젯도</span> 알려주기</button>
             <button id="contactRow" class="settings-row" onclick="openContact()" hidden><i class="ti ti-headset"></i> 문의하기 <small id="contactText" style="margin-left: auto; color: var(--text3); font-weight: 400;"></small></button>
-            <a id="promoRow" class="settings-row promo-row" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener" hidden><i class="ti ti-gift"></i> 무료 방문 세팅 <small style="margin-left: auto; color: var(--text3); font-weight: 400;">11/30까지 · 다산·구리</small></a>
+            <a id="promoRow" class="settings-row promo-row" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener" hidden><i class="ti ti-gift"></i> 수납장 1곳 무료 제작 <small style="margin-left: auto; color: var(--text3); font-weight: 400;">사진 보내고 DM</small></a>
         </div>
     </section>
     <section class="settings-sec">
@@ -5780,7 +5781,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.05.4';
+    const APP_VERSION = '베타 2026.11.05.5';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6970,8 +6971,8 @@
     }
     // 첫 화면 아래: 정리 전/후 비교(예시 사진 위에 쪽지가 붙었다 떨어졌다) + 업종별 예시 카드 (누르면 그 사진으로 예시 열기)
     let wsTimer = null;
-    // 무료 방문 세팅 행사: 끝나는 날(11월 30일, 10/31에서 연장)이 지나면 첫 화면 안내가 저절로 사라진다
-    const SETUP_PROMO_END = new Date('2026-12-01T00:00:00+09:00');
+    // 무료 제작 행사: 11/5부터 "수납장 1곳 무료(원격, 사진만 보내면)"로 바뀜 (예전: 다산·구리 무료 방문 세팅 11/30·5팀). 마감 날짜는 안 적고, 안에서만 연말에 내린다
+    const SETUP_PROMO_END = new Date('2027-01-01T00:00:00+09:00');
     function setupPromoOn() { return Date.now() < SETUP_PROMO_END.getTime(); }
     // 이미 쓰고 있는 사람에게 이벤트 띠 (닫거나 신청을 누르면 다시 안 띄움, 기간이 끝나면 자동으로 안 보임)
     function maybeShowPromoBanner() {
@@ -6994,10 +6995,10 @@
             <section class="ws-sec"><h3 class="ws-h">벽에 붙이면 폰 없이도 찾아요</h3><p class="ws-p">A4로 뽑아 선반 옆에 붙여 두면, 직원·알바생도 폰을 꺼내지 않고 <b>꺼낼 때도, 다시 가져다 놓을 때도</b> 자리를 바로 찾아요.</p>
             <div class="ws-print"><img src="print-sample.jpg" alt="인쇄물 예시: 선반 사진에 구역 번호와 쪽지, 아래에 가나다순 물건 찾아보기" loading="lazy" width="600" height="849"></div>
             <ul class="ws-points"><li><b>찾을 때</b> 가나다순 목록에서 물건 이름 → 오른쪽 번호 → 사진 속 그 구역</li><li><b>넣을 때</b> 쓰고 난 물건도 원래 자리로, 사람마다 다르게 두지 않아요</li></ul></section>
-            ${setupPromoOn() ? `<section class="ws-sec ws-setup"><h3 class="ws-h"><i class="ti ti-gift"></i> 처음 세팅, 직접 가서 해드려요</h3><p class="ws-p">베타 기간 동안 매장에 찾아가 처음부터 끝까지 세팅해 드려요. 비용은 없어요.</p>
-            <ul class="ws-setup-list"><li><i class="ti ti-camera"></i> 선반·냉장고 사진 찍기</li><li><i class="ti ti-border-corners"></i> 구역 나누고 물건 이름 입력</li><li><i class="ti ti-printer"></i> A4 인쇄물 뽑아 선반 옆에 붙이기</li></ul>
-            <p class="ws-setup-cond">11월 30일까지 · 남양주 다산동·구리시 · 선착순 5팀<br>무료 세팅은 <b>선반·랙 5개 내외</b>로 해드려요. 더 큰 창고는 대표 구역을 같이 세팅하고, 나머지는 쉽게 하는 법을 알려드려요.<br>써보신 뒤 짧은 후기 한 줄만 부탁드려요</p>
-            <a class="btn-base btn-primary btn-lg ws-setup-go" href="https://forms.gle/Yf3eGxW8N1i8fh6L8" target="_blank" rel="noopener"><i class="ti ti-calendar-event"></i> 무료 방문 세팅 신청하기</a></section>` : ''}
+            ${setupPromoOn() ? `<section class="ws-sec ws-setup"><h3 class="ws-h"><i class="ti ti-gift"></i> 수납장 1곳, 무료로 만들어 드려요</h3><p class="ws-p">사진만 보내 주시면 칸을 나누고 물건 이름까지 넣어 지도로 만들어 드려요. 비용은 없어요.</p>
+            <ul class="ws-setup-list"><li><i class="ti ti-camera"></i> 수납장 사진을 DM으로 보내기</li><li><i class="ti ti-border-corners"></i> 칸 나누고 물건 이름 입력 (제가 해요)</li><li><i class="ti ti-printer"></i> 지도 파일과 A4 인쇄용 PDF 받기</li></ul>
+            <p class="ws-setup-cond">수납장·선반 1곳 · 지역 상관없이 원격으로<br>써 보신 뒤 짧은 후기 한 줄만 부탁드려요</p>
+            <a class="btn-base btn-primary btn-lg ws-setup-go" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener"><i class="ti ti-message-circle"></i> DM으로 신청하기</a></section>` : ''}
             <section class="ws-sec"><h3 class="ws-h">이런 곳에 써요</h3><p class="ws-p">눌러서 예시를 바로 열어 보세요.</p>
             <div class="ws-cases">${photos.map(p => `<button type="button" class="ws-case" data-id="${p.id}"><img src="${p.imgData}" alt="" loading="lazy"><b>${escapeHtml(p.title)}</b><span>구역 ${p.zones.length} · 물건 ${p.zones.reduce((n, z) => n + z.items.length, 0)}<i class="ti ti-chevron-right"></i></span></button>`).join('')}</div></section>`;
         const ba = box.querySelector('#wsBa'), img = ba.querySelector('img');
@@ -8069,7 +8070,8 @@
         // 예시를 보는 중이면 찾기만 화면에도 "예시를 보고 있어요" (+ AI 사진이면 표시) — 지도 화면의 예시 띠가 여기선 안 보였다 (11/5)
         const sample = isSamplePreview || safeStorage.getItem('isSampleData') === '1', ai = photos.some(d => d.aiPhoto);
         const btn = isSamplePreview ? `<button type="button" onclick="exitSamplePreview()">예시 닫기</button>` : `<button type="button" onclick="clearSampleData()">예시 지우고 시작</button>`;
-        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${ai ? ' · 사진은 AI로 만듦' : ''}${btn}</span>` : '')
+        const offer = sample && setupPromoOn() ? `<a class="simple-offer" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener"><i class="ti ti-gift"></i> 수납장 1곳 무료로 만들어 드려요 · DM</a>` : '';
+        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${ai ? ' · 사진은 AI로 만듦' : ''}${btn}</span>` : '') + offer
             + (photos.length ? `<span class="simple-count">공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요</span>` : '');
     }
     // 📋 물건 전체 목록
