@@ -5486,6 +5486,23 @@
         if (e.target.closest('canvas, #modal, #printModal, #printBackdrop, #zonePicker, .sheet-backdrop, .search-bar, #searchResultDisplay, #foundBar, #foundPill, #floatingRemote, #settingsModal')) return;
         clearZoneFocus();
     }, true);
+    // 찾은 칸이 보이게 스크롤: 위에 붙어 있는 검색 띠(.search-bar) 아래 남은 화면을 기준으로 맞춘다
+    //   사진이 그 안에 다 들어오면 사진을 가운데, 사진이 더 길면 찾은 칸을 가운데 (사진 바깥 빈 곳이 보이지 않게 끝은 맞춘다)
+    //   (11/5: PC에서 사진 전체를 가운데 두다 보니 위쪽 칸이 검색 띠 밑에 가려 찾은 칸·쪽지가 안 보였다)
+    function scrollFoundIntoView(data, zone) {
+        const canvas = data.canvas; if (!canvas) return;
+        const r = canvas.getBoundingClientRect(), bar = document.querySelector('.search-bar');
+        const top = bar && getComputedStyle(bar).position !== 'static' ? Math.max(0, bar.getBoundingClientRect().bottom) : 0;
+        const pad = 12, avail = window.innerHeight - top - pad * 2;
+        let target;
+        if (r.height <= avail) target = top + pad + (avail - r.height) / 2;
+        else {
+            const zc = zone ? (zone.y + zone.h / 2) * r.height / canvas.height : r.height / 2;
+            target = top + pad + avail / 2 - zc;
+            target = Math.min(top + pad, Math.max(target, window.innerHeight - pad - r.height));
+        }
+        window.scrollBy({ top: r.top - target, behavior: 'smooth' });
+    }
     function selectZone(dataId, index) {
         if (simpleOn()) { showSimpleAnswer(dataId, index); return; }
         deactivateHeroSearch(); recordFind();
@@ -5501,7 +5518,7 @@
         if (activeData && activeData.canvas) {
             const canvas = activeData.canvas;
             scrollZoomToZone(activeData, activeZone);
-            canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            scrollFoundIntoView(activeData, activeZone);
             let lastTop = canvas.getBoundingClientRect().top, stableFrames = 0;
             const settleStart = performance.now(), maxWait = 900;
             const waitForScrollSettle = () => {
@@ -5755,7 +5772,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.04.5';
+    const APP_VERSION = '베타 2026.11.05.1';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
