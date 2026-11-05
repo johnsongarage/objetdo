@@ -457,6 +457,9 @@
         html[data-simple="1"] #floatingRemote, html[data-simple="1"] #foundBar, html[data-simple="1"] #foundPill { display: none !important; }
         /* 찾기만 화면 꾸밈: 기능은 적어도 첫인상은 정돈되게 */
         .simple-brand, .simple-sub, .simple-foot { display: none; }
+        .simple-foot .simple-count { display: block; }
+        .simple-foot .simple-sample { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 6px 6px 6px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); color: var(--text2); font-size: 13px; font-weight: 700; box-shadow: 0 4px 14px rgba(43,42,40,0.06); }
+        .simple-foot .simple-sample button { border: 0; border-radius: 999px; padding: 6px 12px; background: rgb(var(--accent-rgb)); color: #fff; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
         body.hero-search-active:not(.hero-search-focused) .simple-brand { display: flex; position: fixed; top: max(24px, calc(env(safe-area-inset-top) + 10px)); left: max(22px, calc(50% - 280px)); z-index: 1065; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; letter-spacing: -0.2px; color: var(--text2); pointer-events: none; }
         .simple-brand .brand-box { flex: none; } /* 앱 아이콘과 같은 상자 모양 (지도 화면 위 이름과 통일) */
         body.hero-search-active .simple-brand { color: var(--hero-text) !important; opacity: .82; }
@@ -5777,7 +5780,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.05.2';
+    const APP_VERSION = '베타 2026.11.05.3';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8063,7 +8066,11 @@
     function syncSimpleFoot() {
         const el = document.getElementById('simpleFoot'); if (!el) return;
         const photos = (bootPhotos || imageList).filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0);
-        el.textContent = photos.length ? `공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요` : '';
+        // 예시를 보는 중이면 찾기만 화면에도 "예시를 보고 있어요" (+ AI 사진이면 표시) — 지도 화면의 예시 띠가 여기선 안 보였다 (11/5)
+        const sample = isSamplePreview || safeStorage.getItem('isSampleData') === '1', ai = photos.some(d => d.aiPhoto);
+        const btn = isSamplePreview ? `<button type="button" onclick="exitSamplePreview()">예시 닫기</button>` : `<button type="button" onclick="clearSampleData()">예시 지우고 시작</button>`;
+        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${ai ? ' · 사진은 AI로 만듦' : ''}${btn}</span>` : '')
+            + (photos.length ? `<span class="simple-count">공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요</span>` : '');
     }
     // 📋 물건 전체 목록
     let listViewMode = 'space';
