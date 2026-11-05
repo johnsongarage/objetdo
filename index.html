@@ -35,7 +35,12 @@
             m = localStorage.getItem('useMode') === 'home' ? 'home' : 'store';
         } catch (e) {}
         document.documentElement.dataset.mode = m;
-        try { if (localStorage.getItem('simpleView') === '1') document.documentElement.dataset.simple = '1'; } catch (e) {}
+        // 찾기만 화면: 직접 켠 경우 + 집 모드 예시 링크로 들어온 경우(직접 끈 적이 없으면) — 정리 전문가에게 보내는 예시는 "고객이 받는 화면"으로 연다 (11/5)
+        try {
+            const sv = localStorage.getItem('simpleView'), u2 = new URLSearchParams(location.search);
+            const homeSample = m === 'home' && (u2.get('sample') || sessionStorage.getItem('samplePreview') === 'organizer');
+            if (sv === '1' || (sv === null && homeSample)) document.documentElement.dataset.simple = '1';
+        } catch (e) {}
         // 기본 톤: 집은 정돈, 매장은 매장 정돈 (11/1부터 모두). 예전 기본값이던 흑백은 한 번만 매장 정돈으로 옮긴다
         try { if (!localStorage.getItem('lookMig2')) { if (m === 'store' && localStorage.getItem('uiTheme') === 'mono') localStorage.removeItem('uiTheme'); localStorage.setItem('lookMig2', '1'); } } catch (e) {}
         let t = m === 'home' ? 'calm' : 'shop';
@@ -5772,7 +5777,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.05.1';
+    const APP_VERSION = '베타 2026.11.05.2';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5939,6 +5944,7 @@
             safeStorage.setItem('baseItems', JSON.stringify(imported.baseItems));
             if (Array.isArray(imported.stockLog)) safeStorage.setItem('stockLog', JSON.stringify(imported.stockLog)); else safeStorage.removeItem('stockLog'); // 예전 백업엔 없음
             if (typeof imported.organizerName === 'string' && imported.organizerName.trim()) setOrganizerName(imported.organizerName); // 정리 업체가 넘겨준 백업이면 고객 폰에서 다시 뽑아도 업체 이름이 남게
+            if (useMode() === 'home' && safeStorage.getItem('simpleView') === null) safeStorage.setItem('simpleView', '1'); // 집 모드에서 받은 지도는 찾기만 화면으로 연다 (직접 끄거나 켠 적이 있으면 그대로)
             safeStorage.removeItem('isSampleData'); // 예시를 불러온 적 있는 폰에서 복구한 데이터가 예시로 취급되지 않게
             safeStorage.setItem('lastBackupAt', String(Date.now())); safeStorage.setItem('dataChangedAt', '0');
             reloadAfterSave();
@@ -8019,7 +8025,8 @@
     function stockOn() { const v = safeStorage.getItem(STOCK_KEY); return v === '1' ? true : v === '0' ? false : useMode() !== 'home'; }
     // 쓰는 곳(모드)과 기능 켜고 끄기: 모드마다 기본값이 있고, 설정에서 직접 바꾼 값이 있으면 그걸 따른다. 꺼도 적어 둔 내용은 지우지 않고 숨기기만 한다
     function useMode() { return document.documentElement.dataset.mode === 'home' ? 'home' : 'store'; }
-    const FEAT_DEFAULTS = { home: { exp: false, brief: false, chips: false, fx: false }, store: { exp: true, brief: true, chips: true, fx: false } };
+    // 집 모드는 레이더(효과) 켬이 기본 (11/5 사용자 결정)
+    const FEAT_DEFAULTS = { home: { exp: false, brief: false, chips: false, fx: true }, store: { exp: true, brief: true, chips: true, fx: false } };
     function feat(k) {
         const v = safeStorage.getItem('feat_' + k); if (v === '1') return true; if (v === '0') return false;
         return FEAT_DEFAULTS[useMode()][k];
