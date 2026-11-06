@@ -803,9 +803,9 @@
             .hero-voice[hidden] { display: none !important; }
             .hv-bubbles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 36px; }
             .hv-bubbles:empty { display: none; }
-            .hv-bubble { position: relative; padding: 8px 14px; border: 1px solid var(--hero-chip-border); border-radius: 16px; background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; font-size: 14px; cursor: pointer; animation: hv-float 4s ease-in-out infinite; }
+            .hv-bubble { position: relative; padding: 8px 14px; border: 1px solid var(--hero-chip-border); border-radius: 16px; background: linear-gradient(var(--hero-chip-bg), var(--hero-chip-bg)), var(--hero-bg); color: var(--hero-text); font: inherit; font-size: 14px; cursor: pointer; animation: hv-float 4s ease-in-out infinite; } /* 반투명 칩 색을 배경 색 위에 합친 불투명 색: 꼬리가 아랫선을 덮을 수 있게 */
             .hv-bubble:nth-child(2) { animation-delay: -1.3s; } .hv-bubble:nth-child(3) { animation-delay: -2.6s; }
-            .hv-bubble::after { content: ''; position: absolute; left: 50%; bottom: -5.5px; width: 10px; height: 10px; background: inherit; border-right: 1px solid var(--hero-chip-border); border-bottom: 1px solid var(--hero-chip-border); transform: translateX(-50%) rotate(45deg); clip-path: polygon(100% 0, 100% 100%, 0 100%); } /* 반투명 바탕이라 돌린 네모의 위쪽 절반이 말풍선과 겹쳐 비쳤다 → 아래 뾰족한 부분만 */
+            .hv-bubble::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: inherit; border-right: 1px solid var(--hero-chip-border); border-bottom: 1px solid var(--hero-chip-border); border-bottom-right-radius: 2px; transform: translateX(-50%) rotate(45deg); } /* 11/6: 꼬리(같은 불투명 색)가 말풍선 아랫선을 덮고, 꼬리 두 선이 테두리에서 그대로 이어져 내려간다 */
             @keyframes hv-float { 50% { transform: translateY(-3px); } }
             .hero-voice-btn { display: flex; align-items: center; justify-content: center; width: 84px; height: 84px; padding: 0; border: 0; border-radius: 50%; background: var(--hero-text); color: var(--hero-bg); /* 첫 화면 바탕과 반대색: 밝은 바탕엔 진한 원, 진한 바탕엔 흰 원 */ cursor: pointer; touch-action: manipulation; box-shadow: 0 0 0 10px color-mix(in srgb, var(--hero-text) 14%, transparent), 0 0 0 22px color-mix(in srgb, var(--hero-text) 7%, transparent), 0 10px 24px rgba(0,0,0,0.22); transition: transform .12s; }
             .hero-voice-btn:active { transform: scale(0.94); }
@@ -5821,7 +5821,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.7';
+    const APP_VERSION = '베타 2026.11.06.8';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8227,6 +8227,7 @@
         document.getElementById('saWithH').textContent = kind ? `"${q}"은(는) 적어 둔 게 없어요 · 같은 종류(${kind})가 이 칸에 있어요` : '이 칸에 함께 있는 것';
         const c = document.getElementById('saPic'), img = d.img;
         const hit = z.items.find(it => nq && normalizeForSearch(it.name).includes(nq)) || (kind ? { name: `${kind} 칸`, comment: '' } : null);
+        const saEl = document.getElementById('simpleAnswer'); saEl.classList.add('is-open'); // 그림 폭을 재려면 먼저 열어야 한다
         if (img && img.width) { c.hidden = false; drawSimpleAnswerPic(c, d, z, index, hit, feat('fx')); } else c.hidden = true;
         document.getElementById('saAi').hidden = !(d.aiPhoto && img && img.width);
         const el = document.getElementById('simpleAnswer'); el.classList.add('is-open'); el.scrollTop = 0;
@@ -8239,7 +8240,8 @@
         cancelAnimationFrame(saAnim);
         const img = d.img, W = img.width, H = img.height, k = W / 800;
         // 11/6: 원본 크기(1600)에 그려 화면(약 310px)으로 크게 줄이면 꼬리표 글씨가 깨져 보였다 → 화면 크기 × 화면 배율로 그린다 (좌표는 원본 기준 그대로, F배 해서 그림)
-        const dpr = Math.min(3, window.devicePixelRatio || 1), cssW = c.clientWidth || (c.parentElement && c.parentElement.clientWidth) || 360;
+        // 11/6 고침: 카드가 열리기 전에 그려 폭을 0으로 읽고 360px로 그려서 PC에서 더 뿌옇던 것 → 카드를 먼저 열고(showSimpleAnswer) 실제 폭을 잰다. 배율은 최소 2 (PC 1배 화면에서도 또렷하게)
+        const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 1)), cssW = c.getBoundingClientRect().width || Math.min(560, window.innerWidth - 72);
         const F = Math.min(1, Math.max(0.2, (cssW * dpr) / W));
         c.width = Math.round(W * F); c.height = Math.round(H * F); const x = c.getContext('2d'); x.imageSmoothingQuality = 'high';
         const T = (a, d, e, f) => x.setTransform(a * F, 0, 0, d * F, e * F, f * F);
