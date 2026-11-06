@@ -2233,7 +2233,7 @@
         <tr><th>Google 시트<br><small style="font-weight: 400; color: var(--text3);">사용 통계</small></th><td>앱을 쓴 날짜와 무작위 번호만<small>하루 한 번 · 사진·이름·메모·개수는 보내지 않음 · 설정에서 끌 수 있음</small></td></tr>
         <tr><th>Cloudflare<br><small style="font-weight: 400; color: var(--text3);">방문 통계</small></th><td>이 페이지를 연 기록 (쿠키 없음)<small>몇 명이 들어왔는지 세는 용도</small></td></tr>
     </table>
-    <p style="font-size: 12.5px; color: var(--text3); margin: 10px 0 14px; word-break: keep-all;">회원가입이 없어서 사진·물건 같은 내용은 우리 서버에 저장하지 않아요. 폰을 바꾸기 전에는 설정에서 백업 파일을 받아 두세요.</p>
+    <p style="font-size: 12.5px; color: var(--text3); margin: 10px 0 14px; word-break: keep-all;">사진·물건 같은 내용은 <b>기본으로 이 폰에만</b> 저장돼요. 같이 보기 같은 기능이 생겨도 <b>직접 켤 때만</b> 서버에 올라가요. 폰을 바꾸기 전에는 설정에서 백업 파일을 받아 두세요.</p>
     <button type="button" class="btn-base btn-primary" style="width: 100%;" onclick="closeDataInfo()">닫기</button>
 </div>
 <script>
@@ -5809,7 +5809,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.3';
+    const APP_VERSION = '베타 2026.11.06.4';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
