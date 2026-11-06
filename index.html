@@ -6269,7 +6269,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.28';
+    const APP_VERSION = '베타 2026.11.06.29';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -7528,7 +7528,7 @@
             <ul class="ws-points"><li><b>찾을 때</b> 가나다순 목록에서 물건 이름 → 오른쪽 번호 → 사진 속 그 구역</li><li><b>넣을 때</b> 쓰고 난 물건도 원래 자리로, 사람마다 다르게 두지 않아요</li></ul></section>
             ${setupPromoOn() ? `<section class="ws-sec ws-setup"><h3 class="ws-h"><i class="ti ti-gift"></i> 직접 하기 번거로우면, 대신 만들어 드려요</h3><p class="ws-p">사진만 보내 주시면 칸을 나누고 물건 이름까지 넣어 지도로 만들어 드려요. 구리·남양주는 직접 가서 찍고 폰에 넣어 드려요.</p>
             <ul class="ws-setup-list"><li><i class="ti ti-camera"></i> 수납장 사진을 DM으로 보내기 (방문이면 날짜 잡기)</li><li><i class="ti ti-border-corners"></i> 칸 나누고 물건 이름 입력 (제가 해요)</li><li><i class="ti ti-printer"></i> 지도 파일과 A4 인쇄용 PDF 받기</li></ul>
-            <p class="ws-setup-cond">베타(12월 31일까지) · 원격 3곳 ₩19,000 (1곳 더할 때마다 +₩7,000) · 집 전체 ₩50,000 · 방문 3곳 ₩50,000 · <a href="price/">가격 보기</a><br>정리수납 업체는 업체용 샘플 1곳 무료 (선착순 10곳)</p>
+            <p class="ws-setup-cond">베타(12월 31일까지) · 원격 3곳 ₩19,000 (1곳 더할 때마다 +₩7,000 · 집 전체는 견적) · 방문 3곳 ₩50,000 · <a href="price/">가격 보기</a><br>정리수납 업체는 업체용 샘플 1곳 무료 (선착순 10곳)</p>
             <a class="btn-base btn-primary btn-lg ws-setup-go" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener"><i class="ti ti-message-circle"></i> DM으로 신청하기</a></section>` : ''}
             <section class="ws-sec"><h3 class="ws-h">이런 곳에 써요</h3><p class="ws-p">눌러서 예시를 바로 열어 보세요.</p>
             <div class="ws-cases">${photos.map(p => `<button type="button" class="ws-case" data-id="${p.id}"><img src="${p.imgData}" alt="" loading="lazy"><b>${escapeHtml(p.title)}</b><span>구역 ${p.zones.length} · 물건 ${p.zones.reduce((n, z) => n + z.items.length, 0)}<i class="ti ti-chevron-right"></i></span></button>`).join('')}</div></section>`;
