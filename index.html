@@ -805,7 +805,7 @@
             .hv-bubbles:empty { display: none; }
             .hv-bubble { position: relative; padding: 8px 14px; border: 1px solid var(--hero-chip-border); border-radius: 16px; background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; font-size: 14px; cursor: pointer; animation: hv-float 4s ease-in-out infinite; }
             .hv-bubble:nth-child(2) { animation-delay: -1.3s; } .hv-bubble:nth-child(3) { animation-delay: -2.6s; }
-            .hv-bubble::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: inherit; border-right: 1px solid var(--hero-chip-border); border-bottom: 1px solid var(--hero-chip-border); transform: translateX(-50%) rotate(45deg); }
+            .hv-bubble::after { content: ''; position: absolute; left: 50%; bottom: -5.5px; width: 10px; height: 10px; background: inherit; border-right: 1px solid var(--hero-chip-border); border-bottom: 1px solid var(--hero-chip-border); transform: translateX(-50%) rotate(45deg); clip-path: polygon(100% 0, 100% 100%, 0 100%); } /* 반투명 바탕이라 돌린 네모의 위쪽 절반이 말풍선과 겹쳐 비쳤다 → 아래 뾰족한 부분만 */
             @keyframes hv-float { 50% { transform: translateY(-3px); } }
             .hero-voice-btn { display: flex; align-items: center; justify-content: center; width: 84px; height: 84px; padding: 0; border: 0; border-radius: 50%; background: var(--hero-text); color: var(--hero-bg); /* 첫 화면 바탕과 반대색: 밝은 바탕엔 진한 원, 진한 바탕엔 흰 원 */ cursor: pointer; touch-action: manipulation; box-shadow: 0 0 0 10px color-mix(in srgb, var(--hero-text) 14%, transparent), 0 0 0 22px color-mix(in srgb, var(--hero-text) 7%, transparent), 0 10px 24px rgba(0,0,0,0.22); transition: transform .12s; }
             .hero-voice-btn:active { transform: scale(0.94); }
@@ -2385,7 +2385,7 @@
         <div class="sa-title" id="saTitle"></div>
         <div class="sa-path" id="saPath"></div>
         <canvas class="sa-pic" id="saPic"></canvas>
-        <div class="sa-ai" id="saAi" hidden>예시 사진 (AI로 만듦)</div>
+        <div class="sa-ai" id="saAi" hidden>예시 집이에요</div>
         <div class="sa-with-h" id="saWithH">이 칸에 함께 있는 것</div>
         <div class="sa-with" id="saWith"></div>
     </div>
@@ -3993,6 +3993,18 @@
     let activeVoice = null;
     // 🎙 브라우저 음성 인식이 안 되는 기기(태블릿 일부·삼성 인터넷·아이패드 홈 화면 앱 등)는 키보드 받아쓰기로 넘긴다
     //   (11/5: 태블릿에서 큰 마이크는 안 되는데 키보드의 🎤는 됐다). 한 번 실패한 기기는 다음부터 바로 키보드를 띄운다
+    // 🔑 입력칸에 키보드 '열쇠(비밀번호 자동 채우기)'가 뜨지 않게 (11/6): 로그인 칸으로 오해하지 않도록 모든 글자 입력칸에
+    //   자동완성 끔 + 비밀번호 관리자(키체인·구글·1Password·LastPass·Bitwarden·Dashlane)가 읽는 '무시' 표시. 나중에 생기는 칸(메모·수량 등)도 같이
+    const NO_FILL_TYPES = new Set(['', 'text', 'search', 'number', 'date', 'tel', 'url']);
+    function noAutofill(el) {
+        if (!el || el.dataset.noFill || !NO_FILL_TYPES.has((el.getAttribute('type') || '').toLowerCase()) && el.tagName !== 'TEXTAREA') return;
+        el.dataset.noFill = '1';
+        el.setAttribute('autocomplete', 'off'); el.setAttribute('data-1p-ignore', ''); el.setAttribute('data-lpignore', 'true'); el.setAttribute('data-bwignore', ''); el.setAttribute('data-form-type', 'other');
+        if (el.getAttribute('type') !== 'number' && el.getAttribute('type') !== 'date') { el.setAttribute('autocapitalize', 'off'); el.setAttribute('autocorrect', 'off'); }
+    }
+    function noAutofillAll(root) { (root || document).querySelectorAll('input, textarea').forEach(noAutofill); }
+    noAutofillAll();
+    try { new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches && n.matches('input, textarea')) noAutofill(n); else if (n.querySelectorAll) noAutofillAll(n); }))).observe(document.body, { childList: true, subtree: true }); } catch (e) {}
     const VOICE_FALLBACK_KEY = 'voiceFallback';
     function keyboardDictation(input, why) {
         try { input.focus(); } catch (e) {}
@@ -4714,7 +4726,7 @@
             if (narrow) { fill([names[0]], false); const l = note.lastChild; l.style.maxHeight = Math.max(lineH, room - 6) + 'px'; l.style.overflow = 'hidden'; } // 쪽지가 아니라 글줄을 자른다 (쪽지를 자르면 번호도 잘림)
             else oneLine();
         });
-        if (data.aiPhoto) { const t = document.createElement('span'); t.className = 'ai-tag'; t.textContent = '예시 사진 (AI로 만듦)'; layer.appendChild(t); }
+        if (data.aiPhoto) { const t = document.createElement('span'); t.className = 'ai-tag'; t.textContent = '예시'; /* 11/6: 'AI로 만듦'은 거부감이 커서 뺌 (실제 고객 집으로 오해하지 않게 '예시'만) */ layer.appendChild(t); }
         syncFoundNote(layer, data, fi);
     }
     // 찾은 칸 표시 마무리: ① 쪽지는 찾은 물건 한 줄 + "+N개 더" ② 사진 위에 "공간 › 번호 · 칸 이름" 꼬리표
@@ -5809,7 +5821,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.4';
+    const APP_VERSION = '베타 2026.11.06.7';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8135,7 +8147,7 @@
         const sample = isSamplePreview || safeStorage.getItem('isSampleData') === '1', ai = photos.some(d => d.aiPhoto);
         const btn = isSamplePreview ? `<button type="button" onclick="exitSamplePreview()">예시 닫기</button>` : `<button type="button" onclick="clearSampleData()">예시 지우고 시작</button>`;
         const offer = sample && setupPromoOn() ? `<a class="simple-offer" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener"><i class="ti ti-gift"></i> 선착순 10곳 · 수납장 1곳 무료 · DM</a>` : '';
-        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${ai ? ' · 사진은 AI로 만듦' : ''}${btn}</span>` : '') + offer
+        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${btn}</span>` : '') + offer
             + (photos.length ? `<span class="simple-count">공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요</span>` : '');
     }
     // 📋 물건 전체 목록
@@ -8226,7 +8238,11 @@
     function drawSimpleAnswerPic(c, d, z, index, hit, fx) {
         cancelAnimationFrame(saAnim);
         const img = d.img, W = img.width, H = img.height, k = W / 800;
-        c.width = W; c.height = H; const x = c.getContext('2d');
+        // 11/6: 원본 크기(1600)에 그려 화면(약 310px)으로 크게 줄이면 꼬리표 글씨가 깨져 보였다 → 화면 크기 × 화면 배율로 그린다 (좌표는 원본 기준 그대로, F배 해서 그림)
+        const dpr = Math.min(3, window.devicePixelRatio || 1), cssW = c.clientWidth || (c.parentElement && c.parentElement.clientWidth) || 360;
+        const F = Math.min(1, Math.max(0.2, (cssW * dpr) / W));
+        c.width = Math.round(W * F); c.height = Math.round(H * F); const x = c.getContext('2d'); x.imageSmoothingQuality = 'high';
+        const T = (a, d, e, f) => x.setTransform(a * F, 0, 0, d * F, e * F, f * F);
         { const sc0 = W / (d.canvas ? d.canvas.width : 800); z = { ...z, x: z.x * sc0, y: z.y * sc0, w: z.w * sc0, h: z.h * sc0 }; } // 칸 좌표(캔버스 800 기준) → 사진 원본 크기
         const badge = (sc) => { // 칸 번호 동그라미 (확대해도 화면에서 같은 크기)
             const r = 24 * k / sc, cx = z.x + r * 0.6, cy = z.y + r * 0.6;
@@ -8243,8 +8259,8 @@
         const frame = (el, from, to, zoomT) => {
             const e = easeInOutCubic(zoomT), v = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, w: from.w + (to.w - from.w) * e, h: from.h + (to.h - from.h) * e };
             const sc = W / v.w;
-            x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, H);
-            x.setTransform(sc, 0, 0, H / v.h, -v.x * sc, -v.y * H / v.h);
+            x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, c.width, c.height);
+            T(sc, H / v.h, -v.x * sc, -v.y * H / v.h);
             x.drawImage(img, 0, 0, W, H);
             const dim = Math.min(1, el / 450);
             x.save(); x.beginPath(); x.rect(0, 0, W, H); x.rect(z.x, z.y, z.w, z.h); x.fillStyle = fx ? `rgba(${RADAR_DIM_RGB},${0.72 * dim})` : `rgba(43,42,40,${0.45 * dim})`; x.fill('evenodd');
@@ -8267,7 +8283,7 @@
             }
             badge(sc);
             // 찾은 물건 꼬리표: 확대가 끝나 갈 때 칸 아래(자리가 없으면 위)에 화면 크기 그대로
-            x.setTransform(1, 0, 0, 1, 0, 0);
+            T(1, 1, 0, 0);
             const la = label ? Math.max(0, Math.min(1, (zoomT - 0.6) / 0.4)) : 0;
             if (la > 0) {
                 const fs = Math.round(30 * k), padX = 22 * k, hgt = fs + 24 * k;
@@ -8677,11 +8693,11 @@
             });
             activateHeroSearch();
             let bannerHidden = false; try { bannerHidden = sessionStorage.getItem('sampleBannerHidden') === '1'; } catch (e) {}
-            if (deleteSampleBtn && safeStorage.getItem('isSampleData') === '1' && !bannerHidden) { deleteSampleBtn.style.display = 'flex'; if (imageList.some(d => d.aiPhoto)) deleteSampleBtn.querySelector('span').textContent = '예시를 보고 있어요 · 사진은 AI로 만듦'; }
+            if (deleteSampleBtn && safeStorage.getItem('isSampleData') === '1' && !bannerHidden) { deleteSampleBtn.style.display = 'flex'; if (imageList.some(d => d.aiPhoto)) deleteSampleBtn.querySelector('span').textContent = '예시 집을 보고 있어요'; }
             if (isSamplePreview) {
                 document.getElementById('samplePreviewBanner').style.display = 'flex';
                 if (currentSampleKey() === 'organizer') {
-                    document.getElementById('samplePreviewText').innerHTML = '정리수납 예시를 보고 있어요 · 사진은 AI로 만듦';
+                    document.getElementById('samplePreviewText').innerHTML = '정리수납 예시 집을 보고 있어요';
                     document.getElementById('samplePreviewExit').textContent = '예시 닫기';
                 }
             }
