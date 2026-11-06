@@ -2184,11 +2184,12 @@
         .hv-act.is-inbox { border-color: rgb(var(--accent-rgb)); }
         .hv-act.is-inbox b { display: inline-flex; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: rgb(var(--accent-rgb)); color: #fff; align-items: center; justify-content: center; font-size: 12px; }
         .sa-fix { margin-top: 16px; width: 100%; height: 44px; border: 1px dashed var(--border); border-radius: 14px; background: none; color: var(--text2); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-        #placePicker, #inboxSheet { position: fixed; inset: 0; z-index: 1090; background: var(--bg); overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 16px 40px; color: var(--text); }
+        #placePicker, #inboxSheet { position: fixed; inset: 0; z-index: 1090; background: var(--bg); overflow-y: auto; padding: 0 16px 40px; color: var(--text); } /* 위 여백은 머리말 안에: 바깥 여백이면 내린 내용이 머리말 위 틈으로 비쳤다 */
         #placePicker[hidden], #inboxSheet[hidden] { display: none; }
         #placePicker { z-index: 1095; }
         .pp-wrap { max-width: 640px; margin: 0 auto; }
-        .pp-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 12px; background: var(--bg); }
+        .pp-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(max(14px, env(safe-area-inset-top)) + 8px) 0 12px; background: var(--bg); box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax); }
+        .pp-head::after { content: ''; position: absolute; left: -100vmax; right: -100vmax; bottom: 0; height: 1px; background: var(--border); }
         .pp-head b { display: block; font-size: 20px; font-weight: 800; }
         .pp-head small { display: block; font-size: 13px; color: var(--text2); }
         .pp-close { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 18px; cursor: pointer; }
@@ -6219,7 +6220,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.18';
+    const APP_VERSION = '베타 2026.11.06.19';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
