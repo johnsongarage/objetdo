@@ -5667,11 +5667,15 @@
         if (!val) { input.focus(); return; }
         const existing = [...document.querySelectorAll('#modal .zm-body .cb')].find(cb => normalizeForSearch(cb.value) === normalizeForSearch(val));
         const name = existing ? existing.value : val;
-        if (!existing && !baseItems.includes(name)) { baseItems.unshift(name); saveData(); } // 직접 넣은 물건은 앞에 (뒤에 두면 [더보기] 속에 숨었다)
+        const madeNew = !existing && !baseItems.includes(name);
+        if (madeNew) { baseItems.unshift(name); saveData(); } // 직접 넣은 물건은 앞에 (뒤에 두면 [더보기] 속에 숨었다)
         input.value = ''; document.getElementById('modal').classList.remove('zm-filtering');
         renderZoneItems(true);
-        checkZoneItem(name);
+        const changed = checkZoneItem(name);
         zmMarkAdded(name);
+        // 11/6: 써서 넣기도 말로 넣기처럼 바로 저장 + '새로' 반짝 + '○○를 넣었어요 · 되돌리기'
+        if (changed) { commitZoneModal(true); showAddedItems([name]); offerUndoAdded(`${josa(name, '을', '를')} 넣었어요`, [name], madeNew ? [name] : []); }
+        else showToast(`${josa(name, '은', '는')} 이미 이 칸에 있어요`, 1800);
         if (!document.getElementById('modal').classList.contains('zm-typing')) { const row = findZoneItemRow(name); if (row) row.scrollIntoView({ block: 'nearest' }); }
     }
     // 치는 동안 몰아 보기
@@ -5799,23 +5803,28 @@
             commitZoneModal(true); // 바로 저장
             document.getElementById('voiceItemStatus').textContent = '';
             showAddedItems(chosen.map(c => c.name));
-            const zone = activeZone, data = activeData;
-            showUndoToast(`${chosen[0].name}${chosen.length > 1 ? ` 외 ${chosen.length - 1}개` : ''}를 넣었어요`, () => {
-                if (!zone || !data) return;
-                if (activeZone === zone && document.getElementById('modal').style.display === 'flex') { // 창이 열려 있으면 화면에서도 체크를 푼다
-                    newly.forEach(n => { const row = findZoneItemRow(n); const cb = row && row.querySelector('.cb'); if (cb && cb.checked) { cb.checked = false; toggleCommentField(cb); } });
-                    commitZoneModal(true);
-                } else { zone.items = zone.items.filter(it => !newly.includes(it.name)); saveData(); render(data); }
-                addedBase.forEach(n => { const k = baseItems.indexOf(n); if (k >= 0 && !imageList.some(d => d.zones.some(z => z.items.some(it => it.name === n)))) baseItems.splice(k, 1); });
-                saveData(); if (document.getElementById('modal').style.display === 'flex') renderZoneItems(true);
-                showToast('되돌렸어요', 1800);
-            });
+            const first = chosen.length > 1 ? `${chosen[0].name} 외 ${chosen.length - 1}개` : chosen[0].name;
+            offerUndoAdded(`${josa(first, '을', '를')} 넣었어요`, newly, addedBase);
         }, reduce ? 150 : 550);
     }
-    // 방금 넣은 물건: 창 맨 위 '이 칸에 있는 것'으로 올라가 그 칩들을 반짝 + '새로' (2.4초)
+    // 넣은 뒤 '되돌리기' 알림: 말로 넣기·써서 넣기가 같이 쓴다. newly = 이번에 새로 체크된 물건, addedBase = 이번에 새로 만든 물건 이름
+    function offerUndoAdded(msg, newly, addedBase) {
+        const zone = activeZone, data = activeData;
+        showUndoToast(msg, () => {
+            if (!zone || !data) return;
+            if (activeZone === zone && document.getElementById('modal').style.display === 'flex') { // 창이 열려 있으면 화면에서도 체크를 푼다
+                newly.forEach(n => { const row = findZoneItemRow(n); const cb = row && row.querySelector('.cb'); if (cb && cb.checked) { cb.checked = false; toggleCommentField(cb); } });
+                commitZoneModal(true);
+            } else { zone.items = zone.items.filter(it => !newly.includes(it.name)); saveData(); render(data); }
+            addedBase.forEach(n => { const k = baseItems.indexOf(n); if (k >= 0 && !imageList.some(d => d.zones.some(z => z.items.some(it => it.name === n)))) baseItems.splice(k, 1); });
+            saveData(); if (document.getElementById('modal').style.display === 'flex') renderZoneItems(true);
+            showToast('되돌렸어요', 1800);
+        });
+    }
+    // 방금 넣은 물건: 창 맨 위 '이 칸에 있는 것'으로 올라가 그 칩들을 반짝 + '새로' (2.4초). 키보드로 치는 중엔 위로 올리지 않는다 (몰아 보기에 이미 보임)
     function showAddedItems(names) {
         const body = document.querySelector('#modal .zm-body'), picked = document.getElementById('zmPicked');
-        if (body && picked) body.scrollTo({ top: Math.max(0, picked.offsetTop - 60), behavior: 'smooth' });
+        if (body && picked && !document.getElementById('modal').classList.contains('zm-typing')) body.scrollTo({ top: Math.max(0, picked.offsetTop - 60), behavior: 'smooth' });
         names.forEach(n => { const row = findZoneItemRow(n); if (!row) return; row.classList.remove('is-new'); void row.offsetWidth; row.classList.add('is-new'); setTimeout(() => row.classList.remove('is-new'), 2400); });
     }
     // 되돌리기 알림 (4초)
@@ -5927,7 +5936,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.13';
+    const APP_VERSION = '베타 2026.11.06.14';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
