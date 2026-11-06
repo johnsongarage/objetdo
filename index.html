@@ -2448,8 +2448,8 @@
 </div></div>
 <div id="inboxSheet" role="dialog" aria-label="자리 미정" hidden><div class="pp-wrap">
     <div class="pp-head"><div><b>자리 미정</b><small>새로 산 물건을 일단 넣어 두고, 한가할 때 자리를 정해요</small></div><button type="button" class="pp-close" onclick="closeInbox()" aria-label="닫기"><i class="ti ti-x"></i></button></div>
-    <div class="ib-add"><input type="text" id="inboxInput" placeholder="물건 이름 (여러 개는 띄어서)" enterkeyhint="done" onkeydown="if (event.key === 'Enter') { event.preventDefault(); inboxAddFromInput(); }"><button type="button" class="ib-mic" id="inboxMic" onclick="inboxVoice(this)" aria-label="말로 넣기"><i class="ti ti-microphone"></i></button></div>
-    <small class="ib-hint">말로 여러 개도 한 번에 · "건전지 밴드 충전기"</small>
+    <div class="ib-add"><input type="text" id="inboxInput" placeholder="물건 이름 (여러 개는 쉼표로)" enterkeyhint="done" onpaste="inboxPaste(event)" onkeydown="if (event.key === 'Enter') { event.preventDefault(); inboxAddFromInput(); }"><button type="button" class="ib-mic" id="inboxMic" onclick="inboxVoice(this)" aria-label="말로 넣기"><i class="ti ti-microphone"></i></button></div>
+    <small class="ib-hint">말로 여러 개도 한 번에 · 엑셀·메모장 목록을 붙여 넣으면 줄마다 하나씩</small>
     <div id="inboxList"></div>
 </div></div>
 <div id="listView" role="dialog" aria-label="물건 전체 목록" hidden>
@@ -5944,7 +5944,15 @@
         saveInbox(a); renderInbox();
         if (n) showToast(`자리 미정에 ${n}개 넣었어요`, 1800);
     }
-    function inboxAddFromInput() { const inp = document.getElementById('inboxInput'); const v = inp.value.trim(); if (!v) return; addToInbox(parseVoiceItemList(v)); inp.value = ''; }
+    // 손으로 쓴 건 쉼표로만 나눈다 ("바닐라 시럽"이 둘로 쪼개지지 않게). 말은 띄어 말하니 기존처럼 띄어쓰기로도 나눈다
+    function inboxAddFromInput() { const inp = document.getElementById('inboxInput'); const v = inp.value.trim(); if (!v) return; addToInbox(v.split(/[,，、]+/)); inp.value = ''; }
+    // 엑셀·메모장 목록 붙여 넣기: 줄마다 하나, 엑셀 행이면 첫 칸만 (입력칸은 줄바꿈을 지워 버려서 붙여 넣는 순간 가로챈다)
+    function inboxPaste(e) {
+        const t = (e.clipboardData || window.clipboardData).getData('text') || '';
+        if (!/[\r\n]/.test(t.trim())) return;
+        e.preventDefault();
+        addToInbox(t.split(/\r?\n/).map(l => l.split('\t')[0].trim()).filter(Boolean));
+    }
     function inboxVoice(btn) {
         const input = document.getElementById('inboxInput');
         startVoiceCapture({ btn, input, onFinal: (t) => { input.value = ''; const names = [...new Set(parseVoiceItemList(t))]; if (names.length) { addToInbox(names); bumpVoiceCount('voiceAddCount'); } }, onNoSpeech: (m) => showToast(m) });
