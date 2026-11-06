@@ -3156,18 +3156,24 @@
     // 🛡 AI 칸 찾기 무료 횟수: 기기(브라우저)마다 AI_FREE번. 중계 서버도 기기 번호로 하루 횟수를 따로 막는다 (server/ai-proxy.gs)
     //    예시(샘플)에서 쓴 건 세지 않는다. 숫자는 이 기기에만 저장 — 지워도 서버의 하루 제한·전체 제한은 남는다
     const AI_FREE = 10, AI_USES_KEY = 'aiUses';
-    function aiUsesLeft() { let n = 0; try { n = parseInt(localStorage.getItem(AI_USES_KEY) || '0', 10) || 0; } catch (e) {} return Math.max(0, AI_FREE - n); }
+    // 🛠 제작자 모드 (11/6): 대신 만들어 드리는 사람(가르시아) 기기는 횟수 제한 없이. 정하는 건 서버 — Apps Script 설정 MAKER_IDS에 적힌 기기 번호만
+    //   앱은 서버가 maker로 답하면 기억해 두고 이 기기의 10번 제한을 건너뛴다. 처음 한 번은 주소에 ?maker=1 을 붙여 열면 서버에 물어본다
+    try { if (new URLSearchParams(location.search).get('maker') === '1') localStorage.setItem('aiMakerAsk', '1'); } catch (e) {}
+    const aiMaker = () => { try { return localStorage.getItem('aiMaker') === '1'; } catch (e) { return false; } };
+    const aiMakerAsk = () => { try { return localStorage.getItem('aiMakerAsk') === '1'; } catch (e) { return false; } };
+    function aiUsesLeft() { if (aiMaker()) return 999; let n = 0; try { n = parseInt(localStorage.getItem(AI_USES_KEY) || '0', 10) || 0; } catch (e) {} return Math.max(0, AI_FREE - n); }
     function countAiUse() { if (isSamplePreview || safeStorage.getItem('isSampleData') === '1') return; try { localStorage.setItem(AI_USES_KEY, String(AI_FREE - aiUsesLeft() + 1)); } catch (e) {} syncAiLeft(); }
-    function syncAiLeft() { const left = aiUsesLeft(); document.querySelectorAll('.ai-left').forEach(el => { el.textContent = left > 0 ? `무료 ${left}번 남음` : '무료 횟수를 다 썼어요'; }); }
+    function syncAiLeft() { const left = aiUsesLeft(); document.querySelectorAll('.ai-left').forEach(el => { el.textContent = aiMaker() ? '제작자 모드 · 횟수 제한 없음' : left > 0 ? `무료 ${left}번 남음` : '무료 횟수를 다 썼어요'; }); }
     class AiLimitError extends Error {}
     async function detectZones(base64Data) {
-        if (aiUsesLeft() <= 0 && !isSamplePreview && safeStorage.getItem('isSampleData') !== '1') throw new AiLimitError('free');
+        if (aiUsesLeft() <= 0 && !aiMakerAsk() && !isSamplePreview && safeStorage.getItem('isSampleData') !== '1') throw new AiLimitError('free');
         // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight) 없이 바로 보낸다 (Apps Script는 사전 확인에 응답하지 못함)
         const id = (typeof readStats === 'function' && readStats().id) || '';
-        const res = await fetch(`${AI_PROXY_URL}?id=${encodeURIComponent(id)}`, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: base64Data });
+        const res = await fetch(`${AI_PROXY_URL}?id=${encodeURIComponent(id)}&left=${aiUsesLeft()}`, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: base64Data });
         if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
         const result = await res.json();
-        if (result.status === 'limit') throw new AiLimitError(result.message || 'server');
+        if (result.maker) { try { localStorage.setItem('aiMaker', '1'); localStorage.removeItem('aiMakerAsk'); } catch (e) {} syncAiLeft(); }
+        if (result.status === 'limit') { if (result.free) { try { localStorage.removeItem('aiMakerAsk'); } catch (e) {} } throw new AiLimitError(result.message || 'server'); }
         if (result.status !== 'success') throw new Error(result.message || 'AI 서버 오류');
         countAiUse();
         return result.predictions || [];
@@ -3756,7 +3762,7 @@
     async function runAIAnalysis(dataId) {
         const data = imageList.find(d => d.id == dataId);
         if (!data || !data.imgData) { alert("이미지가 아직 업로드되지 않았습니다."); return; }
-        if (aiUsesLeft() <= 0 && !isSamplePreview && safeStorage.getItem('isSampleData') !== '1') { // 다 썼으면 묻기·연출 전에 바로 알려 준다
+        if (aiUsesLeft() <= 0 && !aiMakerAsk() && !isSamplePreview && safeStorage.getItem('isSampleData') !== '1') { // 다 썼으면 묻기·연출 전에 바로 알려 준다
             alert(`무료 베타의 AI 칸 찾기 ${AI_FREE}번을 다 쓰셨어요.\n칸은 [직접 그리기]로 손가락으로 쓱 그리면 돼요.\n더 필요하시면 설정 > 의견 보내기로 알려 주세요.`); return;
         }
         // 이미 그린 구역이 있으면 바꿀지 먼저 묻는다 (예전엔 말없이 덮어써서 적어 둔 물건까지 사라졌다)
@@ -6260,7 +6266,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.25';
+    const APP_VERSION = '베타 2026.11.06.26';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6586,7 +6592,8 @@
         const banner = document.getElementById('installBanner'), text = document.getElementById('installBannerText'), btn = banner.querySelector('.is-accent');
         if (isIOS()) {
             if (isRealUse()) { // 이미 사파리에 데이터가 있다 → 설치한 앱은 비어 있으니 백업해서 옮기게
-                text.innerHTML = '<i class="ti ti-device-mobile"></i> 아이폰은 홈 화면 앱으로 써야 안전해요. 설치한 앱은 비어 있으니 <b>먼저 백업</b> → 앱에서 복구';
+                // 11/6: 아이폰 사파리는 한동안 안 열면 사이트가 저장한 걸 지울 수 있다(홈 화면 앱은 예외) — 정리 몇 주 뒤에 찾는 앱이라 치명적
+                text.innerHTML = '<i class="ti ti-alert-triangle"></i> 아이폰 사파리는 <b>오래 안 열면 지도가 지워질 수 있어요.</b> 백업 → 홈 화면에 추가 → 앱에서 복구';
                 btn.textContent = '백업'; btn.onclick = () => startBackup();
             } else {
                 text.innerHTML = '<i class="ti ti-device-mobile"></i> 아이폰은 <b>홈 화면에 추가하고</b> 시작하세요';
@@ -6644,7 +6651,8 @@
     }
     function hideInstallBanner() { const b = document.getElementById('installBanner'); if (b) b.style.display = 'none'; }
     function dismissInstallBanner() {
-        safeStorage.setItem('installBannerHiddenUntil', String(Date.now() + 14 * 24 * 60 * 60 * 1000));
+        const days = isIOS() && isRealUse() ? 3 : 14; // 아이폰 사파리에 지도가 있으면 3일 뒤 다시 (지워지기 전에)
+        safeStorage.setItem('installBannerHiddenUntil', String(Date.now() + days * 24 * 60 * 60 * 1000));
         hideInstallBanner();
     }
     async function installApp() {
