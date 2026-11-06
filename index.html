@@ -2385,7 +2385,7 @@
         <div class="sa-title" id="saTitle"></div>
         <div class="sa-path" id="saPath"></div>
         <canvas class="sa-pic" id="saPic"></canvas>
-        <div class="sa-ai" id="saAi" hidden>예시 사진 (AI로 만듦)</div>
+        <div class="sa-ai" id="saAi" hidden>예시 집이에요</div>
         <div class="sa-with-h" id="saWithH">이 칸에 함께 있는 것</div>
         <div class="sa-with" id="saWith"></div>
     </div>
@@ -4714,7 +4714,7 @@
             if (narrow) { fill([names[0]], false); const l = note.lastChild; l.style.maxHeight = Math.max(lineH, room - 6) + 'px'; l.style.overflow = 'hidden'; } // 쪽지가 아니라 글줄을 자른다 (쪽지를 자르면 번호도 잘림)
             else oneLine();
         });
-        if (data.aiPhoto) { const t = document.createElement('span'); t.className = 'ai-tag'; t.textContent = '예시 사진 (AI로 만듦)'; layer.appendChild(t); }
+        if (data.aiPhoto) { const t = document.createElement('span'); t.className = 'ai-tag'; t.textContent = '예시'; // 11/6: 'AI로 만듦'은 거부감이 커서 뺌 (실제 고객 집으로 오해하지 않게 '예시'만) layer.appendChild(t); }
         syncFoundNote(layer, data, fi);
     }
     // 찾은 칸 표시 마무리: ① 쪽지는 찾은 물건 한 줄 + "+N개 더" ② 사진 위에 "공간 › 번호 · 칸 이름" 꼬리표
@@ -5809,7 +5809,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.4';
+    const APP_VERSION = '베타 2026.11.06.5';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8135,7 +8135,7 @@
         const sample = isSamplePreview || safeStorage.getItem('isSampleData') === '1', ai = photos.some(d => d.aiPhoto);
         const btn = isSamplePreview ? `<button type="button" onclick="exitSamplePreview()">예시 닫기</button>` : `<button type="button" onclick="clearSampleData()">예시 지우고 시작</button>`;
         const offer = sample && setupPromoOn() ? `<a class="simple-offer" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener"><i class="ti ti-gift"></i> 선착순 10곳 · 수납장 1곳 무료 · DM</a>` : '';
-        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${ai ? ' · 사진은 AI로 만듦' : ''}${btn}</span>` : '') + offer
+        el.innerHTML = (sample ? `<span class="simple-sample">예시를 보고 있어요${btn}</span>` : '') + offer
             + (photos.length ? `<span class="simple-count">공간 ${photos.length}곳 · 칸 ${zones}개를 기억하고 있어요</span>` : '');
     }
     // 📋 물건 전체 목록
@@ -8677,11 +8677,11 @@
             });
             activateHeroSearch();
             let bannerHidden = false; try { bannerHidden = sessionStorage.getItem('sampleBannerHidden') === '1'; } catch (e) {}
-            if (deleteSampleBtn && safeStorage.getItem('isSampleData') === '1' && !bannerHidden) { deleteSampleBtn.style.display = 'flex'; if (imageList.some(d => d.aiPhoto)) deleteSampleBtn.querySelector('span').textContent = '예시를 보고 있어요 · 사진은 AI로 만듦'; }
+            if (deleteSampleBtn && safeStorage.getItem('isSampleData') === '1' && !bannerHidden) { deleteSampleBtn.style.display = 'flex'; if (imageList.some(d => d.aiPhoto)) deleteSampleBtn.querySelector('span').textContent = '예시 집을 보고 있어요'; }
             if (isSamplePreview) {
                 document.getElementById('samplePreviewBanner').style.display = 'flex';
                 if (currentSampleKey() === 'organizer') {
-                    document.getElementById('samplePreviewText').innerHTML = '정리수납 예시를 보고 있어요 · 사진은 AI로 만듦';
+                    document.getElementById('samplePreviewText').innerHTML = '정리수납 예시 집을 보고 있어요';
                     document.getElementById('samplePreviewExit').textContent = '예시 닫기';
                 }
             }
