@@ -2295,9 +2295,9 @@
     <h2 style="text-align: center; color: var(--accent-text); margin-bottom: 16px; font-size: 1.25em;">사진은 이렇게 찍어주세요</h2>
     <div style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
         <ol class="guide-steps">
-            <li><i class="ti ti-camera"></i><div><b>랙·선반 한 면씩, 가까이서</b><span>칸이 하나씩 구분돼 보이는 거리에서 정면으로 찍어요. 창고 전체를 멀리서 한 장 찍으면 칸이 너무 작아져서 구역을 나누기 어려워요.</span><small>사람 얼굴, 택배 송장, 서류는 찍히지 않게 해 주세요.</small></div></li>
-            <li><i class="ti ti-photo-plus"></i><div><b>큰 창고는 여러 장으로</b><span>랙마다 한 장씩 올리면 돼요. 사진은 계속 추가할 수 있어요.</span></div></li>
-            <li><i class="ti ti-pencil"></i><div><b>사진 이름을 붙여 두세요</b><span>사진 위 <b>[⋯]</b> 메뉴의 <b>[사진 이름 바꾸기]</b>에서 "1번 랙", "냉동 창고"처럼 적어 두면 어느 사진인지 바로 알아봐요.</span></div></li>
+            <li><i class="ti ti-camera"></i><div><b><span class="only-store">랙·선반 한 면씩, 가까이서</span><span class="only-home">수납장·선반 하나씩, 가까이서</span></b><span>칸이 하나씩 구분돼 보이는 거리에서 정면으로 찍어요. <span class="only-store">창고 전체를</span><span class="only-home">방 전체를</span> 멀리서 한 장 찍으면 칸이 너무 작아져서 구역을 나누기 어려워요.</span><small>사람 얼굴, 택배 송장, 서류는 찍히지 않게 해 주세요.</small></div></li>
+            <li><i class="ti ti-photo-plus"></i><div><b><span class="only-store">큰 창고는 여러 장으로</span><span class="only-home">수납장이 여러 곳이면 여러 장으로</span></b><span><span class="only-store">랙마다</span><span class="only-home">수납장마다</span> 한 장씩 올리면 돼요. 사진은 계속 추가할 수 있어요.</span></div></li>
+            <li><i class="ti ti-pencil"></i><div><b>사진 이름을 붙여 두세요</b><span>사진 위 <b>[⋯]</b> 메뉴의 <b>[사진 이름 바꾸기]</b>에서 <span class="only-store">"1번 랙", "냉동 창고"</span><span class="only-home">"거실 수납장", "붙박이장 맨 위"</span>처럼 적어 두면 어느 사진인지 바로 알아봐요.</span></div></li>
         </ol>
     </div>
     <button onclick="closePhotoTip(true);" class="btn-base btn-primary" style="width: 100%;"><i class="ti ti-camera" style="margin-right: 4px;"></i> 사진 고르기</button>
@@ -2379,7 +2379,7 @@
     <div class="hero-quick" id="heroQuick"></div>
     <div class="hero-spaces" id="heroSpaces"></div>
     <div class="hero-map-row">
-        <button type="button" class="hero-map-btn" onclick="deactivateHeroSearch(); window.scrollTo(0, 0);">창고 지도 보기 <i class="ti ti-chevron-down"></i></button>
+        <button type="button" class="hero-map-btn" onclick="deactivateHeroSearch(); window.scrollTo(0, 0);"><span class="only-store">창고 지도 보기</span><span class="only-home">수납 지도 보기</span> <i class="ti ti-chevron-down"></i></button>
         <button type="button" class="hero-map-btn" onclick="openPrintPreview()"><i class="ti ti-printer"></i> 인쇄물 보기</button>
     </div>
 </div>
@@ -5862,7 +5862,7 @@
     // 공유 창은 폰(터치)에서만: PC 크롬·엣지도 navigator.share가 있지만 윈도우·맥 공유 창엔 카톡이 없어 보낼 데가 없다 → PC는 복사·파일 받기로
     function canUseShareSheet() { return !!navigator.share && window.matchMedia('(pointer: coarse)').matches; }
     async function shareApp() {
-        const text = '사진 한 장이 창고 지도가 돼요. 물건 이름만 대면 어느 칸인지 나와요. (무료 · 가입 없음)';
+        const text = useMode() === 'home' ? '사진 한 장이 우리 집 수납 지도가 돼요. 물건 이름만 대면 어느 칸인지 나와요. (무료 · 가입 없음)' : '사진 한 장이 창고 지도가 돼요. 물건 이름만 대면 어느 칸인지 나와요. (무료 · 가입 없음)';
         if (canUseShareSheet()) {
             try { await navigator.share({ title: APP_NAME, text, url: APP_URL }); return; }
             catch (err) { if (err && err.name === 'AbortError') return; }
@@ -5872,7 +5872,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.10';
+    const APP_VERSION = '베타 2026.11.06.12';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6355,7 +6355,7 @@
         const key = JSON.stringify([tiles, foot2]);
         if (el.dataset.key === key) return; // 그대로면 다시 올리지 않는다
         el.dataset.key = key;
-        el.innerHTML = `<div class="brief"><div class="brief-head"><span class="dot"></span>창고 브리핑</div><div class="brief-grid">${tiles.map(([t, n, hi]) => hi ? `<button type="button" class="brief-tile is-low is-go" onclick="briefGo()" aria-label="부족한 ${n}개 지도에서 보기"><b data-to="${n}">0</b><span>${t}</span></button>` : `<div class="brief-tile"><b data-to="${n}">0</b><span>${t}</span></div>`).join('')}</div><div class="brief-foot">${foot2}</div></div>`;
+        el.innerHTML = `<div class="brief"><div class="brief-head"><span class="dot"></span>${useMode() === 'home' ? '우리 집 한눈에' : '창고 브리핑'}</div><div class="brief-grid">${tiles.map(([t, n, hi]) => hi ? `<button type="button" class="brief-tile is-low is-go" onclick="briefGo()" aria-label="부족한 ${n}개 지도에서 보기"><b data-to="${n}">0</b><span>${t}</span></button>` : `<div class="brief-tile"><b data-to="${n}">0</b><span>${t}</span></div>`).join('')}</div><div class="brief-foot">${foot2}</div></div>`;
         const nums = [...el.querySelectorAll('[data-to]')], t0 = performance.now(), DUR = 700;
         if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { nums.forEach(b => b.textContent = b.dataset.to); return; }
         (function up(now) {
@@ -7112,15 +7112,17 @@
         document.getElementById('promoBanner').style.display = 'none';
     }
     function renderWelcomeShowcase() {
-        const box = document.getElementById('welcomeShowcase'), photos = SAMPLE_DEMO_DATA.savedSystemData;
-        if (!box || box.childElementCount || !photos.length) return;
+        // 11/6: 집 모드에서도 매장 예시(카페 창고 선반·직원·알바생)가 나왔다 → 모드에 맞는 예시·문구·인쇄물
+        const home = useMode() === 'home', box = document.getElementById('welcomeShowcase'), photos = (home ? SAMPLE_ORGANIZER_DATA : SAMPLE_DEMO_DATA).savedSystemData;
+        if (!box || !photos.length || (box.childElementCount && box.dataset.mode === useMode())) return;
+        box.dataset.mode = useMode(); clearInterval(wsTimer);
         const first = photos[0];
         const notes = first.zones.filter(z => z.items.length).map(z => `<span class="ws-ba-note" data-x="${z.x}" data-y="${z.y}" data-w="${z.w}">${escapeHtml(z.items[0].name)}${z.items.length > 1 ? ' +' + (z.items.length - 1) : ''}</span>`).join('');
-        box.innerHTML = `<section class="ws-sec"><h3 class="ws-h">선반 사진에 쪽지를 붙여요</h3><p class="ws-p">구역마다 뭐가 있는지 사진 위에 적어 두면, 선반 앞에 가지 않아도 바로 찾아요.</p>
+        box.innerHTML = `<section class="ws-sec"><h3 class="ws-h">${home ? '수납장 사진에 쪽지를 붙여요' : '선반 사진에 쪽지를 붙여요'}</h3><p class="ws-p">${home ? '칸마다 뭐가 있는지 사진 위에 적어 두면, 수납장을 열어 보지 않아도 바로 찾아요.' : '구역마다 뭐가 있는지 사진 위에 적어 두면, 선반 앞에 가지 않아도 바로 찾아요.'}</p>
             <div class="ws-ba" id="wsBa"><img src="${first.imgData}" alt="${escapeHtml(first.title)} 사진"><div class="ws-ba-notes">${notes}</div><span class="ws-ba-tag">정리 전</span></div>
             <div class="ws-ba-switch" role="group" aria-label="정리 전후 보기"><button type="button" data-after="0" aria-pressed="true">정리 전</button><button type="button" data-after="1" aria-pressed="false">${josa(APP_NAME, '으로', '로')} 정리 후</button></div></section>
-            <section class="ws-sec"><h3 class="ws-h">벽에 붙이면 폰 없이도 찾아요</h3><p class="ws-p">A4로 뽑아 선반 옆에 붙여 두면, 직원·알바생도 폰을 꺼내지 않고 <b>꺼낼 때도, 다시 가져다 놓을 때도</b> 자리를 바로 찾아요.</p>
-            <div class="ws-print"><img src="print-sample.jpg" alt="인쇄물 예시: 선반 사진에 구역 번호와 쪽지, 아래에 가나다순 물건 찾아보기" loading="lazy" width="600" height="849"></div>
+            <section class="ws-sec"><h3 class="ws-h">벽에 붙이면 폰 없이도 찾아요</h3><p class="ws-p">${home ? 'A4로 뽑아 방 입구나 수납장 문 안쪽에 붙여 두면, 가족도 폰을 꺼내지 않고 <b>꺼낼 때도, 다시 가져다 놓을 때도</b> 자리를 바로 찾아요.' : 'A4로 뽑아 선반 옆에 붙여 두면, 직원·알바생도 폰을 꺼내지 않고 <b>꺼낼 때도, 다시 가져다 놓을 때도</b> 자리를 바로 찾아요.'}</p>
+            <div class="ws-print"><img src="${home ? 'print-sample-home.jpg' : 'print-sample.jpg'}" alt="인쇄물 예시: ${home ? '수납장' : '선반'} 사진에 구역 번호와 쪽지, 아래에 가나다순 물건 찾아보기" loading="lazy" width="600" height="849"></div>
             <ul class="ws-points"><li><b>찾을 때</b> 가나다순 목록에서 물건 이름 → 오른쪽 번호 → 사진 속 그 구역</li><li><b>넣을 때</b> 쓰고 난 물건도 원래 자리로, 사람마다 다르게 두지 않아요</li></ul></section>
             ${setupPromoOn() ? `<section class="ws-sec ws-setup"><h3 class="ws-h"><i class="ti ti-gift"></i> 수납장 1곳, 무료로 만들어 드려요</h3><p class="ws-p">사진만 보내 주시면 칸을 나누고 물건 이름까지 넣어 지도로 만들어 드려요. 비용은 없어요.</p>
             <ul class="ws-setup-list"><li><i class="ti ti-camera"></i> 수납장 사진을 DM으로 보내기</li><li><i class="ti ti-border-corners"></i> 칸 나누고 물건 이름 입력 (제가 해요)</li><li><i class="ti ti-printer"></i> 지도 파일과 A4 인쇄용 PDF 받기</li></ul>
@@ -7161,7 +7163,7 @@
     document.addEventListener('click', (e) => { const searchBox = document.getElementById('searchBox'), display = document.getElementById('searchResultDisplay'); if (searchBox && display && e.target.isConnected && !e.target.closest('.search-bar')) { display.style.display = 'none'; } });
     const searchBoxEl = document.getElementById('searchBox'); if (searchBoxEl) { searchBoxEl.addEventListener('focus', () => { activateHeroSearch(true); if (searchBoxEl.value.trim() !== "") { document.getElementById('searchResultDisplay').style.display = 'block'; } else { renderSearchSuggestions(); } }); }
 
-    function renameImage(dataId) { const data = imageList.find(d => d.id == dataId); const newName = prompt("사진 이름을 입력하세요 (예: 창고 A, 냉장고 안):", data.title); if (newName) { data.title = newName; const titleEl = document.getElementById(`title-${data.id}`); if (titleEl) titleEl.textContent = newName; const hint = document.getElementById(`title-hint-${data.id}`); if (hint) hint.hidden = !/^#\d+$/.test(newName.trim()); syncPhotoView(); saveData(); } }
+    function renameImage(dataId) { const data = imageList.find(d => d.id == dataId); const newName = prompt(useMode() === 'home' ? "사진 이름을 입력하세요 (예: 거실 수납장, 냉장고 안):" : "사진 이름을 입력하세요 (예: 창고 A, 냉장고 안):", data.title); if (newName) { data.title = newName; const titleEl = document.getElementById(`title-${data.id}`); if (titleEl) titleEl.textContent = newName; const hint = document.getElementById(`title-hint-${data.id}`); if (hint) hint.hidden = !/^#\d+$/.test(newName.trim()); syncPhotoView(); saveData(); } }
     function deleteImage(dataId) { if (confirm("이 사진과 포함된 모든 구역을 삭제하시겠습니까?")) { if (activeData && activeData.id == dataId) { activeData = null; activeZone = null; showSearchArrow = false; } imageList = imageList.filter(d => d.id != dataId); saveData(); document.getElementById('canvasList').innerHTML = ""; if (imageList.length === 0) { document.getElementById('emptyGuide').style.display = 'block'; } else { imageList.forEach(data => createNewCanvasElement(data)); } } }
     // ────────────────────────────────────────────────────────────
     // 🖨 인쇄용 창고 지도: 화면 캡처(html2canvas) 대신 페이지를 캔버스에 직접 그려서 이미지로 넣는다.
@@ -7548,7 +7550,7 @@
                     ry = rowTop + row.h - (row.init && rowTop === cy && rows.indexOf(row) > 0 ? groupGap : 0);
                 });
             });
-            drawPrintFoot(ctx, `${dateStr} · 창고 입구에 붙여 두세요 · 위치가 바뀌면 앱에서 고치고 다시 뽑기`);
+            drawPrintFoot(ctx, `${dateStr} · ${useMode() === 'home' ? '방 입구' : '창고 입구'}에 붙여 두세요 · 위치가 바뀌면 앱에서 고치고 다시 뽑기`);
             return printOut(canvas);
         });
     }
