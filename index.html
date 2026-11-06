@@ -2171,6 +2171,13 @@
         }
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
         /* 자리 미정·칸 고르기 (11/6) */
+        /* 사진 화면의 자리 미정 한 줄 (11/6): 남은 게 있을 때만, 다 넣으면 사라진다 */
+        .inbox-bar { display: flex; align-items: center; gap: 8px; width: calc(100% - 32px); margin: 10px 16px 4px; padding: 11px 14px; border: 1px solid rgb(var(--accent-rgb)); border-radius: 14px; background: rgba(var(--accent-rgb), 0.07); color: var(--text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+        .inbox-bar[hidden] { display: none; }
+        .inbox-bar b { flex: none; display: inline-flex; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 11px; background: rgb(var(--accent-rgb)); color: #fff; align-items: center; justify-content: center; font-size: 12.5px; }
+        .inbox-bar span { flex: 1; min-width: 0; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .inbox-bar span strong { color: var(--text); }
+        .inbox-bar i { flex: none; font-style: normal; color: var(--text3); }
         .zm-item.is-checked .zm-inbox-tag { display: none; }
         .zm-inbox-tag { margin-left: 4px; padding: 1px 6px; border-radius: 8px; background: rgba(var(--accent-rgb), 0.14); color: rgb(var(--accent-rgb)); font-size: 11px; font-weight: 700; }
         .ib-preset { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px dashed var(--border); }
@@ -2609,6 +2616,7 @@
     <div id="emptyGuide">등록된 사진이 없습니다. 아래 버튼을 눌러 매장 사진을 추가해 주세요!</div>
 
     <div id="starterSteps" class="starter" hidden></div>
+    <button type="button" id="inboxBar" class="inbox-bar" onclick="openInbox(false)" hidden></button>
     <div id="photoStrip" class="photo-strip" role="tablist" aria-label="사진 고르기" hidden></div>
     <div id="canvasList"></div>
     <div id="bottomActions" style="display: flex; gap: 10px; margin-top: 16px; align-items: stretch;">
@@ -6043,7 +6051,14 @@
         if (!names.length) { showToast('그 물건들은 이미 다 자리가 있어요', 2000); return; }
         addToInbox(names);
     }
-    function syncInboxChip() { const c = document.getElementById('inboxChip'); if (!c) return; const n = loadInbox().length; c.hidden = !n; if (n) c.innerHTML = `<i class="ti ti-inbox"></i> 자리 미정 <b>${n}</b>`; }
+    function syncInboxChip() {
+        const a = loadInbox(), n = a.length;
+        const c = document.getElementById('inboxChip'); if (c) { c.hidden = !n; if (n) c.innerHTML = `<i class="ti ti-inbox"></i> 자리 미정 <b>${n}</b>`; }
+        const bar = document.getElementById('inboxBar'); if (!bar) return;
+        const hasPhoto = imageList.some(d => d.id !== 'dummy_root');
+        bar.hidden = !n || !hasPhoto;
+        if (!bar.hidden) bar.innerHTML = `<b>${n}</b><span><strong>자리 미정</strong> · ${escapeHtml(a.slice(0, 3).map(x => x.name).join(', '))}${n > 3 ? ' 외' : ''} · 칸을 누르면 맨 앞에 떠요</span><i>›</i>`;
+    }
     function suggestZone(name) { // 같은 이름이 이미 있는 칸 > 칸 이름이 그 종류 > 같은 종류 물건이 많은 칸
         let best = null; const nn = normalizeForSearch(name);
         imageList.forEach(d => { if (d.id === 'dummy_root' || best) return; d.zones.forEach((z, i) => { if (!best && z.items.some(it => normalizeForSearch(it.name) === nn)) best = { sc: 9, data: d, index: i, kind: '같은 물건이 있는 칸' }; }); });
@@ -6220,7 +6235,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.19';
+    const APP_VERSION = '베타 2026.11.06.20';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
