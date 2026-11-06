@@ -2737,7 +2737,7 @@
                 </div>
             </div>
         </div>
-        <div class="zm-section-head zm-add-head" onclick="const m = document.getElementById('modal'); m.classList.toggle('zm-suggest-open'); this.querySelector('.zm-suggest-toggle').textContent = m.classList.contains('zm-suggest-open') ? '접기 ‹' : '펼치기 ›'"><span>자주 쓰는 물건에서 고르기</span><span class="zm-suggest-toggle">펼치기 ›</span></div>
+        <div class="zm-section-head zm-add-head" onclick="zmToggleSuggest()"><span>자주 쓰는 물건에서 고르기</span><span class="zm-suggest-toggle">펼치기 ›</span></div>
         <!-- 업종 한 번 묻기: 추천 물건 칸 위에 한 줄로 (예전엔 창 맨 위를 반쯤 차지해 이 구역 물건이 밀려 안 보였다) (고르거나 건너뛰면 다시 안 물음, 설정에서 바꿀 수 있음) -->
         <div id="industryAsk" class="zm-industry" hidden>
             <div class="zm-industry-q"><b>가게 종류</b>를 고르면 아래 추천 물건이 맞춰져요</div>
@@ -3117,7 +3117,7 @@
 
     // 예시 미리보기 중에도 화면 설정(모드·기능 켜고 끄기·글자 크기 등)은 진짜로 저장한다 — 데이터가 아니라 취향이라서
     //    (예전엔 미리보기에서 바꾼 설정이 새로고침하면 사라져 "설정이 리셋된다"고 보였다)
-    const PREF_KEYS = new Set(['voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint']);
+    const PREF_KEYS = new Set(['zmSuggestOpen', 'voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint']);
     const isPrefKey = (key) => PREF_KEYS.has(key) || String(key).startsWith('feat_');
     const safeStorage = {
         _storage: {},
@@ -4383,13 +4383,23 @@
         fitModalToKeyboard();
     }
 
+    // '자주 쓰는 물건에서 고르기' 펼치기·접기: 한 번 고르면 다음에 여는 칸에도 그대로
+    function zmSuggestPref() { try { return safeStorage.getItem('zmSuggestOpen') === '1'; } catch (e) { return false; } }
+    function zmSetSuggest(on) {
+        document.getElementById('modal').classList.toggle('zm-suggest-open', on);
+        const tg = document.querySelector('#modal .zm-suggest-toggle'); if (tg) tg.textContent = on ? '접기 ‹' : '펼치기 ›';
+    }
+    function zmToggleSuggest() {
+        const on = !document.getElementById('modal').classList.contains('zm-suggest-open');
+        zmSetSuggest(on); try { safeStorage.setItem('zmSuggestOpen', on ? '1' : '0'); } catch (e) {}
+    }
     function openModal(z) {
         activeZone = z;
         document.getElementById('zoneNameInput').value = z.name;
         document.getElementById('newItemInput').value = '';
         document.getElementById('voiceItemStatus').textContent = '';
-        document.getElementById('modal').classList.remove('zm-filtering', 'zm-suggest-open');
-        { const tg = document.querySelector('#modal .zm-suggest-toggle'); if (tg) tg.textContent = '펼치기 ›'; }
+        document.getElementById('modal').classList.remove('zm-filtering');
+        zmSetSuggest(zmSuggestPref()); // 펼치기·접기는 마지막에 고른 대로 (11/6)
         closeImportReview();
         syncPutHint(z);
         zmJustAdded = []; document.getElementById('modal').classList.remove('zm-typing'); renderZmSuggest('');
@@ -6209,7 +6219,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.17';
+    const APP_VERSION = '베타 2026.11.06.18';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
