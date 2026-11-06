@@ -2146,6 +2146,46 @@
             box-shadow: var(--shadow-md); opacity: 0; pointer-events: none; transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
         }
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        /* 자리 미정·칸 고르기 (11/6) */
+        .hv-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+        .hv-act { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--hero-chip-border); background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+        .hv-act.is-inbox { border-color: rgb(var(--accent-rgb)); }
+        .hv-act.is-inbox b { display: inline-flex; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: rgb(var(--accent-rgb)); color: #fff; align-items: center; justify-content: center; font-size: 12px; }
+        .sa-fix { margin-top: 16px; width: 100%; height: 44px; border: 1px dashed var(--border); border-radius: 14px; background: none; color: var(--text2); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        #placePicker, #inboxSheet { position: fixed; inset: 0; z-index: 1090; background: var(--bg); overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 16px 40px; color: var(--text); }
+        #placePicker[hidden], #inboxSheet[hidden] { display: none; }
+        #placePicker { z-index: 1095; }
+        .pp-wrap { max-width: 640px; margin: 0 auto; }
+        .pp-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 12px; background: var(--bg); }
+        .pp-head b { display: block; font-size: 20px; font-weight: 800; }
+        .pp-head small { display: block; font-size: 13px; color: var(--text2); }
+        .pp-close { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 18px; cursor: pointer; }
+        .pp-photo { margin-top: 14px; }
+        .pp-photo > b { display: block; margin: 0 2px 6px; font-size: 15px; }
+        .pp-stage { position: relative; border-radius: 14px; overflow: hidden; background: var(--card); }
+        .pp-stage img { display: block; width: 100%; height: auto; }
+        .pp-zone { position: absolute; border: 2px solid rgba(255,255,255,0.95); outline: 2px solid rgba(43,42,40,0.55); border-radius: 6px; background: rgba(43,42,40,0.18); color: #fff; font: inherit; cursor: pointer; display: flex; align-items: flex-start; justify-content: flex-start; padding: 4px; }
+        .pp-zone span { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: rgba(43,42,40,0.85); font-size: 12.5px; font-weight: 800; }
+        .pp-zone:hover, .pp-zone:active { background: rgba(var(--accent-rgb), 0.35); border-color: rgb(var(--accent-rgb)); }
+        .pp-zone.is-now { background: rgba(43,42,40,0.55); cursor: default; }
+        .pp-zone.is-now span::after { content: '\00a0지금'; font-weight: 600; }
+        .ib-add { display: flex; gap: 8px; margin-top: 6px; }
+        .ib-add input { flex: 1; min-width: 0; height: 48px; padding: 0 16px; border: 1px solid var(--border); border-radius: 24px; background: var(--card); color: var(--text); font: inherit; font-size: 16px; }
+        .ib-mic { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--charcoal); color: #fff; font-size: 22px; cursor: pointer; }
+        .ib-mic.is-listening { background: rgb(var(--accent-rgb)); }
+        .ib-hint { display: block; margin: 8px 4px 0; font-size: 12.5px; color: var(--text3); }
+        #inboxList { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+        .ib-empty { padding: 28px 0; text-align: center; color: var(--text3); font-size: 14px; }
+        .ib-row { padding: 14px 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
+        .ib-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .ib-top b { font-size: 16px; }
+        .ib-del { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--bg); color: var(--text3); font-size: 15px; cursor: pointer; }
+        .ib-sug { margin-top: 6px; font-size: 13.5px; color: var(--text2); }
+        .ib-sug em { font-style: normal; font-weight: 700; color: rgb(var(--accent-rgb)); }
+        .ib-btns { display: flex; gap: 8px; margin-top: 10px; }
+        .ib-btns button { flex: 1; height: 40px; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .ib-go { border: 0; background: var(--charcoal); color: #fff; }
+        .ib-other { border: 1px solid var(--border); background: none; color: var(--text); }
         #undoToast { position: fixed; left: 50%; bottom: calc(var(--kb-h, 0px) + env(safe-area-inset-bottom, 0px) + 92px); z-index: 10050; transform: translate(-50%, 14px); display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px); padding: 8px 8px 8px 16px; border-radius: 999px; background: var(--charcoal); color: var(--ivory-text); font-size: 13.5px; font-weight: 600; box-shadow: var(--shadow-md); opacity: 0; pointer-events: none; transition: opacity .2s var(--ease), transform .2s var(--ease); }
         #undoToast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
         #undoToast span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2373,6 +2413,7 @@
         <button type="button" id="heroMicBtn" class="hero-voice-btn" onclick="heroVoiceTap(this)" aria-label="말로 찾기"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.5"/></svg></button>
         <b class="hv-label" id="heroMicLabel">눌러서 말하기</b>
         <small class="hv-hint" id="heroMicHint"></small>
+        <div class="hv-actions"><button type="button" class="hv-act" onclick="openInbox(true)"><i class="ti ti-plus"></i> 새로 산 물건</button><button type="button" class="hv-act is-inbox" id="inboxChip" onclick="openInbox(false)" hidden></button></div>
     </div>
     <div id="searchResultDisplay" class="search-dropdown"></div>
     <button type="button" class="bar-menu" onclick="openSimpleMenu()" aria-label="메뉴"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
@@ -2398,8 +2439,19 @@
         <div class="sa-ai" id="saAi" hidden>예시 집이에요</div>
         <div class="sa-with-h" id="saWithH">이 칸에 함께 있는 것</div>
         <div class="sa-with" id="saWith"></div>
+        <button type="button" class="sa-fix" id="saFix" onclick="saMoveFound()" hidden><i class="ti ti-map-pin-question"></i> 여기 없었어요 · 실제 자리로 옮기기</button>
     </div>
 </div><button type="button" class="sa-again" onclick="closeSimpleAnswer(true)">다른 거 찾기</button></div>
+<div id="placePicker" role="dialog" aria-label="칸 고르기" hidden><div class="pp-wrap">
+    <div class="pp-head"><div><b id="ppTitle">어느 칸이에요?</b><small id="ppSub">사진에서 칸을 눌러 주세요</small></div><button type="button" class="pp-close" onclick="closePlacePicker()" aria-label="닫기"><i class="ti ti-x"></i></button></div>
+    <div id="ppList"></div>
+</div></div>
+<div id="inboxSheet" role="dialog" aria-label="자리 미정" hidden><div class="pp-wrap">
+    <div class="pp-head"><div><b>자리 미정</b><small>새로 산 물건을 일단 넣어 두고, 한가할 때 자리를 정해요</small></div><button type="button" class="pp-close" onclick="closeInbox()" aria-label="닫기"><i class="ti ti-x"></i></button></div>
+    <div class="ib-add"><input type="text" id="inboxInput" placeholder="물건 이름 (여러 개는 띄어서)" enterkeyhint="done" onkeydown="if (event.key === 'Enter') { event.preventDefault(); inboxAddFromInput(); }"><button type="button" class="ib-mic" id="inboxMic" onclick="inboxVoice(this)" aria-label="말로 넣기"><i class="ti ti-microphone"></i></button></div>
+    <small class="ib-hint">말로 여러 개도 한 번에 · "건전지 밴드 충전기"</small>
+    <div id="inboxList"></div>
+</div></div>
 <div id="listView" role="dialog" aria-label="물건 전체 목록" hidden>
     <div class="lv-top">
         <button type="button" class="lv-back" onclick="closeListView()" aria-label="닫기">‹</button>
@@ -2413,6 +2465,7 @@
     <div class="sm-head"><span class="sm-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>오브젯도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
     <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else if (document.body.classList.contains('hero-search-active')) { deactivateHeroSearch(); window.scrollTo(0, 0); } else openWelcomeRevisit();"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg></span><span class="sm-tx"><b id="smMapText">전체 화면으로</b><small>공간 보기 · 물건 넣기 · 고치기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openListView()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></span><span class="sm-tx"><b>물건 전체 목록</b><small>훑어보기</small></span></button>
+    <button type="button" class="sm-row" onclick="closeSimpleMenu(); openInbox(false)"><span class="sm-ic"><i class="ti ti-inbox" style="font-size:20px"></i></span><span class="sm-tx"><b>자리 미정</b><small>새로 산 물건 넣어 두고 자리 추천받기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openPrintPreview()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 17h2a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2"/><path d="M17 9V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4"/><rect x="7" y="13" width="10" height="8" rx="2"/></svg></span><span class="sm-tx"><b>번호 스티커 · 지도 인쇄</b></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); loadSampleData()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sm-tx"><b>예시 보기</b><small>내 지도는 그대로</small></span></button>
     <a class="sm-row" href="price/" onclick="closeSimpleMenu()" style="text-decoration: none; color: inherit;"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="sm-tx"><b>가격 · 대신 만들기</b><small>앱은 무료 · 첫 1곳 무료</small></span></a>
@@ -4842,6 +4895,8 @@
     function closeTopLayer(overlaysOnly) {
         const L = [
             [() => !!activeVoice, () => { activeVoice.manual = true; activeVoice.stop(); }],
+            [() => isShown('placePicker'), () => closePlacePicker()],
+            [() => isShown('inboxSheet'), () => closeInbox()],
             [() => !!importReview && isShown('importReview'), () => closeImportReview()],
             [() => isShown('pendingAdd'), () => closePendingAdd()],
             [() => isShown('resetAsk'), () => closeResetAsk()],
@@ -5821,6 +5876,102 @@
             showToast('되돌렸어요', 1800);
         });
     }
+    // ────────────────────────────────────────────────────────────
+    // 📍 칸 고르기 (11/6): 공간 사진 위에서 칸을 바로 누른다 — 답 카드 '여기 없었어요'·자리 미정이 같이 쓴다
+    // ────────────────────────────────────────────────────────────
+    let ppPick = null;
+    function openPlacePicker({ title, sub, now, onPick }) {
+        const photos = imageList.filter(d => d.id !== 'dummy_root' && d.img && d.img.src && d.zones.length);
+        if (!photos.length) { showToast('먼저 공간 사진과 칸을 만들어 주세요', 2200); return; }
+        ppPick = onPick;
+        document.getElementById('ppTitle').textContent = title || '어느 칸이에요?';
+        document.getElementById('ppSub').textContent = sub || '사진에서 칸을 눌러 주세요';
+        const W = (d) => (d.canvas ? d.canvas.width : 800), Hh = (d) => (d.canvas ? d.canvas.height : W(d) * d.img.height / d.img.width);
+        document.getElementById('ppList').innerHTML = photos.map(d => `<div class="pp-photo"><b>${escapeHtml(d.title || '사진')}</b><div class="pp-stage"><img src="${escapeHtml(d.img.src)}" alt="">${d.zones.map((z, i) => {
+            const isNow = now && String(now.dataId) === String(d.id) && now.index === i;
+            return `<button type="button" class="pp-zone${isNow ? ' is-now' : ''}" style="left:${z.x / W(d) * 100}%;top:${z.y / Hh(d) * 100}%;width:${z.w / W(d) * 100}%;height:${z.h / Hh(d) * 100}%" ${isNow ? 'disabled' : `onclick="placePick('${escapeHtml(String(d.id))}', ${i})"`} aria-label="${escapeHtml((d.title || '') + ' ' + (i + 1) + '번 ' + (z.name || ''))}"><span>${i + 1}</span></button>`;
+        }).join('')}</div></div>`).join('');
+        const el = document.getElementById('placePicker'); el.hidden = false; el.scrollTop = 0;
+    }
+    function closePlacePicker() { document.getElementById('placePicker').hidden = true; ppPick = null; }
+    function placePick(dataId, index) { const f = ppPick, d = imageList.find(x => String(x.id) === String(dataId)); closePlacePicker(); if (f && d && d.zones[index]) f(d, index); }
+    const zoneLabel = (d, i) => `${d.title || '사진'} ${i + 1}번${d.zones[i] && d.zones[i].name ? ' · ' + d.zones[i].name : ''}`;
+
+    // ✋ 답 카드 '여기 없었어요' (11/6): 찾았는데 실제론 다른 칸에 있으면 그 자리에서 바로 옮긴다 (편집 모드에 들어가지 않는다)
+    let saCtx = null; // { dataId, index, name }
+    function saMoveFound() {
+        if (!saCtx) return;
+        const from = imageList.find(d => String(d.id) === String(saCtx.dataId)), name = saCtx.name, fi = saCtx.index;
+        if (!from || !from.zones[fi]) return;
+        openPlacePicker({ title: `${josa(name, '은', '는')} 어디 있었어요?`, sub: '실제로 있던 칸을 눌러 주세요', now: { dataId: from.id, index: fi }, onPick: (to, ti) => {
+            const fz = from.zones[fi], tz = to.zones[ti], it = fz.items.find(x => x.name === name); if (!it || !tz) return;
+            saveHistory();
+            fz.items = fz.items.filter(x => x !== it);
+            const dup = tz.items.find(x => x.name === name); if (!dup) tz.items.push({ ...it }); // 옮긴 칸에 같은 이름이 이미 있으면 하나로
+            markZoneChecked(tz); saveData(); imageList.forEach(d => render(d));
+            showSimpleAnswer(to.id, ti); // 새 자리로 답 카드를 다시 보여 준다
+            showUndoToast(`옮겼어요 · ${zoneLabel(to, ti)}`, () => {
+                tz.items = tz.items.filter(x => !(x.name === name && !dup)); if (!fz.items.some(x => x.name === name)) fz.items.push(it);
+                saveData(); imageList.forEach(d => render(d)); showSimpleAnswer(from.id, fi); showToast('되돌렸어요', 1800);
+            });
+        } });
+    }
+
+    // 📥 자리 미정 (11/6): 새로 산 물건을 일단 던져 두고, 종류 사전으로 칸을 추천받아 한 번에 넣는다
+    const INBOX_KEY = 'inboxItems';
+    function loadInbox() { try { const a = JSON.parse(safeStorage.getItem(INBOX_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && x.name) : []; } catch (e) { return []; } }
+    function saveInbox(a) { try { safeStorage.setItem(INBOX_KEY, JSON.stringify(a)); } catch (e) {} syncInboxChip(); }
+    function syncInboxChip() { const c = document.getElementById('inboxChip'); if (!c) return; const n = loadInbox().length; c.hidden = !n; if (n) c.innerHTML = `<i class="ti ti-inbox"></i> 자리 미정 <b>${n}</b>`; }
+    function suggestZone(name) { // 같은 이름이 이미 있는 칸 > 칸 이름이 그 종류 > 같은 종류 물건이 많은 칸
+        let best = null; const nn = normalizeForSearch(name);
+        imageList.forEach(d => { if (d.id === 'dummy_root' || best) return; d.zones.forEach((z, i) => { if (!best && z.items.some(it => normalizeForSearch(it.name) === nn)) best = { sc: 9, data: d, index: i, kind: '같은 물건이 있는 칸' }; }); });
+        if (best) return best;
+        kindsOf(name).forEach(k => imageList.forEach(d => { if (d.id === 'dummy_root') return; d.zones.forEach((z, i) => {
+            const sc = kindHit(k, z.name) ? 3 : z.items.filter(it => kindHit(k, it.name)).length ? 1 + Math.min(1, z.items.filter(it => kindHit(k, it.name)).length / 5) : 0;
+            if (sc && (!best || sc > best.sc)) best = { sc, data: d, index: i, kind: k };
+        }); }));
+        return best;
+    }
+    function openInbox(focusAdd) {
+        if (!imageList.some(d => d.id !== 'dummy_root')) { showToast('먼저 공간 사진을 하나 넣어 주세요', 2200); return; }
+        renderInbox(); const el = document.getElementById('inboxSheet'); el.hidden = false; el.scrollTop = 0;
+        if (focusAdd) setTimeout(() => { try { document.getElementById('inboxInput').focus(); } catch (e) {} }, 60);
+    }
+    function closeInbox() { document.getElementById('inboxSheet').hidden = true; if (activeVoice && activeVoice.btn && activeVoice.btn.id === 'inboxMic') { activeVoice.manual = true; activeVoice.stop(); } }
+    function addToInbox(names) {
+        const a = loadInbox(), have = new Set(a.map(x => x.name)); let n = 0;
+        names.map(x => String(x).trim()).filter(Boolean).forEach(x => { if (!have.has(x)) { a.unshift({ name: x, at: Date.now() }); have.add(x); n++; } });
+        saveInbox(a); renderInbox();
+        if (n) showToast(`자리 미정에 ${n}개 넣었어요`, 1800);
+    }
+    function inboxAddFromInput() { const inp = document.getElementById('inboxInput'); const v = inp.value.trim(); if (!v) return; addToInbox(parseVoiceItemList(v)); inp.value = ''; }
+    function inboxVoice(btn) {
+        const input = document.getElementById('inboxInput');
+        startVoiceCapture({ btn, input, onFinal: (t) => { input.value = ''; const names = [...new Set(parseVoiceItemList(t))]; if (names.length) { addToInbox(names); bumpVoiceCount('voiceAddCount'); } }, onNoSpeech: (m) => showToast(m) });
+    }
+    function inboxRemove(name) { saveInbox(loadInbox().filter(x => x.name !== name)); renderInbox(); }
+    function inboxPlace(name, dataId, index) {
+        const d = imageList.find(x => String(x.id) === String(dataId)); if (!d || !d.zones[index]) return;
+        const z = d.zones[index], dup = z.items.some(x => x.name === name);
+        saveHistory(); if (!dup) z.items.push({ name, comment: '' }); markZoneChecked(z); saveData(); render(d);
+        const before = loadInbox(); saveInbox(before.filter(x => x.name !== name)); renderInbox();
+        showUndoToast(`${josa(name, '을', '를')} ${zoneLabel(d, index)}에 넣었어요`, () => {
+            if (!dup) z.items = z.items.filter(x => x.name !== name); saveData(); render(d);
+            saveInbox([before.find(x => x.name === name) || { name, at: Date.now() }, ...loadInbox()]); renderInbox(); showToast('되돌렸어요', 1800);
+        });
+    }
+    function inboxPick(name) { openPlacePicker({ title: `${josa(name, '을', '를')} 어디에 둘까요?`, sub: '넣을 칸을 눌러 주세요', onPick: (d, i) => inboxPlace(name, d.id, i) }); }
+    function renderInbox() {
+        const list = document.getElementById('inboxList'); if (!list) return;
+        const a = loadInbox();
+        if (!a.length) { list.innerHTML = '<p class="ib-empty">자리 미정인 물건이 없어요<br>새로 산 물건을 위에서 쓰거나 말해서 넣어 두세요</p>'; return; }
+        const q = (v) => escapeHtml(JSON.stringify(v)).replace(/&quot;/g, '&quot;');
+        list.innerHTML = a.map(x => { const s = suggestZone(x.name), nm = escapeHtml(x.name), arg = escapeHtml(JSON.stringify(x.name));
+            return `<div class="ib-row"><div class="ib-top"><b>${nm}</b><button type="button" class="ib-del" onclick='inboxRemove(${arg})' aria-label="빼기"><i class="ti ti-x"></i></button></div>`
+                + (s ? `<div class="ib-sug"><em>${escapeHtml(s.kind)}</em> · ${escapeHtml(zoneLabel(s.data, s.index))}에 넣을까요?</div><div class="ib-btns"><button type="button" class="ib-go" onclick='inboxPlace(${arg}, ${escapeHtml(JSON.stringify(String(s.data.id)))}, ${s.index})'>여기 넣기</button><button type="button" class="ib-other" onclick='inboxPick(${arg})'>다른 칸</button></div>`
+                    : `<div class="ib-sug">어울리는 칸을 못 찾았어요</div><div class="ib-btns"><button type="button" class="ib-other" onclick='inboxPick(${arg})'>칸 고르기</button></div>`) + '</div>'; }).join('');
+    }
+
     // 방금 넣은 물건: 창 맨 위 '이 칸에 있는 것'으로 올라가 그 칩들을 반짝 + '새로' (2.4초). 키보드로 치는 중엔 위로 올리지 않는다 (몰아 보기에 이미 보임)
     function showAddedItems(names) {
         const body = document.querySelector('#modal .zm-body'), picked = document.getElementById('zmPicked');
@@ -5936,7 +6087,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.14';
+    const APP_VERSION = '베타 2026.11.06.15';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -5976,12 +6127,12 @@
         wipeAllData();
     }
     function wipeAllData() {
-        ['savedSystemData', 'baseItems', 'isSampleData', 'industry', 'industryAsked', 'lastBackupAt', 'dataChangedAt', 'backupBannerHiddenUntil', USAGE_KEY, SEARCH_HISTORY_KEY, SEARCH_PICKS_KEY, 'findLog']
+        ['savedSystemData', 'baseItems', 'isSampleData', 'industry', 'industryAsked', 'lastBackupAt', 'dataChangedAt', 'backupBannerHiddenUntil', USAGE_KEY, SEARCH_HISTORY_KEY, SEARCH_PICKS_KEY, 'findLog', 'inboxItems']
             .forEach(k => { try { safeStorage.removeItem(k); } catch (e) {} });
         reloadAfterSave();
     }
     function backupJson() {
-        return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: "백업", savedSystemData: JSON.parse(safeStorage.getItem('savedSystemData') || "[]"), baseItems: JSON.parse(safeStorage.getItem('baseItems') || "[]"), stockLog: JSON.parse(safeStorage.getItem('stockLog') || "[]"), organizerName: organizerName() });
+        return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: "백업", savedSystemData: JSON.parse(safeStorage.getItem('savedSystemData') || "[]"), baseItems: JSON.parse(safeStorage.getItem('baseItems') || "[]"), stockLog: JSON.parse(safeStorage.getItem('stockLog') || "[]"), organizerName: organizerName(), inboxItems: loadInbox() });
     }
     function markBackedUp() {
         if (!isSamplePreview) { try { safeStorage.setItem('lastBackupAt', String(Date.now())); } catch (e) {} }
@@ -6103,7 +6254,8 @@
             safeStorage.setItem('baseItems', JSON.stringify(imported.baseItems));
             if (Array.isArray(imported.stockLog)) safeStorage.setItem('stockLog', JSON.stringify(imported.stockLog)); else safeStorage.removeItem('stockLog'); // 예전 백업엔 없음
             if (typeof imported.organizerName === 'string' && imported.organizerName.trim()) setOrganizerName(imported.organizerName); // 정리 업체가 넘겨준 백업이면 고객 폰에서 다시 뽑아도 업체 이름이 남게
-            if (useMode() === 'home' && safeStorage.getItem('simpleView') === null) safeStorage.setItem('simpleView', '1'); // 집 모드에서 받은 지도는 찾기만 화면으로 연다 (직접 끄거나 켠 적이 있으면 그대로)
+            if (useMode() === 'home' && safeStorage.getItem('simpleView') === null) safeStorage.setItem('simpleView', '1');
+            if (Array.isArray(imported.inboxItems)) safeStorage.setItem(INBOX_KEY, JSON.stringify(imported.inboxItems)); else safeStorage.removeItem(INBOX_KEY); // 집 모드에서 받은 지도는 찾기만 화면으로 연다 (직접 끄거나 켠 적이 있으면 그대로)
             safeStorage.removeItem('isSampleData'); // 예시를 불러온 적 있는 폰에서 복구한 데이터가 예시로 취급되지 않게
             safeStorage.setItem('lastBackupAt', String(Date.now())); safeStorage.setItem('dataChangedAt', '0');
             reloadAfterSave();
@@ -6776,6 +6928,8 @@
             const onlyKind = matches.every(m => m.field === 'kind');
             display.innerHTML = `<div style="font-size: 11px; color: var(--text2); margin-bottom: 8px; font-weight: 600; padding: 0 4px;">${onlyKind ? `"${escapeHtml(query)}"은(는) 적어 둔 게 없어요 · 같은 종류가 있는 칸이에요` : `검색 결과 (${matches.length}건)`}</div>` + matches.map(m => renderSearchResult(m, query)).join('');
         } else {
+            const inInbox = loadInbox().find(x => normalizeForSearch(x.name).includes(normalizeForSearch(query)));
+            if (inInbox) { display.innerHTML = `<div class="search-empty"><div>"${escapeHtml(inInbox.name)}"은(는) 아직 <b>자리 미정</b>에 있어요.</div><button type="button" class="btn-base btn-primary" onclick="openInbox(false)"><i class="ti ti-inbox"></i> 자리 정하기</button></div>`; display.style.display = 'block'; return; }
             display.innerHTML = `<div class="search-empty">
                     <div>"${escapeHtml(query)}"에 대한 결과가 없어요.</div>
                     <button type="button" class="btn-base btn-primary" onclick="startRegisterFromSearch()"><i class="ti ti-map-pin-plus"></i> 이 물건 위치 등록하기</button>
@@ -8258,6 +8412,7 @@
         else { deactivateHeroSearch(); showToast('전체 화면이에요. 설정에서 다시 찾기만 화면으로 바꿀 수 있어요', 3000); }
     }
     function syncSimpleFoot() {
+        syncInboxChip();
         const el = document.getElementById('simpleFoot'); if (!el) return;
         const photos = (bootPhotos || imageList).filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0);
         // 예시를 보는 중이면 찾기만 화면에도 "예시를 보고 있어요" (+ AI 사진이면 표시) — 지도 화면의 예시 띠가 여기선 안 보였다 (11/5)
@@ -8347,6 +8502,9 @@
         const saEl = document.getElementById('simpleAnswer'); saEl.classList.add('is-open'); // 그림 폭을 재려면 먼저 열어야 한다
         if (img && img.width) { c.hidden = false; drawSimpleAnswerPic(c, d, z, index, hit, feat('fx')); } else c.hidden = true;
         document.getElementById('saAi').hidden = !(d.aiPhoto && img && img.width);
+        const realHit = z.items.find(it => nq && normalizeForSearch(it.name).includes(nq));
+        saCtx = realHit ? { dataId: d.id, index, name: realHit.name } : null;
+        document.getElementById('saFix').hidden = !saCtx;
         const el = document.getElementById('simpleAnswer'); el.classList.add('is-open'); el.scrollTop = 0;
     }
     // 답 카드 사진: ① 사진 전체에서 막이 내려앉고 ② (효과를 켜면 찾은 칸에 레이더 고리) ③ 그 칸으로 다가가(확대)
