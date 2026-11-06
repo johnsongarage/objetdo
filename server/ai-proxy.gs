@@ -9,6 +9,7 @@
  *   ROBOFLOW_KEY : Roboflow API 키 (필수)
  *   DAILY_LIMIT  : 하루 최대 분석 횟수 (선택, 기본 300) — 키를 누가 몰래 쓰더라도 사용량이 이 안에서 멈춘다
  *   DEVICE_DAILY_LIMIT : 기기(앱이 보내는 6자리 번호) 하나당 하루 최대 분석 횟수 (선택, 기본 15)
+ *   MAKER_IDS    : 제작자 기기 번호(설정 > 사용 통계 보내기 옆 6자리), 쉼표로 여러 개 (선택) — 이 기기는 횟수 제한 없음
  *                        앱은 기기마다 무료 10번만 쓰게 하지만, 앱 저장소를 지우거나 앱을 거치지 않고 부르는 경우를 여기서 막는다
  *                        번호 없이 오는 요청(예전 앱)은 한데 묶어 하루 이만큼만
  *   STATS_SHEET_ID : 사용 통계 구글 시트 ID (적지 않아도 됨 — testStats()를 한 번 실행하면 시트를 만들고 저절로 채운다)
@@ -38,8 +39,13 @@ function doPost(e) {
 
     var id = String((e.parameter && e.parameter.id) || '');
     if (!/^[A-Z0-9]{6}$/.test(id)) id = 'ANON';
-    if (!takeDeviceQuota_(props, id)) return json_({ status: 'limit', message: '오늘 이 기기의 AI 칸 찾기를 다 썼어요. 내일 다시 쓸 수 있어요' });
-    if (!takeDailyQuota_(props)) return json_({ status: 'limit', message: '오늘 AI 사용량이 다 찼어요. 직접 그려 주세요' });
+    // 제작자 기기(MAKER_IDS, 쉼표로 여러 개): 기기 하루 제한·앱의 10번 제한을 건너뛴다. 서버 전체 하루 제한(DAILY_LIMIT)은 그대로
+    var makers = String(props.getProperty('MAKER_IDS') || '').toUpperCase().split(/[\s,]+/).filter(String);
+    var maker = id !== 'ANON' && makers.indexOf(id) >= 0;
+    var left = (e.parameter && e.parameter.left) || '';
+    if (!maker && left === '0') return json_({ status: 'limit', free: true, message: '무료 베타의 AI 칸 찾기를 다 쓰셨어요. [직접 그리기]로 그려 주세요' });
+    if (!maker && !takeDeviceQuota_(props, id)) return json_({ status: 'limit', message: '오늘 이 기기의 AI 칸 찾기를 다 썼어요. 내일 다시 쓸 수 있어요' });
+    if (!takeDailyQuota_(props)) return json_({ status: 'limit', maker: maker, message: '오늘 AI 사용량이 다 찼어요. 직접 그려 주세요' });
 
     var res = UrlFetchApp.fetch('https://detect.roboflow.com/' + ROBOFLOW_MODEL + '?api_key=' + encodeURIComponent(key), {
       method: 'post',
@@ -50,7 +56,7 @@ function doPost(e) {
     if (res.getResponseCode() !== 200) return json_({ status: 'error', message: 'AI 서버 오류 ' + res.getResponseCode() });
 
     var result = JSON.parse(res.getContentText());
-    return json_({ status: 'success', predictions: result.predictions || [] });
+    return json_({ status: 'success', maker: maker, predictions: result.predictions || [] });
   } catch (err) {
     return json_({ status: 'error', message: String(err && err.message || err) });
   }
