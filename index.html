@@ -2187,6 +2187,9 @@
         .ib-preset-chips button { height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
         .ib-preset-chips button.is-mine { border-color: rgb(var(--accent-rgb)); }
         .hv-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+        .hv-act[hidden], .hv-actions [hidden] { display: none !important; }
+        /* 같은 문제: 앱이 hidden으로 끄는데 클래스의 display가 덮어써 계속 보이던 것들 (11/6 점검) */
+        #gdVideo[hidden], #heroSpaces[hidden], #heroVoiceBubbles[hidden], #icStock[hidden], #importReviewConfirm[hidden], #mainModeBtn[hidden], #printDownloadBtn[hidden], #printNameBtn[hidden], #printPages[hidden], #saPic[hidden] { display: none !important; } /* 11/6: display:inline-flex가 hidden을 덮어써 빈 칩이 보이고, 다 지워도 '자리 미정 1'이 남았다 */
         .hv-act { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--hero-chip-border); background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
         .hv-act.is-inbox { border-color: rgb(var(--accent-rgb)); }
         .hv-act.is-inbox b { display: inline-flex; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: rgb(var(--accent-rgb)); color: #fff; align-items: center; justify-content: center; font-size: 12px; }
@@ -6084,7 +6087,7 @@
     }
     function syncInboxChip() {
         const a = loadInbox(), n = a.length;
-        const c = document.getElementById('inboxChip'); if (c) { c.hidden = !n; if (n) c.innerHTML = `<i class="ti ti-inbox"></i> 자리 미정 <b>${n}</b>`; }
+        const c = document.getElementById('inboxChip'); if (c) { c.hidden = !n; c.innerHTML = n ? `<i class="ti ti-inbox"></i> 자리 미정 <b>${n}</b>` : ''; }
         const bar = document.getElementById('inboxBar'); if (!bar) return;
         const hasPhoto = imageList.some(d => d.id !== 'dummy_root');
         bar.hidden = !n || !hasPhoto;
@@ -6266,7 +6269,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.27';
+    const APP_VERSION = '베타 2026.11.06.28';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
