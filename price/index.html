@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오브젯도 가격</title>
+<meta name="description" content="오브젯도(사진으로 만드는 물건 자리 지도) 가격. 앱은 무료, 대신 만들어 드리는 것만 비용이에요. 1곳 = 사진 한 장(칸 12개까지). 베타(~12/31) 선착순 10곳 업체 첫 1곳 무료, 2곳부터 1곳에 1만 원, 집 하나(8곳까지) 5만 원 — 출시 예정가의 50% · 부가세 포함.">
+<link rel="canonical" href="https://johnsongarage.github.io/price/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="오브젯도 가격">
+<meta property="og:description" content="1곳 = 사진 한 장(칸 12개까지) · 앱 무료 · 선착순 10곳 첫 1곳 무료 · 베타 50%: 1곳 1만 원 · 집 하나 5만 원 (~12/31, 부가세 포함)">
+<meta property="og:image" content="https://johnsongarage.github.io/udigo/og-image.png?v=22">
+<meta property="og:url" content="https://johnsongarage.github.io/udigo/price/">
+<meta name="theme-color" content="#2b2a28">
+<link rel="icon" href="../icon-192.png?v=14">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!-- 같은 내용의 존슨거라지 홈페이지 판: johnsongarage.github.io/price/ (두 판은 한 스크립트로 같이 만든다, 고칠 땐 둘 다) -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "273e5309e3764e809f02aab7f9942c5c"}'></script>
+<style>:root{--ink:#2b2a28;--sub:#6f6b64;--line:#e6e1d8;--paper:#f7f5f1;--card:#fff;--dark:#2b2a28;--sand:#e8dcc4;--sage:#9cc5ae;--accent:#9cc5ae;--tag:#3d5246;--th:#faf8f4}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit}
+h1,h2,h3{margin:0;line-height:1.32;letter-spacing:-0.02em;font-weight:800}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+.hero{background:var(--dark);color:#fff;padding:20px 0 40px}
+.bar{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800}
+.bar img{width:26px;height:26px;border-radius:7px}
+.bar a.back{margin-left:auto;font-size:13px;font-weight:600;opacity:.75;text-decoration:none}
+.hero .eyebrow{margin-top:30px;font-size:13px;font-weight:700;color:var(--sage);letter-spacing:.06em}
+.hero h1{margin-top:8px;font-size:32px}
+.hero .summary{margin:12px 0 0;max-width:640px;color:rgba(255,255,255,.82)}
+.badge{display:inline-flex;width:fit-content;margin-top:14px;padding:4px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.35);color:var(--sand);font-size:13px;font-weight:700}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 20px;border-radius:14px;font-size:15.5px;font-weight:800;text-decoration:none}
+.btn-main{background:var(--sand);color:var(--ink)}
+.btn-line{border:1.5px solid rgba(255,255,255,.5);color:#fff}
+main.wrap{padding-top:48px;padding-bottom:80px;display:flex;flex-direction:column;gap:52px}
+section{display:flex;flex-direction:column;gap:20px}
+.sec-h{display:flex;align-items:center;gap:10px}
+.sec-h .n{display:inline-flex;width:28px;height:28px;border-radius:50%;background:var(--dark);color:#fff;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.sec-h h2{font-size:22px}
+footer{background:var(--dark);color:#a7a299;font-size:13px;line-height:1.8}
+footer .wrap{padding:26px 16px}
+
+.unit{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.unit>b{font-size:20px;letter-spacing:-.01em}
+.unit p{margin:0;color:var(--sub);font-size:15px}
+.unit ul{margin:4px 0 0;padding-left:20px;color:var(--sub);font-size:15px;display:flex;flex-direction:column;gap:4px}
+.unit .unit-ex{font-size:14px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:6px}
+.plan.hl{border:2px solid var(--accent)}
+.plan .tag{font-size:13px;font-weight:700;color:var(--tag)}
+.plan h3{margin:0;font-size:18px;letter-spacing:-.01em}
+.plan .price{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.25}
+.plan .price .was{font-size:16px;font-weight:600;color:var(--sub);margin-right:8px;text-decoration-thickness:1.5px}
+.plan .price small{font-size:15px;font-weight:600;color:var(--sub);margin-left:2px}
+.plan p{margin:4px 0 0;color:var(--sub);font-size:15px}
+.note,.lead{margin:0;font-size:14px;color:var(--sub)}
+.lead{font-size:15px}
+.tbl{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:15px}
+.tbl th,.tbl td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{width:34%;font-weight:700;background:var(--th)}
+.tbl tr:last-child th,.tbl tr:last-child td{border-bottom:0}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px 14px 56px;position:relative;counter-increment:s}
+.steps li::before{content:counter(s);position:absolute;left:16px;top:14px;width:26px;height:26px;border-radius:50%;background:var(--dark);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
+.steps b{display:block}
+.steps span{color:var(--sub);font-size:15px}
+.faq{display:flex;flex-direction:column;gap:10px}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.faq summary{cursor:pointer;font-weight:700}
+.faq p{margin:8px 0 0;color:var(--sub);font-size:15px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn-dark{background:var(--dark);color:#fff;border:0}
+.btn-outline{background:none;border:1px solid var(--dark);color:var(--dark)}
+@media (max-width:640px){.tbl th{width:38%}.tbl th,.tbl td{padding:11px 12px}}
+.plan .price{font-weight:800}</style>
+</head>
+<body>
+<div class="hero"><div class="wrap">
+<div class="bar"><img src="../icon-192.png?v=14" alt="">오브젯도<a class="back" href="../">← 앱으로</a></div>
+<div class="eyebrow">PRICE</div>
+<h1>오브젯도 가격</h1>
+<p class="summary">앱은 누구나 무료로 써요. 정리를 마친 집의 수납장을 <b style="color:#fff">대신 지도로 만들어 드리는 것</b>만 비용이 있어요. 정리수납 전문가님이 고객 인계물로 붙이실 때 이 표를 기준으로 보시면 돼요.</p>
+<span class="badge">베타 50% · 12월 31일까지 · 부가세 포함</span>
+<div class="actions">
+<a class="btn btn-main" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener">DM으로 신청하기</a>
+<a class="btn btn-line" href="https://johnsongarage.github.io/udigo/?mode=home&sample=1">샘플 먼저 써 보기</a>
+</div>
+</div></div>
+<main class="wrap">
+<section>
+<div class="sec-h"><span class="n">1</span><h2>“1곳”의 기준</h2></div>
+<div class="unit">
+<b>1곳 = 공간 1개 = 사진 한 장</b>
+<p>정면에서 사진 한 장에 담기는 <b>수납장·선반·서랍 하나</b>가 1곳이에요. 그 안을 칸(통·바구니·서랍 칸)으로 나눠 물건을 적어요.</p>
+<ul>
+<li>칸은 1곳에 <b>12개까지</b>. 넘으면 2곳으로 세요.</li>
+<li>칸 하나에 물건 이름은 <b>10개 안팎</b>.</li>
+<li>예) 거실 3단 수납장 9칸 = 1곳 · 붙박이장 맨 위 선반 상자 5개 = 1곳 · 서랍 하나 6칸 = 1곳 · 붙박이장 문 3쪽을 따로 찍으면 3곳</li>
+</ul>
+<p class="unit-ex">샘플에 있는 <b>거실 수납장 · 붙박이장 맨 위 · 거실 서랍</b>이 각각 1곳이에요.</p>
+</div>
+</section>
+
+<section>
+<div class="sec-h"><span class="n">2</span><h2>한눈에 보기</h2></div>
+<div class="plans">
+<div class="plan"><span class="tag">직접 만들기</span><h3>앱 사용</h3><div class="price">무료</div><p>사진을 넣고 칸을 나누고 물건을 적는 것까지 직접 하시면 비용이 없어요. 가입도 없어요.</p></div>
+<div class="plan"><span class="tag">선착순 10곳 업체</span><h3>첫 1곳 대신 만들기</h3><div class="price">무료</div><p>사진만 보내 주시면 1곳(공간 1개)을 만들어 드려요. 베타 기간, 먼저 신청한 업체 10곳까지 한 번씩이에요.</p></div>
+<div class="plan hl"><span class="tag">2곳부터 · 베타 50%</span><h3>1곳씩</h3><div class="price"><s class="was">2만 원</s>1만 원<small>/ 1곳</small></div><p>공간 하나에 1만 원이에요.</p></div>
+<div class="plan"><span class="tag">묶음 · 베타 50%</span><h3>집 하나</h3><div class="price"><s class="was">10만 원</s>5만 원<small>/ 8곳까지</small></div><p>한 집에서 8곳까지 묶어서. 9곳째부터는 1곳에 1만 원이에요.</p></div>
+</div>
+<p class="note"><b>베타 가격은 2026년 12월 31일까지</b>이고, 줄 그은 금액은 정식 출시 예정가예요. 모두 부가세 포함이에요. 처음 함께하는 업체분들 의견을 듣고 출시 예정가가 바뀔 수 있고, 베타 기간에 맡겨 주신 건은 베타 가격 그대로예요.</p>
+</section>
+
+<section>
+<div class="sec-h"><span class="n">3</span><h2>무엇이 들어 있나요</h2></div>
+<table class="tbl">
+<tr><th>칸 나누기</th><td>사진 속 선반·통·서랍을 칸으로 나누고 번호를 붙여요 (1곳에 12칸까지)</td></tr>
+<tr><th>물건 이름 입력</th><td>보내 주신 목록대로 칸마다 물건 이름을 넣어요 (칸당 10개 안팎)</td></tr>
+<tr><th>세부 위치 메모</th><td>“빨간 구급함 옆”처럼 칸 안의 자리도 적어요</td></tr>
+<tr><th>받으시는 것</th><td>오브젯도 지도 파일(고객 폰에서 바로 불러오기) · A4 인쇄용 PDF (칸 번호 지도 + 가나다순 찾아보기)</td></tr>
+<tr><th>업체 이름</th><td>인쇄물·지도 아래에 “정리 · 업체 이름”을 넣어 드려요</td></tr>
+<tr><th>수정</th><td>납품 후 1번 무료 · 그 뒤 추가나 다시 만들기는 1곳에 1만 원</td></tr>
+</table>
+</section>
+
+<section>
+<div class="sec-h"><span class="n">4</span><h2>진행 순서</h2></div>
+<ol class="steps">
+<li><b>DM으로 사진과 물건 목록 보내기</b><span>1곳마다 정면 사진 한 장 + 칸별 물건 목록 (메모·사진·음성 무엇이든 괜찮아요)</span></li>
+<li><b>견적 확인</b><span>몇 곳으로 세는지, 금액, 납품 날짜를 먼저 알려 드려요</span></li>
+<li><b>입금</b><span>계좌이체로 먼저 받아요 (무료 1곳은 없음)</span></li>
+<li><b>납품</b><span>지도 파일과 PDF를 보내 드려요. 고객 폰에서 불러오는 방법도 같이 알려 드려요</span></li>
+<li><b>수정 1번</b><span>고칠 곳을 말씀해 주시면 다시 보내 드려요</span></li>
+</ol>
+</section>
+
+<section>
+<div class="sec-h"><span class="n">5</span><h2>알아 두실 것</h2></div>
+<div class="faq">
+<details><summary>영수증·증빙은 어떻게 받나요?</summary><p>존슨거라지는 간이과세자라 세금계산서는 발행하지 않고, <b>현금영수증(지출증빙용)</b>을 업체 사업자등록번호로 발행해 드려요. 입금하실 때 사업자등록번호를 알려 주세요. 적힌 금액은 부가세 포함이에요.</p></details>
+<details><summary>큰 붙박이장은 몇 곳인가요?</summary><p>사진 한 장에 칸이 또렷하게 보이면 1곳이에요. 문이 여러 쪽이라 따로 찍어야 하면 찍은 장 수만큼, 한 장에 칸이 12개를 넘으면 2곳으로 세요. 애매하면 견적 때 미리 알려 드려요.</p></details>
+<details><summary>고객 집 사진은 어떻게 다루나요?</summary><p>사진은 고객분께 동의를 받은 뒤 보내 주세요. 만드는 데만 쓰고, 납품한 뒤 제 쪽 기기에서 지워요. 홍보에 쓰고 싶을 땐 따로 여쭤봐요.</p></details>
+<details><summary>앱은 계속 무료인가요?</summary><p>지금은 무료 베타예요. 앞으로 가족 폰과 함께 보기 같은 기능이 생기면 그 기능만 유료가 될 수 있어요. 서비스를 바꾸거나 접게 되면 최소 3개월 전에 알리고, 그동안 지도를 파일·PDF로 내보낼 수 있게 해 드려요.</p></details>
+<details><summary>물건이 바뀌면 어떻게 하나요?</summary><p>고객분이 앱에서 바로 고칠 수 있어요. 리터치 방문 때 업체분이 고치셔도 되고, 다시 맡기시면 1곳에 1만 원이에요.</p></details>
+<details><summary>방문해서 해 주시나요?</summary><p>지금은 원격으로만 해요. 사진과 목록만 있으면 지역 상관없이 만들어 드려요.</p></details>
+</div>
+</section>
+
+<section>
+<div class="sec-h"><span class="n">6</span><h2>신청하기</h2></div>
+<p class="lead">베타 기간 선착순 10곳 업체는 첫 1곳(사진 한 장, 칸 12개까지)이 무료예요. 먼저 받아 보시고 정하셔도 돼요.</p>
+<div class="cta">
+<a class="btn btn-dark" href="https://ig.me/m/johnsongarage_" target="_blank" rel="noopener">인스타 DM으로 신청</a>
+<a class="btn btn-outline" href="https://johnsongarage.github.io/udigo/?mode=home&sample=1" target="_blank" rel="noopener">샘플 써 보기</a>
+<a class="btn btn-outline" href="mailto:johnsongarage.official@gmail.com">메일로 문의</a>
+</div>
+</section>
+</main>
+<footer><div class="wrap">존슨거라지 (간이과세자) · 대표 강훈민 · 사업자등록번호 778-17-02429<br>johnsongarage.official@gmail.com · 010-3270-6077</div></footer>
+</body>
+</html>
