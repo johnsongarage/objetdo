@@ -1615,6 +1615,30 @@
         .ws-setup-list .ti { color: #b8901a; margin-right: 4px; }
         .ws-setup-cond { margin: 0 0 12px; font-size: 13px; line-height: 1.5; color: var(--text2); word-break: keep-all; }
         .ws-setup-go { width: 100%; text-decoration: none; }
+        /* 시작 3단계 (11/6): 처음부터 '다 등록하세요' 대신 작은 미션 셋 → 끝나면 직접 찾아보게 */
+        .starter { margin: 10px 16px 4px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--card); color: var(--text); }
+        .starter[hidden] { display: none; }
+        .st-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .st-head b { font-size: 15px; }
+        .st-head small { color: var(--text3); font-size: 12.5px; }
+        .st-x { flex: none; border: 0; background: none; color: var(--text3); font: inherit; font-size: 12.5px; cursor: pointer; padding: 4px; }
+        .st-bar { height: 5px; margin: 10px 0 8px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+        .st-bar i { display: block; height: 100%; background: rgb(var(--accent-rgb)); border-radius: 3px; transition: width .4s; }
+        .st-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+        .st-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.45; color: var(--text2); }
+        .st-list li::before { content: ''; flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--border); box-sizing: border-box; }
+        .st-list li.is-done { color: var(--text3); text-decoration: line-through; }
+        .st-list li.is-done::before { border-color: rgb(var(--accent-rgb)); background: rgb(var(--accent-rgb)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/12px no-repeat; }
+        .st-list li.is-now { color: var(--text); font-weight: 700; }
+        .st-list li.is-now::before { border-color: rgb(var(--accent-rgb)); }
+        .st-done { margin-top: 2px; font-size: 14px; line-height: 1.5; color: var(--text2); }
+        .st-go { margin-top: 10px; width: 100%; height: 44px; border: 0; border-radius: 12px; background: var(--charcoal); color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .starter.is-done { border-color: rgb(var(--accent-rgb)); animation: stPop .5s ease-out; }
+        @keyframes stPop { 0% { transform: scale(.97); } 60% { transform: scale(1.015); } 100% { transform: scale(1); } }
+        .welcome-points { list-style: none; display: grid; grid-template-columns: max-content; justify-content: center; gap: 6px 18px; max-width: 100%; margin: 14px auto 0; padding: 0; text-align: left; }
+        .welcome-points li { position: relative; padding-left: 17px; font-size: 13px; white-space: nowrap; line-height: 1.4; color: var(--text); word-break: keep-all; }
+        .welcome-points li::before { content: ''; position: absolute; left: 2px; top: 4px; width: 9px; height: 5px; border-left: 2px solid rgb(var(--accent-rgb)); border-bottom: 2px solid rgb(var(--accent-rgb)); transform: rotate(-45deg); }
+        @media (min-width: 700px) { .welcome-points { grid-template-columns: max-content max-content; } .welcome-points li { font-size: 14.5px; } }
         .welcome-trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin: 12px 0 0; font-size: 12.5px; color: var(--text2); }
         .welcome-trust span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
         .welcome-trust .ti { font-size: 15px; color: var(--accent2); }
@@ -2147,6 +2171,14 @@
         }
         .toast.show { opacity: 1; transform: translate(-50%, 0); }
         /* 자리 미정·칸 고르기 (11/6) */
+        .zm-item.is-checked .zm-inbox-tag { display: none; }
+        .zm-inbox-tag { margin-left: 4px; padding: 1px 6px; border-radius: 8px; background: rgba(var(--accent-rgb), 0.14); color: rgb(var(--accent-rgb)); font-size: 11px; font-weight: 700; }
+        .ib-preset { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px dashed var(--border); }
+        .ib-preset b { display: block; font-size: 14px; }
+        .ib-preset small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--text3); }
+        .ib-preset-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .ib-preset-chips button { height: 34px; padding: 0 12px; border-radius: 17px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+        .ib-preset-chips button.is-mine { border-color: rgb(var(--accent-rgb)); }
         .hv-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
         .hv-act { display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--hero-chip-border); background: var(--hero-chip-bg); color: var(--hero-text); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
         .hv-act.is-inbox { border-color: rgb(var(--accent-rgb)); }
@@ -2450,6 +2482,7 @@
     <div class="pp-head"><div><b>자리 미정</b><small>새로 산 물건을 일단 넣어 두고, 한가할 때 자리를 정해요</small></div><button type="button" class="pp-close" onclick="closeInbox()" aria-label="닫기"><i class="ti ti-x"></i></button></div>
     <div class="ib-add"><input type="text" id="inboxInput" placeholder="물건 이름 (여러 개는 쉼표로)" enterkeyhint="done" onpaste="inboxPaste(event)" onkeydown="if (event.key === 'Enter') { event.preventDefault(); inboxAddFromInput(); }"><button type="button" class="ib-mic" id="inboxMic" onclick="inboxVoice(this)" aria-label="말로 넣기"><i class="ti ti-microphone"></i></button></div>
     <small class="ib-hint">말로 여러 개도 한 번에 · 엑셀·메모장 목록을 붙여 넣으면 줄마다 하나씩</small>
+    <div class="ib-preset" id="inboxPreset"></div>
     <div id="inboxList"></div>
 </div></div>
 <div id="listView" role="dialog" aria-label="물건 전체 목록" hidden>
@@ -2543,9 +2576,10 @@
             </g>
         </svg>
         <div class="welcome-brand"><div class="welcome-brand-name"><b data-app-name>오브젯도</b><small class="welcome-en" data-app-name-en hidden></small></div></div>
-        <h2 class="welcome-title">사진 한 장이<br>창고 지도가 돼요</h2>
-        <!-- 포스트잇과 다른 점: 선반 앞에 가지 않아도 물건 이름으로 자리를 찾는다 (넣을 때도, 꺼낼 때도) -->
-        <p class="welcome-sub">물건 이름만 대면 어느 칸인지 안내해요</p>
+        <!-- 첫 화면 문구 (11/6): 방문자가 자기 문제와 잇도록 대상(매장 창고 / 우리 집 수납)과 실제로 하는 일을 보여 준다 -->
+        <h2 class="welcome-title">물건은 제자리에,<br>찾는 시간은 줄이세요</h2>
+        <p class="welcome-sub" id="welcomeSub">사진으로 기록하는 매장 창고·수납 관리</p>
+        <ul class="welcome-points" id="welcomePoints"></ul>
         <div class="welcome-actions">
             <button class="btn-base btn-primary btn-lg" onclick="loadSampleData()"><i class="ti ti-player-play"></i> 예시로 먼저 둘러보기</button>
             <button class="btn-base btn-secondary btn-lg" id="welcomeStartBtn" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
@@ -2573,6 +2607,7 @@
 
     <div id="emptyGuide">등록된 사진이 없습니다. 아래 버튼을 눌러 매장 사진을 추가해 주세요!</div>
 
+    <div id="starterSteps" class="starter" hidden></div>
     <div id="photoStrip" class="photo-strip" role="tablist" aria-label="사진 고르기" hidden></div>
     <div id="canvasList"></div>
     <div id="bottomActions" style="display: flex; gap: 10px; margin-top: 16px; align-items: stretch;">
@@ -2676,7 +2711,7 @@
             <div class="zm-mini" id="zmMini"></div>
             <div class="zm-put-row">
                 <div class="search-input-wrap zm-find">
-                    <input type="search" id="newItemInput" placeholder="물건 이름 쓰기" autocomplete="off" enterkeyhint="done" onfocus="zmTyping(true)" onblur="setTimeout(() => { if (document.activeElement !== this) zmTyping(false); }, 120)" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
+                    <input type="search" id="newItemInput" placeholder="물건 이름 쓰기 · 여러 개는 쉼표로" autocomplete="off" enterkeyhint="done" onpaste="zmPasteList(event)" onfocus="zmTyping(true)" onblur="setTimeout(() => { if (document.activeElement !== this) zmTyping(false); }, 120)" oninput="document.getElementById('modal').classList.toggle('zm-filtering', !!this.value.trim()); applyZoneItemFilter()">
                     <span class="voice-bars" aria-hidden="true"><span></span><span></span><span></span></span>
                 </div>
                 <!-- 📷 추후 OCR 버튼도 이 줄에: 인식 결과는 openImportReview({ source: 'ocr', candidates: [{ name, comment }] })로 넘기면 확인 목록이 그대로 재사용된다 -->
@@ -4380,7 +4415,8 @@
         const withStock = stockOn();
         // 품목 목록에 없는 물건이 구역에 들어 있어도 저장할 때 사라지지 않도록 함께 보여준다.
         // 담지 않은 후보는 지금 품목 목록(baseItems)만 — 업종을 고른 뒤 예전 기본 품목이 이 구역에만 남아 보이다가 다음 구역에선 사라져 보였다
-        const names = [...new Set([...z.items.map(it => it.name), ...baseItems, ...[...state.keys()].filter(n => state.get(n).checked)])];
+        const inboxNames = loadInbox().map(x => x.name); // 자리 미정 물건이 후보 맨 앞에 → 칸을 열고 누르기만 하면 들어간다
+        const names = [...new Set([...z.items.map(it => it.name), ...inboxNames, ...baseItems, ...[...state.keys()].filter(n => state.get(n).checked)])];
         // 처음 열 때만 체크된 물건을 위로 (누르는 도중엔 순서를 바꾸지 않음)
         if (!preserve) names.sort((a, b) => (state.has(b) ? 1 : 0) - (state.has(a) ? 1 : 0));
 
@@ -4392,7 +4428,7 @@
                         <label class="zm-item-main" onclick="zmChipClick(event, this)">
                             <input type="checkbox" class="cb" value="${escapeHtml(name)}" ${st.checked ? 'checked' : ''} onchange="toggleCommentField(this)">
                             <span class="zm-check" aria-hidden="true"></span>
-                            ${st.pin ? '<small class="zm-pinv" aria-label="즐겨찾기">★</small>' : ''}<span class="zm-item-name">${escapeHtml(name)}</span><span class="zm-marks">${zmMarks(cur, withStock)}</span><small class="zm-memo">${escapeHtml(st.comment)}</small>
+                            ${st.pin ? '<small class="zm-pinv" aria-label="즐겨찾기">★</small>' : ''}<span class="zm-item-name">${escapeHtml(name)}</span>${!st.checked && inboxNames.includes(name) ? '<small class="zm-inbox-tag">자리 미정</small>' : ''}<span class="zm-marks">${zmMarks(cur, withStock)}</span><small class="zm-memo">${escapeHtml(st.comment)}</small>
                             <i class="ti ti-plus zm-plus" aria-hidden="true"></i><span class="zm-x" title="빼기" aria-label="빼기">×</span>
                         </label>
                         <input type="text" class="cmt" placeholder="세부 위치 메모 (예: 맨 윗칸 왼쪽)" value="${escapeHtml(st.comment)}" enterkeyhint="done" oninput="const it = this.closest('.zm-item'); it.querySelector('.zm-memo').textContent = this.value; it.classList.toggle('has-memo', !!this.value.trim())">
@@ -5715,11 +5751,27 @@
         try { safeStorage.setItem('baseItems', JSON.stringify(baseItems)); } catch(e) {}
         try { safeStorage.setItem('dataChangedAt', String(Date.now())); } catch(e) {} // 마지막 백업 뒤에 바뀐 게 있는지 (백업 안내 띠)
         try { syncStockBadge(); } catch (e) {} // [점검] 버튼의 모자란 수
+        try { syncStarter(); } catch (e) {}
+        try { const a = loadInbox(); if (a.length) { const placed = placedNames(), b = a.filter(x => !placed.has(normalizeForSearch(x.name))); if (b.length !== a.length) saveInbox(b); } } catch (e) {} // 칸에 들어간 물건은 자리 미정에서 빠진다
     }
     // 입력칸 Enter/“새로 추가” 줄: 목록에 같은 이름이 있으면 체크만, 없으면 새 품목으로 만들고 체크
+    // 여러 개 한 번에 (11/6): 쉼표로 쓰거나 엑셀·메모장 목록을 붙여 넣으면 말로 넣기와 같은 확인 창으로 (엑셀 행은 첫 칸만)
+    function zmOpenBulk(names, source) {
+        names = [...new Set(names.map(x => x.trim()).filter(Boolean))];
+        if (!names.length) return;
+        document.getElementById('newItemInput').value = ''; document.getElementById('modal').classList.remove('zm-filtering'); applyZoneItemFilter();
+        openImportReview({ source: 'text', title: `${source} ${names.length}개`, sub: '넣을 것만 체크해 주세요', candidates: names.map(name => ({ name })) });
+    }
+    function zmPasteList(e) {
+        const t = (e.clipboardData || window.clipboardData).getData('text') || '';
+        if (!/[\r\n]/.test(t.trim())) return;
+        e.preventDefault();
+        zmOpenBulk(t.split(/\r?\n/).map(l => l.split('\t')[0]), '붙여 넣은 목록');
+    }
     function addNewItem() {
         const input = document.getElementById('newItemInput'); const val = input.value.trim();
         if (!val) { input.focus(); return; }
+        if (/[,，、]/.test(val)) { zmOpenBulk(val.split(/[,，、]+/), '쓴 물건'); return; }
         const existing = [...document.querySelectorAll('#modal .zm-body .cb')].find(cb => normalizeForSearch(cb.value) === normalizeForSearch(val));
         const name = existing ? existing.value : val;
         const madeNew = !existing && !baseItems.includes(name);
@@ -5917,10 +5969,69 @@
         } });
     }
 
+    // 🪜 시작 3단계 (11/6): ① 자주 찾는 선반 사진 1장 ② 칸 1개 ③ 자주 묻는 물건 3개 → 끝나면 그 물건을 직접 찾아보게 (레이더가 '아, 이렇게 쓰는구나')
+    const STARTER_KEY = 'starterDone';
+    function starterState() {
+        const photos = imageList.filter(d => d.id !== 'dummy_root' && d.img), zones = photos.flatMap(d => d.zones);
+        const items = [...new Set(zones.flatMap(z => z.items.map(i => i.name)))];
+        return { photo: photos.length > 0, zone: zones.length > 0, items: items.length >= 3, n: items.length, first: items[0] };
+    }
+    function syncStarter() {
+        const el = document.getElementById('starterSteps'); if (!el) return;
+        let flag = null; try { flag = safeStorage.getItem(STARTER_KEY); } catch (e) {}
+        if (flag === 'hide' || isSamplePreview || safeStorage.getItem('isSampleData') === '1' || welcomeVisible) { el.hidden = true; return; }
+        const st = starterState();
+        if (!st.photo) { el.hidden = true; return; }
+        if (flag === '1' && !el.classList.contains('is-done')) { el.hidden = true; return; } // 예전에 다 끝낸 사람
+        el.hidden = false;
+        const home = useMode() === 'home';
+        if (st.photo && st.zone && st.items) {
+            if (!el.classList.contains('is-done')) { try { safeStorage.setItem(STARTER_KEY, '1'); } catch (e) {} el.classList.add('is-done'); }
+            el.innerHTML = `<div class="st-head"><b>준비 끝! 이제 찾아보세요</b><button type="button" class="st-x" onclick="hideStarter()">닫기</button></div>
+                <p class="st-done">물건 이름을 말하거나 검색하면 그 칸이 빛나요. 나머지 칸은 생각날 때 하나씩 채우면 돼요.</p>
+                ${st.first ? `<button type="button" class="st-go" onclick="starterTryFind()">"${escapeHtml(st.first)}" 찾아보기</button>` : ''}`;
+            return;
+        }
+        const steps = [[st.photo, home ? '자주 여는 수납장 사진 1장 찍기' : '가장 자주 찾는 선반 사진 1장 찍기'], [st.zone, '첫 번째 칸 하나만 표시하기 · [AI로 구역 찾기]나 [직접 그리기]'], [st.items, `가장 많이 찾는 물건 3개만 넣기${st.zone ? ` (${Math.min(st.n, 3)}/3) · 칸을 누르면 넣을 수 있어요` : ''}`]];
+        const done = steps.filter(x => x[0]).length, nowI = steps.findIndex(x => !x[0]);
+        el.innerHTML = `<div class="st-head"><div><b>시작 3단계</b> <small>${done}/3 · 1분이면 돼요</small></div><button type="button" class="st-x" onclick="hideStarter()">안 볼래요</button></div>
+            <div class="st-bar"><i style="width:${done / 3 * 100}%"></i></div>
+            <ol class="st-list">${steps.map(([ok, t], i) => `<li class="${ok ? 'is-done' : i === nowI ? 'is-now' : ''}">${escapeHtml(t)}</li>`).join('')}</ol>`;
+    }
+    function hideStarter() { try { safeStorage.setItem(STARTER_KEY, 'hide'); } catch (e) {} const el = document.getElementById('starterSteps'); el.hidden = true; el.classList.remove('is-done'); }
+    function starterTryFind() {
+        const st = starterState(); if (!st.first) return;
+        hideStarter();
+        const box = document.getElementById('searchBox'); box.value = st.first; integratedSearch(true);
+    }
+
     // 📥 자리 미정 (11/6): 새로 산 물건을 일단 던져 두고, 종류 사전으로 칸을 추천받아 한 번에 넣는다
     const INBOX_KEY = 'inboxItems';
     function loadInbox() { try { const a = JSON.parse(safeStorage.getItem(INBOX_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && x.name) : []; } catch (e) { return []; } }
     function saveInbox(a) { try { safeStorage.setItem(INBOX_KEY, JSON.stringify(a)); } catch (e) {} syncInboxChip(); }
+    // 업종별로 자주 쓰는 물건 (11/6): 하나하나 치지 않게 한 번에 자리 미정으로 → 칸을 열면 후보 맨 앞에 뜬다
+    const STARTER_PRESETS = {
+        home: { label: '우리 집', items: ['건전지', '상비약', '해열제', '밴드', '체온계', '충전기', '보조배터리', '멀티탭', '공구함', '드라이버', '줄자', '테이프', '가위', '여권', '보증서·설명서', '예비 전구', '마스크', '핫팩', '선물 포장지', '쇼핑백'] },
+        cafe: { label: '카페', items: ['원두', '우유', '바닐라 시럽', '헤이즐넛 시럽', '카라멜 소스', '초코 소스', '휘핑크림', '테이크아웃 컵(HOT)', '테이크아웃 컵(ICE)', '컵 뚜껑', '빨대', '컵홀더', '캐리어', '냅킨', '스틱 설탕', '머들러', '일회용 스푼', '영수증 용지', '행주', '세척제'] },
+        restaurant: { label: '식당', items: ['물티슈', '냅킨', '일회용 앞치마', '이쑤시개', '수저 포장지', '부탄가스', '호일', '랩', '위생장갑', '포장 용기', '비닐봉투', '고무줄', '나무젓가락', '소스 컵', '영수증 용지', '세제', '수세미', '행주', '음식물 봉투', '주방 타월'] },
+        mart: { label: '편의점·마트', items: ['영수증 용지', '비닐봉투', '종이봉투', '나무젓가락', '빨대', '일회용 스푼', '물티슈', '가격표', '라벨기 테이프', '건전지', '박스 테이프', '커터칼', '고무줄', '포장 비닐', '진열 POP', '청소 도구', '쓰레기봉투', '장갑', '손소독제', '예비 동전'] },
+        general: { label: '창고·기타', items: ['박스 테이프', '커터칼', '완충재(뽁뽁이)', '택배 상자(소)', '택배 상자(중)', '택배 상자(대)', '송장 용지', '라벨지', '마커', '장갑', '케이블타이', '랩', '비닐 봉투', '줄자', '드라이버', '건전지', '멀티탭', '청소 도구', '예비 부품', '사무용품'] }
+    };
+    function presetFor(key) { return STARTER_PRESETS[key] || (INDUSTRY_TEMPLATES[key] ? { label: INDUSTRY_TEMPLATES[key].label.split(' /')[0], items: INDUSTRY_TEMPLATES[key].items } : null); }
+    function renderInboxPreset() {
+        const el = document.getElementById('inboxPreset'); if (!el) return;
+        const mine = useMode() === 'home' ? 'home' : (currentIndustry() || null);
+        const keys = [...new Set([mine, 'home', 'cafe', 'restaurant', 'mart', 'general', 'pharmacy', 'hardware'].filter(k => k && presetFor(k)))];
+        el.innerHTML = `<b>자주 쓰는 물건 한 번에 넣기</b><small>고르면 20개쯤 자리 미정에 들어가요. 안 쓰는 건 × 로 빼고, 칸을 열면 맨 앞에 떠서 누르기만 하면 돼요</small>
+            <div class="ib-preset-chips">${keys.map(k => `<button type="button"${k === mine ? ' class="is-mine"' : ''} onclick="inboxPreset('${k}')">${escapeHtml(presetFor(k).label)}</button>`).join('')}</div>`;
+    }
+    function placedNames() { const s = new Set(); imageList.forEach(d => { if (d.id !== 'dummy_root') d.zones.forEach(z => z.items.forEach(it => s.add(normalizeForSearch(it.name)))); }); return s; }
+    function inboxPreset(key) {
+        const p = presetFor(key); if (!p) return;
+        const placed = placedNames(), names = p.items.filter(n => !placed.has(normalizeForSearch(n)));
+        if (!names.length) { showToast('그 물건들은 이미 다 자리가 있어요', 2000); return; }
+        addToInbox(names);
+    }
     function syncInboxChip() { const c = document.getElementById('inboxChip'); if (!c) return; const n = loadInbox().length; c.hidden = !n; if (n) c.innerHTML = `<i class="ti ti-inbox"></i> 자리 미정 <b>${n}</b>`; }
     function suggestZone(name) { // 같은 이름이 이미 있는 칸 > 칸 이름이 그 종류 > 같은 종류 물건이 많은 칸
         let best = null; const nn = normalizeForSearch(name);
@@ -5939,10 +6050,12 @@
     }
     function closeInbox() { document.getElementById('inboxSheet').hidden = true; if (activeVoice && activeVoice.btn && activeVoice.btn.id === 'inboxMic') { activeVoice.manual = true; activeVoice.stop(); } }
     function addToInbox(names) {
-        const a = loadInbox(), have = new Set(a.map(x => x.name)); let n = 0;
-        names.map(x => String(x).trim()).filter(Boolean).forEach(x => { if (!have.has(x)) { a.unshift({ name: x, at: Date.now() }); have.add(x); n++; } });
-        saveInbox(a); renderInbox();
-        if (n) showToast(`자리 미정에 ${n}개 넣었어요`, 1800);
+        const a = loadInbox(), have = new Set(a.map(x => x.name)), placed = placedNames(); let n = 0, skip = 0;
+        names = names.filter(x => { if (placed.has(normalizeForSearch(String(x).trim()))) { skip++; return false; } return true; });
+        const add = []; names.map(x => String(x).trim()).filter(Boolean).forEach(x => { if (!have.has(x)) { add.push({ name: x, at: Date.now() }); have.add(x); n++; } });
+        saveInbox([...add, ...a]); renderInbox(); // 넣은 순서 그대로 맨 위에
+        if (n) showToast(`자리 미정에 ${n}개 넣었어요${skip ? ` · ${skip}개는 이미 자리가 있어요` : ''}`, 2000);
+        else if (skip) showToast('이미 자리가 있는 물건이에요 · 검색해 보세요', 2000);
     }
     // 손으로 쓴 건 쉼표로만 나눈다 ("바닐라 시럽"이 둘로 쪼개지지 않게). 말은 띄어 말하니 기존처럼 띄어쓰기로도 나눈다
     function inboxAddFromInput() { const inp = document.getElementById('inboxInput'); const v = inp.value.trim(); if (!v) return; addToInbox(v.split(/[,，、]+/)); inp.value = ''; }
@@ -5970,6 +6083,7 @@
     }
     function inboxPick(name) { openPlacePicker({ title: `${josa(name, '을', '를')} 어디에 둘까요?`, sub: '넣을 칸을 눌러 주세요', onPick: (d, i) => inboxPlace(name, d.id, i) }); }
     function renderInbox() {
+        renderInboxPreset();
         const list = document.getElementById('inboxList'); if (!list) return;
         const a = loadInbox();
         if (!a.length) { list.innerHTML = '<p class="ib-empty">자리 미정인 물건이 없어요<br>새로 산 물건을 위에서 쓰거나 말해서 넣어 두세요</p>'; return; }
@@ -5977,7 +6091,7 @@
         list.innerHTML = a.map(x => { const s = suggestZone(x.name), nm = escapeHtml(x.name), arg = escapeHtml(JSON.stringify(x.name));
             return `<div class="ib-row"><div class="ib-top"><b>${nm}</b><button type="button" class="ib-del" onclick='inboxRemove(${arg})' aria-label="빼기"><i class="ti ti-x"></i></button></div>`
                 + (s ? `<div class="ib-sug"><em>${escapeHtml(s.kind)}</em> · ${escapeHtml(zoneLabel(s.data, s.index))}에 넣을까요?</div><div class="ib-btns"><button type="button" class="ib-go" onclick='inboxPlace(${arg}, ${escapeHtml(JSON.stringify(String(s.data.id)))}, ${s.index})'>여기 넣기</button><button type="button" class="ib-other" onclick='inboxPick(${arg})'>다른 칸</button></div>`
-                    : `<div class="ib-sug">어울리는 칸을 못 찾았어요</div><div class="ib-btns"><button type="button" class="ib-other" onclick='inboxPick(${arg})'>칸 고르기</button></div>`) + '</div>'; }).join('');
+                    : `<div class="ib-sug">추천할 칸이 아직 없어요 · 칸을 열면 맨 앞에 떠요</div><div class="ib-btns"><button type="button" class="ib-other" onclick='inboxPick(${arg})'>칸 고르기</button></div>`) + '</div>'; }).join('');
     }
 
     // 방금 넣은 물건: 창 맨 위 '이 칸에 있는 것'으로 올라가 그 칩들을 반짝 + '새로' (2.4초). 키보드로 치는 중엔 위로 올리지 않는다 (몰아 보기에 이미 보임)
@@ -6095,7 +6209,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.15';
+    const APP_VERSION = '베타 2026.11.06.17';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -7374,7 +7488,11 @@
         if (show) {
             { const cells = [[-66, 0], [0, 0], [67, 0], [-66, 66], [0, 66], [67, 66]], c = cells[Math.floor(Math.random() * cells.length)], g = document.getElementById('whHitPos'); if (g) g.setAttribute('transform', `translate(${c[0]} ${c[1]})`); }
             const home = useMode() === 'home', t = document.querySelector('.welcome-title'), st = document.getElementById('welcomeStartBtn');
-            if (t) t.innerHTML = home ? '사진 한 장이<br>우리 집 수납 지도가 돼요' : '사진 한 장이<br>창고 지도가 돼요';
+            const sub = document.getElementById('welcomeSub'), pts = document.getElementById('welcomePoints');
+            if (sub) sub.textContent = home ? '사진으로 기록하는 우리 집 수납 관리' : '사진으로 기록하는 매장 창고·수납 관리';
+            if (pts) pts.innerHTML = (home
+                ? ['사진 위에 물건 자리 기록', '말·검색으로 칸 바로 찾기', '새로 산 물건은 칸 추천', '지도 출력해 수납장에 부착']
+                : ['사진 위에 물건 위치 기록', '말·검색으로 보관 칸 찾기', '수량·유통기한 점검', '지도 출력해 현장에 부착']).map(x => `<li>${x}</li>`).join('');
             if (st) st.innerHTML = home ? '<i class="ti ti-camera"></i> 내 수납장 사진으로 시작' : '<i class="ti ti-camera"></i> 내 창고 사진으로 시작';
         }
         if (show) { syncIndustryUI(); renderWelcomeShowcase(); document.querySelectorAll('.setup-promo').forEach(a => a.hidden = !setupPromoOn()); } else clearInterval(wsTimer);
@@ -8420,7 +8538,7 @@
         else { deactivateHeroSearch(); showToast('전체 화면이에요. 설정에서 다시 찾기만 화면으로 바꿀 수 있어요', 3000); }
     }
     function syncSimpleFoot() {
-        syncInboxChip();
+        syncInboxChip(); try { syncStarter(); } catch (e) {}
         const el = document.getElementById('simpleFoot'); if (!el) return;
         const photos = (bootPhotos || imageList).filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0);
         // 예시를 보는 중이면 찾기만 화면에도 "예시를 보고 있어요" (+ AI 사진이면 표시) — 지도 화면의 예시 띠가 여기선 안 보였다 (11/5)
