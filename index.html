@@ -4835,11 +4835,66 @@
         render(data);
         if (!fromHistory) navClose('fs');
     }
+    // ↩ 뒤로 가기 (11/6): 편집·크게 보기만 기록이 있어서, 다른 창(답 카드·물건 창·메뉴·설정·인쇄…)에서 뒤로 가기를 누르면 페이지를 아예 벗어났다
+    //   → 맨 위에 '지킴 기록'을 하나 깔아 두고, 뒤로 가기마다 ① 맨 위에 열린 창을 닫고 ② 지도 화면이면 첫 화면으로 ③ 첫 화면이면 '한 번 더 누르면 나가요'
+    //   그 뒤 지킴 기록을 다시 깐다. 2초 안에 한 번 더 누르면 진짜로 나간다
+    const isShown = (id) => { const e = document.getElementById(id); if (!e || e.hidden) return false; const cs = getComputedStyle(e); return cs.display !== 'none' && cs.visibility !== 'hidden'; };
+    function closeTopLayer(overlaysOnly) {
+        const L = [
+            [() => !!activeVoice, () => { activeVoice.manual = true; activeVoice.stop(); }],
+            [() => !!importReview && isShown('importReview'), () => closeImportReview()],
+            [() => isShown('pendingAdd'), () => closePendingAdd()],
+            [() => isShown('resetAsk'), () => closeResetAsk()],
+            [() => isShown('backupChoice'), () => closeBackupChoice()],
+            [() => isShown('dataInfo'), () => closeDataInfo()],
+            [() => isShown('editIntro'), () => closeEditIntro()],
+            [() => isShown('photoTip'), () => closePhotoTip()],
+            [() => isShown('iosInstall'), () => closeIosInstall()],
+            [() => isShown('guideModal'), () => closeGuideModal()],
+            [() => isShown('photoMenu'), () => closePhotoMenu()],
+            [() => typeof itemCardCtx !== 'undefined' && !!itemCardCtx, () => closeItemCard()],
+            [() => { const v = document.getElementById('videoGuideModal'); return !!v && v.classList.contains('is-open'); }, () => closeVideoGuideModal()],
+            [() => isShown('printModal'), () => closePrintPreview()],
+            [() => isShown('stockModal'), () => closeStock()],
+            [() => document.body.classList.contains('zone-picker-open'), () => closeZonePicker()],
+            [() => isShown('settingsModal'), () => closeSettingsModal()],
+            [() => document.getElementById('modal').style.display === 'flex', () => closeModal()],
+            [() => isShown('listView'), () => closeListView()],
+            [() => { const m = document.getElementById('simpleMenu'); return !!m && m.classList.contains('is-open'); }, () => closeSimpleMenu()]
+        ];
+        if (!overlaysOnly) L.push(
+            [() => { const a = document.getElementById('simpleAnswer'); return !!a && a.classList.contains('is-open'); }, () => closeSimpleAnswer(true)],
+            [() => document.body.classList.contains('hero-search-focused') || isShown('searchResultDisplay'), () => { // 검색 중: 검색을 접는다
+                const box = document.getElementById('searchBox'); if (box) { box.blur(); box.value = ''; }
+                const d = document.getElementById('searchResultDisplay'); if (d) { d.style.display = 'none'; d.innerHTML = ''; }
+                document.body.classList.remove('hero-search-focused');
+                if (!simpleOn() && !document.body.classList.contains('hero-search-active') && hasSavedData()) { activeZone = null; showSearchArrow = false; imageList.forEach(x => render(x)); }
+            }],
+            [() => document.body.classList.contains('welcome-revisit'), () => closeWelcomeRevisit()],
+            [() => !simpleOn() && hasSavedData() && !document.body.classList.contains('hero-search-active'), () => { activateHeroSearch(); window.scrollTo(0, 0); }] // 지도 화면 → 첫 화면
+        );
+        for (const [open, close] of L) { let o = false; try { o = open(); } catch (e) {} if (o) { try { close(); } catch (e) {} return true; } }
+        return false;
+    }
+    let backLeaving = false, backLastAt = 0;
+    function pushBackGuard() { try { history.pushState({ guard: 1 }, ''); } catch (e) {} }
+    // 처음 열 때 지킴 기록을 깐다. 새로고침으로 다시 열리면(예시 열기 등) 이미 지킴 기록 위이므로, 아래 칸을 이 문서 것으로 바꾼 뒤 다시 깐다
+    try { if (history.state && history.state.guard) history.replaceState(null, ''); } catch (e) {}
+    pushBackGuard();
     window.addEventListener('popstate', () => {
         if (skipPop) { skipPop = false; return; } // 버튼으로 닫으며 우리가 직접 뺀 기록
-        const top = navStack.pop(); // 가장 나중에 연 것(크게 보기·편집)부터 닫는다
-        if (top === 'fs' && fsPhoto) closePhotoFullscreen(true);
-        else if (top === 'edit' && isEditMode) toggleEditMode(true);
+        if (backLeaving) { try { history.back(); } catch (e) {} return; } // 나가는 중: 남은 우리 기록을 지나간다
+        if (navStack.length) { // 크게 보기·편집이 열려 있음
+            const top = navStack[navStack.length - 1];
+            if (closeTopLayer(true)) { try { history.pushState({ nav: top }, ''); } catch (e) {} return; } // 그 위에 뜬 창(물건 창 등)부터 닫고 기록은 되살린다
+            navStack.pop(); // 가장 나중에 연 것(크게 보기·편집)부터 닫는다
+            if (top === 'fs' && fsPhoto) closePhotoFullscreen(true);
+            else if (top === 'edit' && isEditMode) toggleEditMode(true);
+            return;
+        }
+        if (closeTopLayer(false)) { pushBackGuard(); return; }
+        if (Date.now() - backLastAt < 2000) { backLeaving = true; setTimeout(() => { backLeaving = false; }, 1500); try { history.back(); } catch (e) {} return; }
+        backLastAt = Date.now(); showToast('뒤로 가기를 한 번 더 누르면 나가요', 2000); pushBackGuard();
     });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fsPhoto && document.getElementById('modal').style.display !== 'flex') closePhotoFullscreen(); });
 
@@ -5872,7 +5927,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.12';
+    const APP_VERSION = '베타 2026.11.06.13';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
