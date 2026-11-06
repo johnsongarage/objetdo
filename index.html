@@ -986,6 +986,7 @@
         .zone-note.is-focus { outline: 2.5px solid var(--radar-hit, #ff6ee0); outline-offset: 1px; box-shadow: 0 0 12px rgba(var(--radar-hit-rgb, 255, 90, 217), 0.85); } /* 찾은 칸 쪽지도 네온 */
         .note-layer.has-focus .zone-note:not(.is-focus), .note-layer.has-focus .is-empty:not(.is-focus) { opacity: 0.3; }
         /* 찾은 칸 쪽지: 찾은 물건 한 줄만 크게 + 나머지는 "+N개 더" (칸에 든 물건이 다 보이면 뭘 찾았는지 묻혔다) */
+        .kind-tag { display: inline-block; margin-right: 4px; padding: 0 7px; border-radius: 8px; background: rgba(var(--accent-rgb), 0.12); color: rgb(var(--accent-rgb)); font-size: 0.92em; font-weight: 700; }
         .zone-note.is-found-one .found-it { font-weight: 800; font-size: 1.12em; line-height: 1.22; word-break: keep-all; overflow-wrap: anywhere; }
         .zone-note.is-found-one .more { font-size: 0.86em; }
         /* 찾은 자리 꼬리표: 사진 위(찾은 칸과 먼 쪽)에 "공간 › 번호 · 칸 이름" — 칸만 빛나면 어느 선반인지 말로 전해지지 않았다 */
@@ -5808,7 +5809,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.2';
+    const APP_VERSION = '베타 2026.11.06.3';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6514,6 +6515,7 @@
         if (field === 'item' && type === 'chosung') return 0.3;
         if (field === 'item' && type === 'synonym') return 0.4;
         if (field === 'zone') return 0.5;
+        if (field === 'kind') return 0.8; // 비슷한 종류 (정확히 찾은 칸·메모보다 뒤, 사진 제목·오타보다 앞)
         if (field === 'comment') return 1;
         if (field === 'title') return 2;
         return 3; // fuzzy
@@ -6535,8 +6537,34 @@
         SYNONYM_GROUPS.forEach(g => { if (g.some(t => normalizeForSearch(t) === q)) g.forEach(t => { if (normalizeForSearch(t) !== q) out.add(t); }); });
         return [...out];
     }
+    // 🧺 비슷한 종류로 칸 찾기 (11/6): 정리 업체는 "자리 = 종류"로 정리한다 → 새로 산 밴드를 안 적어도 해열제·파스가 있는 상비약 칸을 알려 준다
+    //   검색어가 아래 종류의 한 말과 닿으면, 같은 종류의 말이 칸 이름·물건 이름에 있는 칸을 "비슷한 종류"로 보여 준다 (정확히 찾은 결과보다 뒤)
+    const KIND_GROUPS = {
+        '상비약': ['상비약', '구급', '구급함', '구급상자', '해열제', '감기약', '소화제', '진통제', '두통약', '타이레놀', '밴드', '반창고', '대일밴드', '연고', '후시딘', '소독약', '소독', '파스', '체온계', '붕대', '거즈', '멀미약', '영양제', '비타민', '알레르기약', '안약', '물파스'],
+        '충전기·케이블': ['충전기', '충전선', '충전케이블', '케이블', 'usb', 'c타입', '라이트닝', '어댑터', '보조배터리', '이어폰', '에어팟', '충전'],
+        '문구': ['문구', '볼펜', '펜', '연필', '샤프', '지우개', '가위', '풀', '메모지', '포스트잇', '스테이플러', '호치키스', '클립', '자', '칼', '커터칼', '네임펜', '사인펜', '형광펜'],
+        '공구': ['공구', '드라이버', '망치', '줄자', '나사', '못', '펜치', '렌치', '스패너', '육각렌치', '전동드릴', '실리콘'],
+        '전기·전구': ['건전지', '배터리', '전구', '형광등', '멀티탭', '콘센트', '연장선', '리모컨'],
+        '침구': ['침구', '이불', '담요', '베개', '베개커버', '이불커버', '패드', '토퍼', '전기장판', '온수매트', '쿨매트', '여름이불', '겨울이불'],
+        '여행': ['여행', '여권', '항공권', '캐리어', '여행용', '목베개', '여행파우치', '국제운전면허증', '돼지코', '멀티어댑터', '캐리어이름표'],
+        '서류': ['서류', '보증서', '설명서', '계약서', '영수증', '등본', '통장', '증명서', '보험증권', '매뉴얼'],
+        '청소·세탁': ['청소', '세제', '세탁세제', '섬유유연제', '락스', '수세미', '걸레', '청소포', '물걸레', '고무장갑', '얼룩제거제', '표백제', '청소솔'],
+        '주방 소모품': ['랩', '호일', '쿠킹호일', '지퍼백', '위생장갑', '위생백', '키친타월', '종이컵', '일회용', '일회용수저', '빨대', '밀폐용기', '도시락통'],
+        '계절 용품': ['선풍기', '서큘레이터', '히터', '가습기', '가습기필터', '제습기', '핫팩', '손난로', '공기청정기필터', '필터', '모기향', '모기약'],
+        '욕실 용품': ['욕실', '칫솔', '치약', '샴푸', '린스', '컨디셔너', '바디워시', '비누', '면도기', '면도날', '수건', '샤워볼'],
+        '옷 소품': ['양말', '속옷', '스타킹', '장갑', '목도리', '모자', '벨트', '넥타이', '스카프', '마스크'],
+        '아이 용품': ['장난감', '크레파스', '색연필', '스케치북', '스티커', '물감', '클레이', '블록', '기저귀', '유아'],
+        '미용': ['화장품', '빗', '드라이기', '고데기', '손톱깎이', '면봉', '귀이개', '헤어밴드', '머리끈', '선크림'],
+        '수영·운동': ['수영복', '래시가드', '물안경', '수영모', '운동복', '요가매트', '아령', '줄넘기'],
+        '캠핑·나들이': ['캠핑', '돗자리', '캠핑담요', '텐트', '랜턴', '아이스박스', '보냉백', '버너']
+    };
+    function kindsOf(query) { // 검색어가 닿는 종류 이름들 (검색어 ⊇ 말, 또는 검색어가 말의 앞부분, 2글자 이상만)
+        const q = normalizeForSearch(query); if (q.length < 2) return [];
+        return Object.keys(KIND_GROUPS).filter(k => KIND_GROUPS[k].some(t => { const n = normalizeForSearch(t); return n.length >= 2 && (q.includes(n) || n.startsWith(q)); })); // 말의 가운데는 안 본다 ('밴드'가 '헤어밴드'로 미용에 잡혔다)
+    }
+    function kindHit(kind, text) { const n = normalizeForSearch(text); return !!n && KIND_GROUPS[kind].some(t => { const m = normalizeForSearch(t); return m.length >= 2 && n.includes(m); }); }
     function findSearchMatches(query) {
-        const matches = [], syn = synonymsOf(query);
+        const matches = [], syn = synonymsOf(query), kinds = kindsOf(query);
         imageList.forEach(data => {
             data.zones.forEach((z, idx) => {
                 let best = null;
@@ -6561,6 +6589,12 @@
                 if (!best && includesText(query, data.title)) {
                     best = { field: 'title', type: 'partial', distance: 0, item: null };
                 }
+                if (kinds.length && (!best || rankOf(best.field, best.type) > rankOf('kind'))) { // 비슷한 종류: 칸 이름이 종류면 그 칸, 아니면 같은 종류 물건이 있는 칸
+                    for (const k of kinds) {
+                        if (kindHit(k, z.name)) { best = { field: 'kind', type: 'kind', kind: k, distance: 0, item: null }; break; }
+                        const hit = z.items.find(it => kindHit(k, it.name)); if (hit) { best = { field: 'kind', type: 'kind', kind: k, distance: 0, item: hit }; break; }
+                    }
+                }
 
                 if (best) matches.push({ data, zone: z, index: idx, ...best });
             });
@@ -6571,12 +6605,14 @@
     }
 
     function renderSearchResult(match, query) {
-        const { data, zone: z, index: idx, field, item, type } = match;
+        const { data, zone: z, index: idx, field, item, type, kind } = match;
         const thumb = getZoneThumbnail(data, z);
 
         const zoneLine = field === 'zone' ? highlight(z.name, query) : escapeHtml(z.name);
         let itemLine = '';
-        if (field === 'item') {
+        if (field === 'kind') {
+            itemLine = `<span class="kind-tag">비슷한 종류 · ${escapeHtml(kind)}</span>${item ? ' ' + escapeHtml(item.name) + (z.items.length > 1 ? ` 외 ${z.items.length - 1}` : '') : ''}`;
+        } else if (field === 'item') {
             itemLine = type === 'fuzzy' ? escapeHtml(item.name) + ' <span style="color:var(--text3);">(비슷한 결과)</span>'
                 : type === 'synonym' ? `<mark>${escapeHtml(item.name)}</mark> <span style="color:var(--text3);">(같은 뜻: ${escapeHtml(query)})</span>` : highlight(item.name, query);
         } else if (item) {
@@ -6610,7 +6646,8 @@
         const matches = findSearchMatches(query);
 
         if (matches.length > 0) {
-            display.innerHTML = `<div style="font-size: 11px; color: var(--text2); margin-bottom: 8px; font-weight: 600; padding: 0 4px;">검색 결과 (${matches.length}건)</div>` + matches.map(m => renderSearchResult(m, query)).join('');
+            const onlyKind = matches.every(m => m.field === 'kind');
+            display.innerHTML = `<div style="font-size: 11px; color: var(--text2); margin-bottom: 8px; font-weight: 600; padding: 0 4px;">${onlyKind ? `"${escapeHtml(query)}"은(는) 적어 둔 게 없어요 · 같은 종류가 있는 칸이에요` : `검색 결과 (${matches.length}건)`}</div>` + matches.map(m => renderSearchResult(m, query)).join('');
         } else {
             display.innerHTML = `<div class="search-empty">
                     <div>"${escapeHtml(query)}"에 대한 결과가 없어요.</div>
@@ -8172,9 +8209,12 @@
         document.getElementById('saPath').innerHTML = `<span>${escapeHtml(d.title || '사진')}</span><i>›</i><span>${escapeHtml(z.name || `${index + 1}번 칸`)}</span>`;
         const names = z.items.map(it => it.name);
         document.getElementById('saWithH').hidden = !names.length;
-        document.getElementById('saWith').innerHTML = names.map(n => `<span${nq && normalizeForSearch(n).includes(nq) ? ' class="is-hit"' : ''}>${escapeHtml(n)}</span>`).join('');
+        const direct = names.some(n => nq && normalizeForSearch(n).includes(nq));
+        const kind = !direct && q ? kindsOf(q).find(k => kindHit(k, z.name) || z.items.some(it => kindHit(k, it.name))) : null; // 적어 둔 게 없고 비슷한 종류로 찾은 칸
+        document.getElementById('saWith').innerHTML = names.map(n => `<span${(nq && normalizeForSearch(n).includes(nq)) || (kind && kindHit(kind, n)) ? ' class="is-hit"' : ''}>${escapeHtml(n)}</span>`).join('');
+        document.getElementById('saWithH').textContent = kind ? `"${q}"은(는) 적어 둔 게 없어요 · 같은 종류(${kind})가 이 칸에 있어요` : '이 칸에 함께 있는 것';
         const c = document.getElementById('saPic'), img = d.img;
-        const hit = z.items.find(it => nq && normalizeForSearch(it.name).includes(nq)) || null;
+        const hit = z.items.find(it => nq && normalizeForSearch(it.name).includes(nq)) || (kind ? { name: `${kind} 칸`, comment: '' } : null);
         if (img && img.width) { c.hidden = false; drawSimpleAnswerPic(c, d, z, index, hit, feat('fx')); } else c.hidden = true;
         document.getElementById('saAi').hidden = !(d.aiPhoto && img && img.width);
         const el = document.getElementById('simpleAnswer'); el.classList.add('is-open'); el.scrollTop = 0;
