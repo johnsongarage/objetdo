@@ -176,7 +176,7 @@
 > 무료이고 가입도 없어요. 사진은 사장님 폰에만 저장돼요.
 > 아직 베타라 부족한 점이 많습니다. 써 보시고 쓴소리 주시면 정말 큰 도움이 돼요.
 >
-> 👉 https://johnsongarage.github.io/udigo/start/
+> 👉 https://johnsongarage.github.io/objetdo/start/
 
 ### ② 동네 커뮤니티용 (다산·구리 지역 카페·자영업 모임·당근 '동네생활')
 > 다산·구리에서 가게 하시는 사장님들께 여쭤봐요 🙏
@@ -188,7 +188,7 @@
 > 비용·가입·결제 없고 사진은 사장님 폰에만 저장돼요.
 > 관심 있으시면 아래에서 보시고 신청해 주세요.
 >
-> 👉 https://johnsongarage.github.io/udigo/start/
+> 👉 https://johnsongarage.github.io/objetdo/start/
 
 ### ③ 링크 금지 일반 게시판용 (질문 글 — 링크 없이 답만 모으기)
 > **새 알바한테 창고 물건 위치 어떻게 알려 주세요?**
