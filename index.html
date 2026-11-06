@@ -1615,6 +1615,10 @@
         .ws-setup-list .ti { color: #b8901a; margin-right: 4px; }
         .ws-setup-cond { margin: 0 0 12px; font-size: 13px; line-height: 1.5; color: var(--text2); word-break: keep-all; }
         .ws-setup-go { width: 100%; text-decoration: none; }
+        .welcome-points { list-style: none; display: grid; grid-template-columns: max-content; justify-content: center; gap: 6px 18px; max-width: 100%; margin: 14px auto 0; padding: 0; text-align: left; }
+        .welcome-points li { position: relative; padding-left: 17px; font-size: 13px; white-space: nowrap; line-height: 1.4; color: var(--text); word-break: keep-all; }
+        .welcome-points li::before { content: ''; position: absolute; left: 2px; top: 4px; width: 9px; height: 5px; border-left: 2px solid rgb(var(--accent-rgb)); border-bottom: 2px solid rgb(var(--accent-rgb)); transform: rotate(-45deg); }
+        @media (min-width: 700px) { .welcome-points { grid-template-columns: max-content max-content; } .welcome-points li { font-size: 14.5px; } }
         .welcome-trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin: 12px 0 0; font-size: 12.5px; color: var(--text2); }
         .welcome-trust span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
         .welcome-trust .ti { font-size: 15px; color: var(--accent2); }
@@ -2543,9 +2547,10 @@
             </g>
         </svg>
         <div class="welcome-brand"><div class="welcome-brand-name"><b data-app-name>오브젯도</b><small class="welcome-en" data-app-name-en hidden></small></div></div>
-        <h2 class="welcome-title">사진 한 장이<br>창고 지도가 돼요</h2>
-        <!-- 포스트잇과 다른 점: 선반 앞에 가지 않아도 물건 이름으로 자리를 찾는다 (넣을 때도, 꺼낼 때도) -->
-        <p class="welcome-sub">물건 이름만 대면 어느 칸인지 안내해요</p>
+        <!-- 첫 화면 문구 (11/6): 방문자가 자기 문제와 잇도록 대상(매장 창고 / 우리 집 수납)과 실제로 하는 일을 보여 준다 -->
+        <h2 class="welcome-title">물건은 제자리에,<br>찾는 시간은 줄이세요</h2>
+        <p class="welcome-sub" id="welcomeSub">사진으로 기록하는 매장 창고·수납 관리</p>
+        <ul class="welcome-points" id="welcomePoints"></ul>
         <div class="welcome-actions">
             <button class="btn-base btn-primary btn-lg" onclick="loadSampleData()"><i class="ti ti-player-play"></i> 예시로 먼저 둘러보기</button>
             <button class="btn-base btn-secondary btn-lg" id="welcomeStartBtn" onclick="pickPhoto()"><i class="ti ti-camera"></i> 내 창고 사진으로 시작</button>
@@ -6095,7 +6100,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.15';
+    const APP_VERSION = '베타 2026.11.06.16';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -7374,7 +7379,11 @@
         if (show) {
             { const cells = [[-66, 0], [0, 0], [67, 0], [-66, 66], [0, 66], [67, 66]], c = cells[Math.floor(Math.random() * cells.length)], g = document.getElementById('whHitPos'); if (g) g.setAttribute('transform', `translate(${c[0]} ${c[1]})`); }
             const home = useMode() === 'home', t = document.querySelector('.welcome-title'), st = document.getElementById('welcomeStartBtn');
-            if (t) t.innerHTML = home ? '사진 한 장이<br>우리 집 수납 지도가 돼요' : '사진 한 장이<br>창고 지도가 돼요';
+            const sub = document.getElementById('welcomeSub'), pts = document.getElementById('welcomePoints');
+            if (sub) sub.textContent = home ? '사진으로 기록하는 우리 집 수납 관리' : '사진으로 기록하는 매장 창고·수납 관리';
+            if (pts) pts.innerHTML = (home
+                ? ['사진 위에 물건 자리 기록', '말·검색으로 칸 바로 찾기', '새로 산 물건은 칸 추천', '지도 출력해 수납장에 부착']
+                : ['사진 위에 물건 위치 기록', '말·검색으로 보관 칸 찾기', '수량·유통기한 점검', '지도 출력해 현장에 부착']).map(x => `<li>${x}</li>`).join('');
             if (st) st.innerHTML = home ? '<i class="ti ti-camera"></i> 내 수납장 사진으로 시작' : '<i class="ti ti-camera"></i> 내 창고 사진으로 시작';
         }
         if (show) { syncIndustryUI(); renderWelcomeShowcase(); document.querySelectorAll('.setup-promo').forEach(a => a.hidden = !setupPromoOn()); } else clearInterval(wsTimer);
