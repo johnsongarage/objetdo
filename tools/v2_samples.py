@@ -11,5 +11,5 @@ for line in src.split('\n'):
         found[m.group(1)] = json.loads(m.group(2))
 for key, name in (('SAMPLE_DEMO_DATA', 'sample-store.json'), ('SAMPLE_ORGANIZER_DATA', 'sample-home.json')):
     out = root / 'v2' / name
-    out.write_text(json.dumps({'savedSystemData': found[key]['savedSystemData']}, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+    out.write_text(json.dumps({'savedSystemData': found[key]['savedSystemData'], 'baseItems': found[key].get('baseItems', [])}, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     print(out.relative_to(root), out.stat().st_size, 'bytes')

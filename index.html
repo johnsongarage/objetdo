@@ -514,6 +514,9 @@
         .sm-ic { flex: none; width: 38px; height: 38px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; } /* 테마 톤의 옅은 바탕 + 선 아이콘 */
         .sm-tx { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .sm-tx b { font-weight: 500; }
+        .sm-v2 { text-decoration: none; color: inherit; }
+        .sm-v2 .sm-tx b { white-space: nowrap; }
+        .sm-new { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #9E3B2A; color: #fff; font-size: 11px; font-style: normal; font-weight: 600; vertical-align: 2px; white-space: nowrap; }
         .sm-head { display: none; }
         /* 📖 사용법 창: 폰은 아래에서 올라오는 시트, PC는 가운데 카드 */
         #videoGuideModal { display: none; position: fixed; inset: 0; z-index: 10050; background: rgba(20,20,18,0.55); align-items: flex-end; justify-content: center; }
@@ -2510,6 +2513,7 @@
 </div>
 <div id="simpleMenu" onclick="if (event.target === this) closeSimpleMenu()"><div class="sm-sheet"><div class="sm-grab"></div>
     <div class="sm-head"><span class="sm-brand"><svg class="brand-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>오브젯도</span><button type="button" class="sm-close" onclick="closeSimpleMenu()" aria-label="닫기">×</button></div>
+    <a class="sm-row sm-v2" href="v2/" onclick="return goV2(event)"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.5" fill="#9E3B2A"/></svg></span><span class="sm-tx"><b>새 화면으로 <em class="sm-new">미리보기</em></b><small>데이터는 그대로</small></span></a>
     <button type="button" class="sm-row" id="smMapRow" onclick="closeSimpleMenu(); if (simpleOn()) setSimpleView(false); else if (document.body.classList.contains('hero-search-active')) { deactivateHeroSearch(); window.scrollTo(0, 0); } else openWelcomeRevisit();"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg></span><span class="sm-tx"><b id="smMapText">전체 화면으로</b><small>공간 보기 · 물건 넣기 · 고치기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openListView()"><span class="sm-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></span><span class="sm-tx"><b>물건 전체 목록</b><small>훑어보기</small></span></button>
     <button type="button" class="sm-row" onclick="closeSimpleMenu(); openInbox(false)"><span class="sm-ic"><i class="ti ti-inbox" style="font-size:20px"></i></span><span class="sm-tx"><b>자리 미정</b><small>새로 산 물건 넣어 두고 자리 추천받기</small></span></button>
@@ -6269,7 +6273,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.09.30';
+    const APP_VERSION = '베타 2026.11.09.31';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8657,6 +8661,14 @@ const PRINT_QR_URL = 'https://johnsongarage.github.io/objetdo/qr/';
         document.getElementById('smMapText').textContent = simpleOn() ? '전체 화면으로' : onHero ? '지도 보기' : '찾기 첫 화면'; // 지도 화면에서 열면 첫 화면으로 가는 줄
         const sm = mapRow && mapRow.querySelector('small'); if (sm) sm.textContent = !simpleOn() && !onHero ? '쓰거나 말해서 찾기' : '공간 보기 · 물건 넣기 · 고치기';
         document.getElementById('simpleMenu').classList.add('is-open');
+    }
+    // 새 화면(v2) 미리보기로: 쓰던 저장을 끝낸 뒤 넘어간다 (같은 데이터를 v2가 읽는다. 예시를 보던 중이면 v2도 같은 예시)
+    function goV2(e) {
+        if (e && (e.metaKey || e.ctrlKey || e.shiftKey)) return true; // 새 탭으로 열기는 그대로
+        if (e) e.preventDefault();
+        closeSimpleMenu();
+        Promise.resolve(photoStore.pending).catch(() => {}).then(() => { location.href = 'v2/'; });
+        return false;
     }
     function closeSimpleMenu() { document.getElementById('simpleMenu').classList.remove('is-open'); }
     function closeSimpleAnswer(refocus) {
