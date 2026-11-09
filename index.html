@@ -6269,7 +6269,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.06.29';
+    const APP_VERSION = '베타 2026.11.09.30';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -9100,6 +9100,28 @@ const PRINT_QR_URL = 'https://johnsongarage.github.io/objetdo/qr/';
         catch (e) { prompt('아래 글을 복사해 보내세요', text); }
     }
 
+    // ↗ 새 화면(v2, /v2/)에서 넘어올 때: ../#go=inbox 처럼 그 기능을 바로 연다 (v2 1단계엔 넣기·자리 미정·인쇄·설정이 없어 여기서 연다)
+    //    go = inbox(&focus=1 · &add=이름) · print(&photo=) · map(&photo=) · edit(&photo=) · backup · settings · guide
+    const deepLink = (() => {
+        const m = /^#go=([a-z]+)(?:&(.*))?$/.exec(location.hash || ''); if (!m) return null;
+        try { history.replaceState(history.state, '', location.pathname + location.search); } catch (e) {}
+        const p = new URLSearchParams(m[2] || ''); return { go: m[1], photo: p.get('photo'), add: p.get('add'), focus: p.get('focus') };
+    })();
+    function runDeepLink(hasData) {
+        if (!deepLink) return; const { go, photo, add, focus } = deepLink;
+        if (go === 'settings') { openSettingsModal(); return; }
+        if (go === 'guide') { openVideoGuideModal(); return; }
+        if (!hasData) return;
+        const found = photo && imageList.some(d => String(d.id) === String(photo)) ? photo : null;
+        if (go === 'inbox') { openInbox(!!(add || focus)); const inp = document.getElementById('inboxInput'); if (add && inp) inp.value = add; }
+        else if (go === 'backup') startBackup();
+        else if (go === 'print') openPrintPreview(found || undefined);
+        else if (go === 'map' || go === 'edit') {
+            deactivateHeroSearch();
+            setTimeout(() => { if (found) showPhoto(found, true); if (go === 'edit' && !isEditMode) toggleEditMode(); }, 50);
+        }
+    }
+
     async function startApp() {
         await storageReady;
         applyFeatures(); syncVoiceButtons();
@@ -9155,6 +9177,7 @@ const PRINT_QR_URL = 'https://johnsongarage.github.io/objetdo/qr/';
                 // 첫 화면의 업종별 예시 카드로 들어왔으면 그 사진으로 바로 간다
                 let focus = null; try { focus = sessionStorage.getItem('sampleFocus'); sessionStorage.removeItem('sampleFocus'); } catch (e) {}
                 if (focus && imageList.some(d => String(d.id) === focus)) { deactivateHeroSearch(); setTimeout(() => showPhoto(focus, true), 50); }
+                runDeepLink(true);
             });
             activateHeroSearch();
             let bannerHidden = false; try { bannerHidden = sessionStorage.getItem('sampleBannerHidden') === '1'; } catch (e) {}
@@ -9186,6 +9209,7 @@ const PRINT_QR_URL = 'https://johnsongarage.github.io/objetdo/qr/';
             }
             if (sampleDataBtn && SAMPLE_DEMO_DATA.savedSystemData.length) sampleDataBtn.style.display = 'block';
             showWelcome(true);
+            setTimeout(() => runDeepLink(false), 0);
             const sample = {
                 img: null, id: "dummy_root", title: "#1",
                 zones: [{ x: 70, y: 120, w: 650, h: 260, name: "", items: baseItems.slice(0,0).map(name => ({ name, comment: "상단 첫번째 칸" })) }]
