@@ -15,10 +15,12 @@ addCSS(`
 .pr-strip::-webkit-scrollbar { display: none; }
 .pr-pg { position: relative; flex: none; display: block; width: var(--pw); max-width: 100%; padding: 0; border: 1px solid var(--ink); border-radius: 0; background: #fff; cursor: zoom-in; scroll-snap-align: start; }
 .pr-pg canvas { display: block; width: 100%; height: auto; }
-.pr-pg.pr-wait { display: flex; align-items: center; justify-content: center; aspect-ratio: 210 / 297; overflow: hidden; border-color: var(--line); color: var(--sub); font-size: 12px; cursor: progress; }
+.pr-pg.pr-wait { display: flex; align-items: center; justify-content: center; aspect-ratio: 210 / 297; overflow: hidden; border-color: var(--line); color: var(--sub); font-size: 12px; cursor: progress; scroll-snap-align: none; } /* 만드는 중 자리에 붙어 있으면 쪽이 늘 때마다 줄이 끝으로 밀린다 */
 .pr-wait::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); transform-origin: 0 0; animation: prLoad 1.3s ease-in-out infinite; }
 @keyframes prLoad { 0% { transform: scaleX(0); opacity: 1; } 70% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
 .pr-side { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.pr-wide .pr-side { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; } /* 쪽 그림이 한 줄을 다 쓰면 아래에 한 줄로 */
+.pr-wide .pr-info { flex: 1 0 auto; }
 .pr-info { font-size: 13px; color: var(--sub); }
 .pr-zoom { display: flex; align-items: center; }
 .pr-zoom button { width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); font-size: 18px; line-height: 1; cursor: pointer; }
@@ -39,7 +41,7 @@ addCSS(`
 .pr-seg[aria-pressed="true"] b { color: inherit; }
 .pr-sub { margin: -4px 0 0 64px; padding: 0 0 10px; font-size: 13px; color: var(--sub); }
 .pr-name { min-width: 0; min-height: 40px; padding: 0; border: 0; background: none; color: var(--ink); font-size: 14px; text-align: left; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pr-name.empty { color: var(--accent); }
+.pr-name.pr-none { color: var(--accent); }
 /* 받기·보내기 */
 .pr-acts { margin-top: auto; padding-top: 28px; display: flex; flex-direction: column; gap: 10px; }
 .pr-acts .btn-s { min-height: 54px; font-size: 15px; }
@@ -902,8 +904,8 @@ function printOptsHTML(form, photos, all, idx) {
     if (form === 'label') h += row('크기', opt('label', 'S', printOpts.label === 'S', '작게 · 12개') + opt('label', 'M', printOpts.label === 'M', '보통 · 6개') + opt('label', 'L', printOpts.label === 'L', '크게 · 4개'));
     // 이름: 매장 이름(종이 위·파일 이름) · 정리 업체(종이 아래) — v1 인쇄 창의 매장 이름 + 설정의 정리 업체 이름
     const n = storeName(), org = organizerName(), what = isHome() ? '머리글 이름' : '매장 이름';
-    const text = [n, org ? `정리 · ${org}` : ''].filter(Boolean).join(' · ');
-    h += `<div class="pr-row"><span>이름</span><button type="button" class="pr-name${text ? '' : ' empty'}" data-act="prName" aria-label="${esc(text ? `종이에 넣을 이름 고치기 · ${text}` : `${what} 넣기 · 종이 위·파일 이름에 들어가요`)}">${text ? esc(text) : `+ ${what} 넣기`}</button></div>`;
+    const text = [n, org ? `정리 ${org}` : ''].filter(Boolean).join(' · ');
+    h += `<div class="pr-row"><span>이름</span><button type="button" class="pr-name${text ? '' : ' pr-none'}" data-act="prName" aria-label="${esc(text ? `종이에 넣을 이름 고치기 · ${text}` : `${what} 넣기 · 종이 위·파일 이름에 들어가요`)}">${text ? esc(text) : `+ ${what} 넣기`}</button></div>`;
     return h;
 }
 function renderPrintOpts(html) { // 다시 그려도 누르던 단추·사진 줄 스크롤은 그대로
@@ -967,7 +969,9 @@ async function fillPrintPreview(key, label) {
 }
 function syncPrintCount() {
     const n = printUI.count, done = printUI.done, pv = $('#prPv'); if (!pv) return;
-    $('#prInfo').textContent = done ? `A4 ${n}장 · 세로` : n ? `만드는 중… ${n}쪽` : '만드는 중…';
+    const info = $('#prInfo');
+    info.textContent = done ? `A4 ${n}장 · 세로` : n ? `만드는 중… ${n}쪽` : '만드는 중…';
+    info.setAttribute('aria-busy', String(!done)); // 화면 읽기는 다 만든 뒤 장수만
     pv.style.setProperty('--pn', String(Math.max(1, n + (done ? 0 : 1))));
     if (!printUI.busy) $('#prPdf').textContent = `PDF 받기${done && n ? ` (${n}쪽)` : ''}`;
 }
@@ -978,6 +982,7 @@ function setPrintZoom(z) {
     z = Math.min(max, Math.max(0.5, Math.round(z * 100) / 100));
     printUI.zoom = z;
     pv.style.setProperty('--pw', `${Math.round(128 * z)}px`);
+    pv.classList.toggle('pr-wide', Math.round(128 * z) + 18 + 136 > (pv.clientWidth || 342)); // 옆 칸(크기 단추 136px)이 못 들어가면 아래 한 줄로
     const pct = `${Math.round(z * 100)}%`, zv = $('#prZv');
     zv.textContent = pct; zv.setAttribute('aria-label', `미리보기 ${pct} · 누르면 처음 크기로`);
     $('#prZOut').disabled = z <= 0.5; $('#prZIn').disabled = z >= max - 0.001;
@@ -1006,9 +1011,11 @@ function openPrintViewerNow(at) {
 }
 function closePrintViewer() {
     const v = $('#prViewer'); if (!v || v.hidden) return false;
-    const btns = $('#prStrip').querySelectorAll('button.pr-pg');
+    const btns = $('#prStrip').querySelectorAll('button.pr-pg'), had = v.contains(document.activeElement);
+    const at = $('#prVPage').textContent ? Math.max(0, parseInt($('#prVPage').textContent, 10) - 1) : 0;
     printUI.pages.forEach((cv, k) => { if (btns[k]) btns[k].appendChild(cv); });
     v.hidden = true;
+    if (had && btns[at]) btns[at].focus({ preventScroll: true }); // 보던 쪽 단추로 돌아온다
     return true;
 }
 function closePrintViewerNav() { if (parseRoute().q.get('view') === '1') goBack(printHash()); else closePrintViewer(); }
@@ -1091,7 +1098,7 @@ function openPrintNameSheet() {
         <p>비워 두면 넣지 않아요 · 이 폰에 저장돼요</p>
         <label class="pr-field"><span>${home ? '머리글 이름' : '매장 이름'}<small>인쇄물 머리글·파일 이름에 들어가요</small></span><input type="text" id="prStoreIn" maxlength="20" autocomplete="off" enterkeyhint="next" placeholder="${home ? '예: 우리 집' : '예: 다산점 창고'}"></label>
         <label class="pr-field"><span>정리 업체 이름<small>정리해 드린 분이 넣으면 인쇄물·백업 PDF 아래에 ‘정리 · 이름’으로 들어가요</small></span><input type="text" id="prOrgIn" maxlength="30" autocomplete="off" enterkeyhint="done" placeholder="예: 다산정리수납 010-1234-5678"></label>
-        <div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">다 했어요</button></div>`, () => { if (cur === 'print') renderPrintPreview(); });
+        <div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">다 했어요</button></div>`, () => { if (parseRoute().name === 'print') renderPrintPreview(); });
     const s = $('#prStoreIn'), o = $('#prOrgIn');
     s.value = storeName(); o.value = organizerName();
     s.addEventListener('input', () => setStoreName(s.value));
@@ -1120,9 +1127,9 @@ function printDownload(blob, name) {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 // 종이 해상도 그림(캔버스)들을 덩어리마다 숨 돌리며 만든다. each(캔버스, 몇 번째) — PRINT.raw는 그리는 순간에만 켠다 (그 사이 미리보기가 같은 값을 쓴다)
-async function printEachPage(each) {
+async function printEachPage(chunks, each) {
     let k = 0;
-    for (const fn of printChunks()) {
+    for (const fn of chunks) {
         await printYield();
         let cvs = [];
         PRINT.raw = true; try { cvs = fn(); } finally { PRINT.raw = false; }
@@ -1137,16 +1144,17 @@ async function downloadReportAsPDF() {
     printBusy('pdf'); printBusyText('prPdf', 'PDF 만드는 중…');
     try {
         await printReady();
+        const chunks = printChunks(), name = printFileBase() + '.pdf', total = printUI.done ? printUI.count : 0; // 누른 순간 보이던 그대로 (도구를 받는 사이 옵션을 바꿔도)
         try { await loadJsPdf(); } catch (e) {}
         if (!window.jspdf || !window.jspdf.jsPDF) { alert('PDF 만드는 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 잠시 뒤 다시 눌러주세요.'); return; }
-        const doc = new window.jspdf.jsPDF('p', 'mm', 'a4'), total = printUI.done ? printUI.count : 0;
+        const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
         let k = 0;
-        for (const fn of printChunks()) {
+        for (const fn of chunks) {
             printBusyText('prPdf', `PDF 만드는 중…${k ? ` ${k}${total ? `/${total}` : ''}쪽` : ''}`);
             await printYield();
             for (const imgData of fn()) { if (k) doc.addPage(); doc.addImage(imgData, 'JPEG', 0, 0, PRINT.pageWmm, PRINT.pageHmm); k++; }
         }
-        doc.save(printFileBase() + '.pdf');
+        doc.save(name);
     } catch (error) {
         console.error('PDF 생성 중 오류 발생:', error);
         alert('PDF 생성 중 문제가 발생했습니다.');
@@ -1178,9 +1186,8 @@ async function savePrintImages() {
     printBusy('img'); printBusyText('prImg', '그림 만드는 중…');
     try {
         await printReady();
-        const blobs = [];
-        await printEachPage(async (cv) => { blobs.push(await printBlob(cv)); printBusyText('prImg', `그림 만드는 중… ${blobs.length}쪽`); });
-        const base = printFileBase();
+        const blobs = [], base = printFileBase();
+        await printEachPage(printChunks(), async (cv) => { blobs.push(await printBlob(cv)); printBusyText('prImg', `그림 만드는 중… ${blobs.length}쪽`); });
         blobs.forEach((b, k) => setTimeout(() => printDownload(b, blobs.length > 1 ? `${base}_${k + 1}.jpg` : `${base}.jpg`), k * 400));
         toast(blobs.length > 1 ? `그림 ${blobs.length}장을 받았어요` : '그림으로 받았어요');
     } catch (e) { console.error(e); toast('그림을 만들지 못했어요 · 한 번 더 눌러 주세요'); }
@@ -1198,7 +1205,7 @@ async function printNow() {
             printCleanup();
             await printReady();
             const key = printUI.key, urls = [];
-            await printEachPage(async (cv) => { urls.push(URL.createObjectURL(await printBlob(cv))); printBusyText('prPrint', `인쇄 준비 중… ${urls.length}쪽`); });
+            await printEachPage(printChunks(), async (cv) => { urls.push(URL.createObjectURL(await printBlob(cv))); printBusyText('prPrint', `인쇄 준비 중… ${urls.length}쪽`); });
             const root = document.createElement('div'); root.className = 'pr-print'; root.setAttribute('aria-hidden', 'true');
             root.innerHTML = urls.map(u => `<img src="${u}" alt="">`).join('');
             document.body.appendChild(root);
@@ -1221,7 +1228,12 @@ function printCleanup() {
 window.addEventListener('afterprint', () => document.body.classList.remove('pr-printing'));
 
 // ────────────────────────────────────────────────────────────
-BEFORE_ROUTE.push((name) => { if (name !== 'print') { closePrintViewer(); printCleanup(); } });
+BEFORE_ROUTE.push((name) => { // 다른 화면으로 가면: 크게 보기·이름 창을 닫고, 만들던 미리보기는 멈추고, 인쇄용 그림은 지운다
+    if (name === 'print') return;
+    closePrintViewer(); printCleanup();
+    if (!printUI.done) { printUI.job++; printUI.key = ''; }
+    if ($('#prStoreIn')) closeSheet();
+});
 SCREENS.print = renderPrint;
 document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || cur !== 'print') return;

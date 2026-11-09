@@ -19,7 +19,7 @@ addCSS(`
 .st-lab.st-plain { border-bottom: 0; padding-bottom: 0; }
 .st-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .st-mode { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 2px; background: transparent; text-align: left; cursor: pointer; }
-.st-mode b { font-size: 16px; font-weight: 500; padding-right: 14px; }
+.st-mode b { font-size: 15px; font-weight: 500; padding-right: 10px; }
 .st-mode small { font-size: 13px; line-height: 1.45; color: var(--sub); }
 .st-mode[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 .5px var(--ink); background: var(--sheet); }
 .st-mode[aria-pressed="true"]::after { content: ''; position: absolute; top: 11px; right: 11px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
@@ -64,7 +64,7 @@ addCSS(`
 .st-fine { margin: 4px 0 0; font-size: 13px; line-height: 1.65; color: var(--sub); }
 .st-fine a { color: var(--accent); text-underline-offset: 3px; }
 .btn.st-danger { color: var(--accent); border-color: var(--accent); }
-p.st-sum { margin: 14px 0 0; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink); }
+p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink); }
 .st-sum small { display: block; font-size: 13px; color: var(--sub); }
 .st-tbl { margin-top: 22px; border-top: 1px solid var(--ink); }
 .st-tr { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 15px; line-height: 1.55; }
@@ -119,7 +119,7 @@ function screen(name, label) { const el = screenEl(name); el.setAttribute('aria-
 
 // '뒤로' 이름: 들어온 화면 이름으로 (뒤로 가기로 돌아올 땐 그대로). 처음 열면 기본값
 const MINE = new Set(['settings', 'backup', 'data', 'reset', 'iphone', 'guide', 'service']);
-const FROM = { home: ['검색', '#/'], menu: ['메뉴', '#/menu'], intro: ['처음', '#/'], list: ['목록', '#/list'], settings: ['설정', '#/settings'], backup: ['백업', '#/backup'], data: ['데이터 안내', '#/data'], iphone: ['아이폰 안내', '#/iphone'], service: ['가격', '#/service'], reset: ['지우기', '#/reset'] };
+const FROM = { home: ['검색', '#/'], menu: ['메뉴', '#/menu'], intro: ['처음', '#/'], list: ['목록', '#/list'], map: ['지도', '#/'], r: ['결과', '#/'], print: ['인쇄', '#/'], inbox: ['자리 미정', '#/'], check: ['점검', '#/'], settings: ['설정', '#/settings'], backup: ['백업', '#/backup'], data: ['데이터 안내', '#/data'], iphone: ['아이폰 안내', '#/iphone'], service: ['가격', '#/service'], reset: ['지우기', '#/reset'] };
 const backFrom = {};
 BEFORE_ROUTE.push((name) => { if (MINE.has(name) && !popped && cur !== name) backFrom[name] = FROM[cur] || null; });
 const backOf = (name, def) => backFrom[name] || def;
@@ -237,7 +237,7 @@ function summaryLine() { // v1 설정 맨 아래와 같은 말
 }
 function fillUsage(id, prefix) { // 폰 저장 공간을 얼마나 쓰는지 (알 수 있는 브라우저만)
     try {
-        if (!navigator.storage || !navigator.storage.estimate || !vis().length) return;
+        if (SAMPLE || !navigator.storage || !navigator.storage.estimate || !vis().length) return; // 예시를 볼 땐 저장 공간이 예시 것이 아니라서 뺀다
         navigator.storage.estimate().then(est => { const el = document.getElementById(id); if (el && est && est.usage != null) el.textContent = `${prefix}저장 공간 ${(est.usage / 1048576).toFixed(1)}MB`; }).catch(() => {});
     } catch (e) {}
 }
@@ -324,12 +324,14 @@ function fileDate() { const t = new Date(); return `${t.getFullYear()}-${p2(t.ge
 function fileDateTime() { const t = new Date(); return `${fileDate()}_${p2(t.getHours())}시${p2(t.getMinutes())}분`; } // 파일 이름엔 : 를 못 써서 시·분으로
 function printDateStr() { const t = new Date(); return `${t.getFullYear()}.${p2(t.getMonth() + 1)}.${p2(t.getDate())} 기준`; }
 const backupFileName = () => `${APP_NAME}_${storeFileName() ? storeFileName() + '_' : ''}백업_${fileDateTime()}.pdf`;
-function readArr(k) { try { const a = JSON.parse(ls(k) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function readArr(k) { try { const a = JSON.parse(kvGet(k) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+const flushPending = () => { if (typeof flushSave === 'function') flushSave(); }; // 모아 두던 저장(재고 세기 등)을 먼저 끝낸다
 function backupJson() { // v1 backupJson과 같은 모양·같은 순서 (app 이름 'changgojigi'는 옛 이름 그대로 둔다)
-    let saved;
-    try { saved = JSON.parse((store.db ? store.cache : ls(PHOTO_DATA_KEY)) || '[]'); } catch (e) { saved = null; }
+    flushPending();
+    let saved = null; // 예시를 보는 중이면 v1처럼 예시 데이터 (저장소를 열지 않았다)
+    if (!SAMPLE) try { saved = JSON.parse((store.db ? store.cache : ls(PHOTO_DATA_KEY)) || '[]'); } catch (e) {}
     if (!Array.isArray(saved)) saved = JSON.parse(JSON.stringify(photos)); // 저장본을 못 읽으면 지금 화면의 데이터로
-    let baseItems; try { baseItems = JSON.parse(ls('baseItems') || '[]'); } catch (e) { baseItems = []; }
+    let baseItems; try { baseItems = JSON.parse(kvGet('baseItems') || '[]'); } catch (e) { baseItems = []; }
     return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: '백업', savedSystemData: saved, baseItems, stockLog: readArr('stockLog'), organizerName: organizerName(), inboxItems: readArr('inboxItems').filter(x => x && x.name) });
 }
 function markBackedUp() {
@@ -427,7 +429,7 @@ const PRINT = { pageWmm: 210, pageHmm: 297, marginMm: 14, pxPerMm: 5, ink: '#1a1
 function printPx(mm) { return Math.round(mm * PRINT.pxPerMm); }
 function printHeadDate(dateStr) { const n = storeName(); return n ? `${n} · ${dateStr}` : dateStr; }
 function backupReadablePages() {
-    const ps = vis().map(p => ({ title: p.title, zones: p.zones, img: readyImg(p), cw: 800, ch: h800(p) })); // 칸 좌표는 가로 800 기준
+    const ps = vis().map(p => ({ title: p.title, zones: p.zones, img: readyImg(p), cw: 800, ch: Math.trunc(h800(p)) })); // v1 캔버스: 가로 800 · 세로는 사진 비율
     if (!ps.some(d => d.zones.some(z => z.items && z.items.length))) return [];
     try {
         const ds = printDateStr(), multi = ps.length > 1, urls = [];
@@ -825,6 +827,7 @@ let restoring = false;
 async function doRestore(btn) {
     const imported = pendingRestore; if (!imported || restoring) return;
     restoring = true; if (btn) { btn.disabled = true; btn.textContent = '복구하는 중…'; }
+    flushPending(); // 늦게 도는 저장이 복구한 데이터를 덮어쓰지 않게
     if (SAMPLE) { try { sessionStorage.removeItem('samplePreview'); } catch (e) {} SAMPLE = null; } // 예시를 보다가 복구해도 진짜 데이터로
     if (!store.db) await store.init(); // 예시를 보는 동안엔 저장소를 안 열었다
     if (!writePhotoData(JSON.stringify(imported.savedSystemData))) { restoring = false; closeSheet(); toast('저장 공간이 부족해 복구하지 못했어요'); return; }
@@ -857,6 +860,7 @@ function resetAll(withBackup) {
 function wipeAllData(btn) {
     if (SAMPLE) return;
     if (btn) { btn.disabled = true; btn.textContent = '지우는 중…'; }
+    flushPending(); // 늦게 도는 저장이 지운 뒤에 다시 쓰지 않게
     WIPE_KEYS.forEach(k => lsDel(k)); // savedSystemData는 옛 기기(localStorage)용
     if (store.db) { // v1 photoStore.write(null)와 같게: 키를 지우고 '데이터 있음' 표시도 끈다
         store.cache = null; lsSet('hasSavedPhotos', '');
@@ -907,7 +911,7 @@ function renderData() {
         <header class="top">${backBtn(lab, fb)}</header>
         <main class="wrap st-main">
             <h1 class="h1 st-title">내 데이터는<br>어디에 있나요?</h1>
-            <p class="st-sum"><span class="st-k">지금 이 폰</span><br><span id="stDataSum">${esc(summaryLine())}</span></p>
+            <p class="st-note">지금 이 폰: <span id="stDataSum">${esc(summaryLine())}</span></p>
             <div class="st-tbl">
                 <div class="st-tr"><span>이 폰</span><span>사진, 구역, 물건, 메모 전부<small>항상</small></span></div>
                 <div class="st-tr"><span>Roboflow<small>미국</small></span><span>사진 1장 (저장하지 않도록 설정)<small>[AI로 구역 찾기]를 누를 때만 · Google 중계 서버를 거쳐 전달</small></span></div>
@@ -933,9 +937,9 @@ function renderReset() {
         <header class="top">${backBtn(lab, fb)}</header>
         <main class="wrap st-main">
             <span class="kick st-kick st-red">되돌릴 수 없어요</span>
-            <h1 class="h1 st-title">모든 데이터를 지울까요?</h1>
+            <h1 class="h1 st-title">${can || SAMPLE ? '모든 데이터를 지울까요?' : '지울 데이터가 없어요'}</h1>
             <p class="st-lead">사진·구역·물건·메모가 이 폰에서 모두 지워지고 <b>되돌릴 수 없어요.</b> 지우기 전에 백업을 받아 두는 걸 권해요.</p>
-            <ul class="st-facts">
+            <ul class="st-facts"${can ? '' : ' hidden'}>
                 <li><span class="st-k">지워지는 것</span><span>${n.photos && can ? `사진 ${n.photos}장 · 물건 ${n.items}개<small>자리 미정 · 찾은 기록 · 업종</small>` : '—'}</span></li>
                 <li><span class="st-k">남는 것</span><span>쓰는 곳 · 기능 켜기 · 글자 크기<small>매장·업체 이름 · 사용 통계 설정</small></span></li>
             </ul>
@@ -959,7 +963,12 @@ function renderIphone() {
         <main class="wrap st-main">
             <span class="kick st-kick">${inst ? '홈 화면 앱' : '처음 한 번만'}</span>
             <h1 class="h1 st-title">${inst ? '홈 화면 앱으로 쓰고 계세요' : '아이폰은 먼저 홈 화면에 추가하세요'}</h1>
-            ${inst ? `<p class="st-lead">사파리에서 쓰던 게 있으면: 사파리에서 백업 → 여기 설정 &gt; 백업 파일로 복구</p>` : `
+            ${inst ? `<p class="st-lead">사파리에서 쓰던 게 있으면: 사파리에서 백업 → 여기 설정 &gt; 백업 파일로 복구</p>
+            <ol class="st-steps">
+                <li><span class="st-n">1</span><div><b>사파리에서 오브젯도 열기</b><small>설정 → 백업하기 · 카톡 ‘나와의 채팅’이나 ‘파일’에 받아 둬요.</small></div></li>
+                <li><span class="st-n">2</span><div><b>여기(홈 화면 앱)에서 백업 파일로 복구</b><small>아래 버튼을 누르고 받아 둔 파일을 골라요.</small></div></li>
+                <li><span class="st-n">3</span><div><b>이제 홈 화면 앱으로만 쓰기</b><small>홈 화면 앱은 오래 안 열었다고 지워지지 않아요. 폰을 바꿀 땐 백업 파일이 필요해요.</small></div></li>
+            </ol>` : `
             <ol class="st-steps">
                 <li><span class="st-n">1</span><div><b>사파리 아래쪽 공유 버튼${SHARE_SVG}</b><small>네모에 화살표가 있는 버튼이에요.</small></div></li>
                 <li><span class="st-n">2</span><div><b>‘홈 화면에 추가’ → [추가]</b><small>안 보이면 메뉴를 위로 밀어 보세요.</small></div></li>
