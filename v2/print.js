@@ -1,10 +1,12 @@
 'use strict';
 // ────────────────────────────────────────────────────────────
 // 오브젯도 v2 — 인쇄 (#/print 사진 전체 · #/print?photo=ID 사진 한 장)
-//   종이는 v1 인쇄 엔진을 그대로 옮겨 그린다 → 같은 사진·같은 옵션이면 v1과 같은 종이가 나온다
+//   주소: &form=map|list|check|label 이면 그 양식으로 열고(기억) 주소에선 뺀다 · &view=1&pg=쪽 은 크게 보기 (뒤로 가기로 닫힌다)
+//   종이는 v1 인쇄 엔진을 그대로 옮겨 그린다 → 같은 사진·같은 옵션이면 v1과 픽셀까지 같은 종이가 나온다
 //   옵션·이름은 v1과 같은 곳(localStorage 'printOpts' · 'storeName' · 'organizerName')에 두어 v1과 v2가 같은 값을 쓴다
-//   다른 화면에서 열 때: openPrint(사진 id) — 비우면 전체
+//   다른 화면에서 열 때: openPrint(사진 id, 양식) — 둘 다 빼도 된다 (전체 · 지난번 양식)
 //   양식: 사진 지도 · 큰 글씨 목록 · 점검표 (v1과 같다) + 칸 라벨 (v1엔 만들어 두고 메뉴에 없던 것)
+//   받기: PDF(v1과 같은 jsPDF) · 단톡방에 보내기(v1과 같다) · 그림(JPG) · 바로 인쇄(브라우저 인쇄 창)
 // ────────────────────────────────────────────────────────────
 addCSS(`
 .pr-main { flex: 1; display: flex; flex-direction: column; padding-bottom: 24px; }
@@ -15,7 +17,7 @@ addCSS(`
 .pr-strip::-webkit-scrollbar { display: none; }
 .pr-pg { position: relative; flex: none; display: block; width: var(--pw); max-width: 100%; padding: 0; border: 1px solid var(--ink); border-radius: 0; background: #fff; cursor: zoom-in; scroll-snap-align: start; }
 .pr-pg canvas { display: block; width: 100%; height: auto; }
-.pr-pg.pr-wait { display: flex; align-items: center; justify-content: center; aspect-ratio: 210 / 297; overflow: hidden; border-color: var(--line); color: var(--sub); font-size: 12px; cursor: progress; scroll-snap-align: none; } /* 만드는 중 자리에 붙어 있으면 쪽이 늘 때마다 줄이 끝으로 밀린다 */
+.pr-pg.pr-wait { display: flex; align-items: center; justify-content: center; aspect-ratio: 210 / 297; min-height: calc(var(--pw) * 1.41); overflow: hidden; border-color: var(--line); color: var(--sub); font-size: 12px; cursor: progress; scroll-snap-align: none; } /* 만드는 중 자리에 붙어 있으면 쪽이 늘 때마다 줄이 끝으로 밀린다 */
 .pr-wait::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); transform-origin: 0 0; animation: prLoad 1.3s ease-in-out infinite; }
 @keyframes prLoad { 0% { transform: scaleX(0); opacity: 1; } 70% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
 .pr-side { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -810,7 +812,13 @@ const printUI = {
     px: 4, zoom: 1, view: -1, vz: 1, sharp: [], sharpTimer: 0,           // 미리보기 해상도 · 크기 · 크게 보기
     busy: '', printKey: '', urls: []                                     // 받기·인쇄 중 · 인쇄용 그림
 };
-function openPrint(photoId) { nav(photoId != null && photoId !== '' ? '#/print?photo=' + encodeURIComponent(photoId) : '#/print'); }
+// 다른 화면에서 인쇄 열기: openPrint() 전체 · openPrint(사진 id) 그 사진 · openPrint(id 또는 null, 'check') 양식까지 (map·list·check·label)
+function openPrint(photoId, form) {
+    const u = new URLSearchParams();
+    if (photoId != null && photoId !== '') u.set('photo', String(photoId));
+    if (form) u.set('form', form);
+    nav('#/print' + (u.toString() ? '?' + u : ''));
+}
 function openPrintPreview(dataId) { openPrint(dataId); } // v1 이름으로 불러도 되게
 function printHash(o = {}) {
     const u = new URLSearchParams();
@@ -830,7 +838,12 @@ function printPreviewChunk(fn) {
 }
 
 function renderPrint(r) {
-    const photos = vis(), want = r.q.get('photo');
+    const photos = vis(), want = r.q.get('photo'), form = r.q.get('form');
+    if (form != null) { // 양식을 정해 열었다 (#/print?form=check): 고른 양식으로 기억하고(v1처럼 다음에도) 주소에선 뺀다
+        if (PRINT_FORMS[form]) { printOpts.form = form; try { localStorage.setItem('printOpts', JSON.stringify(printOpts)); } catch (e) {} }
+        const q = new URLSearchParams(r.q); q.delete('form');
+        nav('#/print' + (q.toString() ? '?' + q : ''), true); return false;
+    }
     const pick = want ? photos.find(p => String(p.id) === String(want)) : null;
     if (want && !pick) { nav('#/print', true); return false; } // 그 사이 지운 사진이면 전체로
     if (cur !== 'print') { // 들어올 때마다 새로 (그 사이 물건이 바뀌었을 수 있다)
@@ -961,8 +974,10 @@ async function fillPrintPreview(key, label) {
             pages.push(...got);
         }
         printUI.cache.set(key, pages);
-        while (printUI.cache.size > 4) printUI.cache.delete(printUI.cache.keys().next().value);
-    } else pages.forEach(add);
+        // 기억은 최근 4가지·모두 40쪽까지 (폰 메모리 — 사진이 많으면 한 조합만으로도 수십 쪽)
+        const total = () => [...printUI.cache.values()].reduce((n, a) => n + a.length, 0);
+        while (printUI.cache.size > 1 && (printUI.cache.size > 4 || total() > 40)) printUI.cache.delete(printUI.cache.keys().next().value);
+    } else { printUI.cache.delete(key); printUI.cache.set(key, pages); pages.forEach(add); } // 다시 고른 조합은 맨 뒤로 (가장 최근)
     wait.remove();
     printUI.done = true; syncPrintCount();
     if (printUI.view >= 0) openPrintViewerNow(printUI.view);
@@ -1094,11 +1109,12 @@ function syncViewerPage() { // 지금 보고 있는 쪽 "3 / 9쪽"
 // ────────────────────────────────────────────────────────────
 function openPrintNameSheet() {
     const home = isHome();
-    openSheet(`<h2>종이에 넣을 이름</h2>
+    const card = openSheet(`<h2>종이에 넣을 이름</h2>
         <p>비워 두면 넣지 않아요 · 이 폰에 저장돼요</p>
         <label class="pr-field"><span>${home ? '머리글 이름' : '매장 이름'}<small>인쇄물 머리글·파일 이름에 들어가요</small></span><input type="text" id="prStoreIn" maxlength="20" autocomplete="off" enterkeyhint="next" placeholder="${home ? '예: 우리 집' : '예: 다산점 창고'}"></label>
         <label class="pr-field"><span>정리 업체 이름<small>정리해 드린 분이 넣으면 인쇄물·백업 PDF 아래에 ‘정리 · 이름’으로 들어가요</small></span><input type="text" id="prOrgIn" maxlength="30" autocomplete="off" enterkeyhint="done" placeholder="예: 다산정리수납 010-1234-5678"></label>
         <div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">다 했어요</button></div>`, () => { if (parseRoute().name === 'print') renderPrintPreview(); });
+    card.setAttribute('aria-label', '종이에 넣을 이름');
     const s = $('#prStoreIn'), o = $('#prOrgIn');
     s.value = storeName(); o.value = organizerName();
     s.addEventListener('input', () => setStoreName(s.value));
@@ -1228,10 +1244,11 @@ function printCleanup() {
 window.addEventListener('afterprint', () => document.body.classList.remove('pr-printing'));
 
 // ────────────────────────────────────────────────────────────
-BEFORE_ROUTE.push((name) => { // 다른 화면으로 가면: 크게 보기·이름 창을 닫고, 만들던 미리보기는 멈추고, 인쇄용 그림은 지운다
-    if (name === 'print') return;
+BEFORE_ROUTE.push((name) => { // 다른 화면으로 가면: 크게 보기·이름 창을 닫고, 만들던 미리보기는 멈추고, 쪽 그림·인쇄용 그림은 비운다 (다시 오면 새로 만든다)
+    if (name === 'print' || !$('#prStrip')) return;
     closePrintViewer(); printCleanup();
-    if (!printUI.done) { printUI.job++; printUI.key = ''; }
+    Object.assign(printUI, { job: printUI.job + 1, key: '', done: false, pages: [], count: 0, sharp: [] });
+    printUI.cache.clear(); $('#prStrip').innerHTML = '';
     if ($('#prStoreIn')) closeSheet();
 });
 SCREENS.print = renderPrint;
