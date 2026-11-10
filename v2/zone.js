@@ -94,18 +94,25 @@ body.zs-on .toast { bottom: calc(var(--zsh, 50vh) + var(--kb, 0px) + 10px); }
 .zn.cur { border: calc(3px * var(--k)) solid var(--accent); box-shadow: 0 0 0 calc(2px * var(--k)) #fff; z-index: 4; }
 .zn.cur b { background: var(--accent); color: #fff; }
 .zrow.cur { background: var(--hl); box-shadow: -10px 0 0 var(--hl), 10px 0 0 var(--hl); }
-/* 넓은 화면(PC · app.css와 같은 1024px): 창을 화면 오른쪽 끝에 세로로 길게 — 본문은 그만큼 좁아져(오른쪽 여백) 사진을 가리지 않고,
-   지도·구역 고치기는 한 단이 된다 (app.css body.zs-on). 위아래를 다 써서 안쪽 스크롤도 줄어든다 */
+/* 넓은 화면(PC · app.css와 같은 1024px): 창을 화면 오른쪽 끝에 세로로 길게 (위아래를 다 써서 안쪽 스크롤도 줄어든다).
+   1280px 이상은 본문을 그대로 두고 창이 오른쪽 단(칸 목록) 위에 겹친다 — 사진이 안 움직인다 (app.css).
+   작은 PC(1024~1279)만 본문을 창 왼쪽으로 좁혀(오른쪽 여백) 한 단으로 — 두 단이면 창이 사진을 가린다 */
 @media (min-width: 1024px) {
     .zs, .zs.sized { top: 12px; bottom: 12px; left: auto; right: 12px; width: 420px; max-width: 420px; height: auto; max-height: none; margin: 0; border: 1px solid var(--ink); box-shadow: 0 12px 40px rgba(36, 30, 26, .18); }
     .zs.up { animation-name: zsSide; }
     .zs-grab { display: none; }
-    /* 본문 폭이 줄어드는 걸 천천히 하면 그동안 사진 자리가 움직여 '고른 칸 보이게'(zsReveal)가 빗나간다 → 바로 */
-    body.zs-on .app { padding-right: 444px; padding-bottom: 0; }
+    body.zs-on .app { padding-bottom: 0; }
     body.zs-on .toast { bottom: calc(18px + env(safe-area-inset-bottom)); left: calc(50% + var(--sidew, 0px) / 2 - 222px); }
 }
+/* 본문 폭이 줄어드는 걸 천천히 하면 그동안 사진 자리가 움직여 '고른 칸 보이게'(zsReveal)가 빗나간다 → 바로 */
+@media (min-width: 1024px) and (max-width: 1279px) { body.zs-on .app { padding-right: 444px; } }
 @keyframes zsSide { from { transform: translateX(24px); opacity: .5; } }
-@media (prefers-reduced-motion: reduce) { .zs.up { animation: none; } .app { transition: none; } }
+/* 창을 닫은 칸: 빨간 테두리가 바로 꺼지지 않고 잠깐 남았다 사라진다 (PC — 어느 칸을 닫았는지 눈에 남게) */
+.zn.was { z-index: 4; animation: znWas 1.2s ease-out; }
+.zn.was b { animation: znWasB 1.2s ease-out; }
+@keyframes znWas { from { border: calc(3px * var(--k)) solid var(--accent); box-shadow: 0 0 0 calc(2px * var(--k)) #fff; } }
+@keyframes znWasB { from { background: var(--accent); color: #fff; } }
+@media (prefers-reduced-motion: reduce) { .zs.up, .zn.was, .zn.was b { animation: none; } .app { transition: none; } }
 `);
 
 const MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>';
@@ -307,6 +314,7 @@ function zsShow(p, zi) {
     if (activeDictation) activeDictation.stop();
     if (wasOpen) zzSaveName();
     zz = { key: 'sheet', pid: String(p.id), zi, open: null, more: false, listening: false, mode: 'sheet' };
+    const spot = wasOpen ? null : zsSpot(); // 창이 열리기 전 그 칸의 화면 높이 (작은 PC는 본문이 한 단으로 바뀐다)
     if (!toastUndo) hideToast(); // 안내만 하던 알림은 치운다 (되돌리기 알림은 그대로)
     const zsc = $('#s-zone'); if (zsc && zsc.firstChild) zsc.innerHTML = ''; // 같은 id가 두 곳에 생기지 않게 (칸 화면은 다시 열 때 새로 그린다)
     paintZoneSheet();
@@ -314,16 +322,43 @@ function zsShow(p, zi) {
     if (!wasOpen) { el.classList.remove('up'); void el.offsetWidth; el.classList.add('up'); }
     syncZsH(); zsMark();
     if (cur === 'edit' && typeof edSheetSel === 'function') edSheetSel(zi);
+    zsKeep(spot);
     requestAnimationFrame(() => zsReveal());
 }
 function zsHide(refresh) {
     const el = $('#zsheet'); if (!el || el.hidden) { if (zz && zz.mode === 'sheet') zz = null; return; }
     if (activeDictation) activeDictation.stop();
     zzSaveName();
+    const spot = refresh ? zsSpot() : null; // 같은 화면에 남을 때만 (다른 화면으로 가면 그 화면이 스크롤을 정한다)
     el.hidden = true; el.innerHTML = ''; document.body.classList.remove('zs-on'); syncZsH();
     document.querySelectorAll('.zn.cur, .zrow.cur').forEach(e => e.classList.remove('cur'));
     if (zz && zz.mode === 'sheet') zz = null;
-    if (refresh) zsRefreshUnder();
+    if (refresh) { zsRefreshUnder(); zsWas(zsKeep(spot)); }
+}
+// PC(창이 오른쪽 옆): 창을 열고 닫을 때 본문이 바뀌어도(작은 PC는 한 단 ↔ 두 단) 그 칸이 화면에서 같은 높이에 남게 —
+// '완료'로 닫는 순간 다른 사진·칸이 그 자리에 오던 것 (11/10 고침). 1280px 이상은 본문이 그대로라 거의 0
+const zsSideOn = () => !!(window.matchMedia && matchMedia('(min-width: 1024px)').matches);
+function zsZoneEl(pid, zi) {
+    if (cur === 'edit') return document.querySelector(`#edPh .ed-z[data-i="${zi}"]`);
+    return [...document.querySelectorAll('#s-map .zn[data-p]')].find(e => e.dataset.p === String(pid) && +e.dataset.z === zi) || null;
+}
+function zsSpot() {
+    if (!zz || !zsSideOn()) return null;
+    const t = zsZoneEl(zz.pid, zz.zi);
+    return t ? { scr: cur, pid: zz.pid, zi: zz.zi, top: t.getBoundingClientRect().top } : null;
+}
+function zsKeep(s) { // 바뀐 뒤: 그 칸을 원래 높이로 (위 줄·사진 줄 밑이나 화면 아래로 나가면 보이는 데까지만)
+    if (!s || s.scr !== cur) return null;
+    const t = zsZoneEl(s.pid, s.zi); if (!t) return null;
+    const r = t.getBoundingClientRect(), bar = document.querySelector('.screen.on > .top, .screen.on > .ed-bar'), strip = document.querySelector('.screen.on .mf-strip');
+    const lo = Math.max(bar ? bar.getBoundingClientRect().bottom : 0, strip ? strip.getBoundingClientRect().bottom : 0) + 8;
+    const want = Math.max(lo, Math.min(s.top, innerHeight - 8 - r.height));
+    const dy = r.top - want; if (Math.abs(dy) > 1) window.scrollBy(0, dy);
+    return t;
+}
+function zsWas(t) { // 닫은 칸의 빨간 테두리를 잠깐 남겼다 끈다 (지도 · PC)
+    if (!t || !t.classList.contains('zn')) return;
+    t.classList.add('was'); setTimeout(() => t.classList.remove('was'), 1300);
 }
 function zsRefreshUnder() { // 창에서 고친 게 아래 화면(칸 요약·물건 수)에도 보이게
     const y = window.scrollY;
@@ -344,7 +379,7 @@ function zsReveal() { // 그 칸이 창에 가리지 않게 화면을 살짝 올
     const t = zsTarget(), sh = $('#zsheet'); if (!t || !sh || sh.hidden) return;
     const bar = document.querySelector('.screen.on > .top, .screen.on > .ed-bar'), strip = document.querySelector('.screen.on .mf-strip');
     const top = Math.max(bar ? bar.getBoundingClientRect().bottom : 0, strip ? strip.getBoundingClientRect().bottom : 0) + 8;
-    const side = !!(window.matchMedia && matchMedia('(min-width: 1024px)').matches); // 창이 오른쪽 옆에 (넓은 화면 · 위 CSS와 같은 폭)
+    const side = zsSideOn(); // 창이 오른쪽 옆에 (넓은 화면 · 위 CSS와 같은 폭)
     const bottom = (side ? innerHeight : sh.getBoundingClientRect().top) - 8, r = t.getBoundingClientRect(), room = bottom - top;
     if (room <= 40 || (r.top >= top && r.bottom <= bottom)) return;
     const dy = r.height > room ? r.top - top : (r.top + r.height / 2) - (top + room / 2);
