@@ -14,8 +14,8 @@ function renderHome() {
             <div id="homeNudge"></div>
             <main class="home wrap">
                 <div>
-                    <label for="q" class="ask">뭘 찾아 드릴까요?</label>
-                    <div class="sbox">${ICON.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="sclear" data-act="clear" aria-label="지우기" hidden>×</button></div>
+                    <label for="q" class="ask" id="ask"><span id="askText">뭘 찾아 드릴까요?</span><span class="ha-caret" aria-hidden="true">_</span></label>
+                    <div class="sbox">${ICON.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="뭘 찾아 드릴까요?"><button type="button" class="sclear" data-act="clear" aria-label="지우기" hidden>×</button></div>
                     <div class="live" id="live" hidden></div>
                     <div class="voice-row" id="voiceRow"><button type="button" class="mic" data-act="voice" aria-label="눌러서 말하기">${ICON.mic}</button><div><b>눌러서 말하기</b><span id="micHint"></span></div></div>
                 </div>
@@ -57,6 +57,44 @@ function renderHome() {
     $('#homeNudge').innerHTML = homeNudge();
     syncMicHint();
     renderLive();
+    typeAsk();
+}
+// 첫 화면 질문: 다정한 말 몇 가지를 한 글자씩(자모 단위로) 쳤다 지웠다 하며 돌린다 — 뒤에 _ 가 깜박이며 기다리는 느낌 (v1 typeHeroAsk와 같다)
+//   찾기 칸을 누르고 있거나 글자가 있거나, 다른 화면이거나, 폰을 내려놨으면 멈춘다. '움직임 줄이기'면 첫 문장 그대로
+function hangulTypingFrames(text) { // ㅁ → 무 → 뭐 → 뭘
+    const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', BASE = { 9: 8, 10: 8, 11: 8, 14: 13, 15: 13, 16: 13, 19: 18 };
+    const frames = []; let done = '';
+    for (const ch of text) {
+        const c = ch.charCodeAt(0) - 0xAC00;
+        if (c < 0 || c > 11171) { done += ch; frames.push(done); continue; }
+        const cho = Math.floor(c / 588), jung = Math.floor((c % 588) / 28), jong = c % 28, syl = (j, f) => String.fromCharCode(0xAC00 + (cho * 21 + j) * 28 + f);
+        const steps = [CHO[cho]]; if (BASE[jung] !== undefined) steps.push(syl(BASE[jung], 0)); steps.push(syl(jung, 0)); if (jong) steps.push(ch);
+        steps.forEach(x => frames.push(done + x)); done += ch;
+    }
+    return frames;
+}
+const HERO_ASKS = ['뭘 찾아 드릴까요?', '어떤 걸 찾으세요?', '오늘은 뭘 찾을까요?', '무엇이 필요하세요?'];
+let askTyped = false;
+function typeAsk() {
+    const el = $('#askText'); if (!el || askTyped) return;
+    askTyped = true;
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const h = el.parentElement, wait = (ms) => new Promise(r => setTimeout(r, ms)), show = (t) => { el.textContent = t; };
+    const resting = () => { const q = $('#q'); return document.hidden || cur !== 'home' || (q && (document.activeElement === q || q.value)); };
+    (async () => {
+        show(''); await wait(350);
+        for (let n = 0; ; n++) {
+            const frames = hangulTypingFrames(HERO_ASKS[n % HERO_ASKS.length]);
+            h.classList.add('is-typing');
+            for (const f of frames) { show(f); await wait(f.endsWith(' ') ? 140 : 75); }
+            h.classList.remove('is-typing');
+            await wait(4500); // 다 친 뒤엔 _ 만 깜박이며 기다린다
+            while (resting()) await wait(1000);
+            h.classList.add('is-typing');
+            for (const f of frames.slice(0, -1).reverse()) { show(f); await wait(35); } // 지울 때도 자모 단위로
+            show(''); h.classList.remove('is-typing'); await wait(400);
+        }
+    })();
 }
 // 위쪽 안내 띠 하나 (v1과 같은 키·같은 때): 아이폰 사파리 → 홈 화면에 추가(3일 뒤 다시) · 바뀐 게 있는데 백업 2주 넘음 → 백업(2주 뒤 다시)
 function isIOSDevice() { return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
@@ -309,27 +347,98 @@ function actYes() {
 }
 
 // ────────────────────────────────────────────────────────────
-// B4 수납 지도
+// B4 수납 지도 — 보는 방식 4가지를 써 보고 고른다 (11/10): 한 장씩(사진 탭) · 이어 보기(사진을 아래로 이어서, v1처럼) · 모아 보기(사진 바둑판) · 목록(사진 + 안에 든 것)
+//   #/map/사진 = 고른 방식으로 그 사진부터 · #/map/사진?v=one = 모아 보기·목록에서 사진 하나를 눌러 들어온 것 (고른 방식은 그대로)
+//   칸을 누르면 그 자리에서 물건 창 (zone.js)
 // ────────────────────────────────────────────────────────────
+const MAP_VIEWS = [['one', '한 장씩'], ['flow', '이어 보기'], ['grid', '모아 보기'], ['list', '목록']];
+const mapView = () => { const v = ls('v2MapView'); return MAP_VIEWS.some(([k]) => k === v) ? v : 'one'; };
 const mapOpen = new Set();
+let mapNow = 'one', mapFlowGo = null, mfLast = null;
+function mapCounts(p) { return { items: p.zones.reduce((n, z) => n + z.items.length, 0), stale: p.zones.filter(isStale).length }; }
+function mapMetaHTML(p) { const c = mapCounts(p); return `구역 ${p.zones.length} · 물건 ${c.items}${c.stale ? ` · <span class="warn">점검 ${c.stale}</span>` : ''}`; }
+function mapRowsHTML(p) {
+    const rows = p.zones.map((z, i) => ({ z, i })), shown = mapOpen.has(String(p.id)) ? rows : rows.slice(0, 5);
+    if (!rows.length) return `<p class="empty">아직 칸이 없어요 · <button type="button" class="tlink" style="padding:0;min-height:0;color:var(--accent)" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 그리기</button>에서 칸을 나눠 주세요.</p>`;
+    return `<div class="zt-head"><span>구역 · 물건</span><span>마지막 확인</span></div>`
+        + shown.map(({ z, i }) => `<button type="button" class="zrow" data-act="zone" data-p="${esc(p.id)}" data-z="${i}"><span class="n">${i + 1}</span><span class="t">${esc(zoneSummary(z))}${z.name ? `<small>${esc(z.name)}</small>` : ''}</span><span class="d${isStale(z) ? ' warn' : ''}">${isStale(z) ? `${agoText(z.checkedAt)} · 점검` : agoText(z.checkedAt)}</span></button>`).join('')
+        + (rows.length > shown.length ? `<button type="button" class="morebtn" data-act="mapMore" data-p="${esc(p.id)}">${rows.length - shown.length}개 더 보기</button>` : '');
+}
+function mapSwitchHTML(v) {
+    return `<div class="vsw" role="tablist" aria-label="지도 보는 방식"><span class="vsw-l">보기</span>${MAP_VIEWS.map(([k, l]) => `<button type="button" role="tab" aria-selected="${k === v}" data-act="mapView" data-v="${k}">${l}</button>`).join('')}</div>`;
+}
+const mapLinks = (p) => `<div class="links">${p ? `<button type="button" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 그리기</button><button type="button" data-act="go" data-to="#/print?photo=${encodeURIComponent(p.id)}">인쇄</button>` : `<button type="button" data-act="go" data-to="#/print">인쇄</button>`}<button type="button" data-act="go" data-to="#/check">점검</button><button type="button" data-act="addPhoto">사진 더 넣기</button></div>`;
 function renderMap(r) {
-    const p = photoById(r.a) || vis()[0];
-    if (!r.a || String(p.id) !== String(r.a)) { nav(`#/map/${encodeURIComponent(p.id)}`, true); return false; }
-    const pi = vis().indexOf(p), nItems = p.zones.reduce((n, z) => n + z.items.length, 0), all = mapOpen.has(String(p.id));
-    const rows = p.zones.map((z, i) => ({ z, i })), shown = all ? rows : rows.slice(0, 5);
-    $('#s-map').innerHTML = `
-        <header class="top">${backBtn('검색', '#/')}<button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 고치기</button></header>
-        <main class="wrap" style="flex:1;display:flex;flex-direction:column;padding-bottom:28px">
-            <div class="title-row"><h1 class="h1">${esc(p.title || '사진')}</h1><span class="meta">#${pi + 1} · 구역 ${p.zones.length} · 물건 ${nItems}</span></div>
+    const p = photoById(r.a) || vis()[0], one = r.q.get('v') === 'one';
+    if (!r.a || String(p.id) !== String(r.a)) { nav(`#/map/${encodeURIComponent(p.id)}${one ? '?v=one' : ''}`, true); return false; }
+    const multi = vis().length > 1, v = one || !multi ? 'one' : mapView(), all = vis();
+    mapNow = v; mapFlowGo = v === 'flow' && p !== all[0] ? String(p.id) : null;
+    const total = all.reduce((a, q) => { const c = mapCounts(q); return { z: a.z + q.zones.length, i: a.i + c.items }; }, { z: 0, i: 0 });
+    const allTitle = `<div class="title-row"><h1 class="h1">수납 지도</h1><span class="meta">사진 ${all.length} · 구역 ${total.z} · 물건 ${total.i}</span></div>`;
+    const back = one ? backBtn(MAP_VIEWS.find(([k]) => k === mapView())[1], `#/map/${encodeURIComponent(p.id)}`) : backBtn('검색', '#/');
+    let body;
+    if (v === 'one') {
+        const pi = all.indexOf(p), c = mapCounts(p);
+        body = `${multi && !one ? mapSwitchHTML(v) : ''}
+            <div class="title-row"><h1 class="h1">${esc(p.title || '사진')}</h1><span class="meta">#${pi + 1} · 구역 ${p.zones.length} · 물건 ${c.items}</span></div>
             ${photoTabs(p.id, 'mapTab')}
             ${photoHTML(p, { tap: 'zone', stale: true })}
-            <div class="links"><button type="button" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 그리기</button><button type="button" data-act="go" data-to="#/print?photo=${encodeURIComponent(p.id)}">인쇄</button><button type="button" data-act="go" data-to="#/check">점검</button><button type="button" data-act="go" data-to="#/tips">사진 더 넣기</button></div>
-            ${rows.length ? `<div class="zt-head"><span>구역 · 물건</span><span>마지막 확인</span></div>`
-                + shown.map(({ z, i }) => `<button type="button" class="zrow" data-act="zone" data-p="${esc(p.id)}" data-z="${i}"><span class="n">${i + 1}</span><span class="t">${esc(zoneSummary(z))}${z.name ? `<small>${esc(z.name)}</small>` : ''}</span><span class="d${isStale(z) ? ' warn' : ''}">${isStale(z) ? `${agoText(z.checkedAt)} · 점검` : agoText(z.checkedAt)}</span></button>`).join('')
-                + (rows.length > shown.length ? `<button type="button" class="morebtn" data-act="mapMore" data-p="${esc(p.id)}">${rows.length - shown.length}개 더 보기</button>` : '')
-                : `<p class="empty">아직 칸이 없어요 · <button type="button" class="tlink" style="padding:0;min-height:0;color:var(--accent)" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 그리기</button>에서 칸을 나눠 주세요.</p>`}
-        </main>`;
+            ${mapLinks(p)}
+            ${mapRowsHTML(p)}`;
+    } else if (v === 'flow') { // 사진을 아래로 이어서 (위에 작은 사진 줄이 붙어 따라오고, 지금 보는 사진을 표시)
+        body = `${mapSwitchHTML(v)}${allTitle}
+            <div class="mf-strip" id="mfStrip" role="tablist" aria-label="사진으로 바로 가기">${all.map((q, i) => `<button type="button" role="tab" data-act="mfJump" data-p="${esc(q.id)}" aria-selected="${q === p}"><span class="th">${thumbImg(q)}</span><span class="tx"><b>${i + 1}</b>${esc(q.title || '사진')}</span></button>`).join('')}</div>
+            ${all.map((q, i) => `<section class="mf-sec" data-p="${esc(q.id)}" aria-label="${esc(q.title || '사진')}">
+                <div class="mf-h"><span class="n">${i + 1}</span><h2>${esc(q.title || '사진')}</h2><button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(q.id)}">구역 고치기</button></div>
+                <p class="mf-meta">${mapMetaHTML(q)}</p>
+                ${photoHTML(q, { tap: 'zone', stale: true })}
+                ${mapRowsHTML(q)}
+            </section>`).join('')}
+            ${mapLinks(null)}`;
+    } else if (v === 'grid') { // 사진 바둑판 (칸 테두리만 얇게) → 누르면 그 사진 한 장
+        body = `${mapSwitchHTML(v)}${allTitle}
+            <div class="mg">${all.map((q, i) => { const ar = 800 / h800(q); return `<button type="button" class="mg-c" data-act="mapOne" data-p="${esc(q.id)}">
+                <span class="mg-ph"><span class="mg-in" style="--ar:${ar};${ar >= 4 / 3 ? 'width:100%' : 'height:100%'}">${thumbImg(q)}${q.zones.map(z => { const b = zoneBox(q, z); return `<i class="${isStale(z) ? 'st' : ''}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"></i>`; }).join('')}</span><em class="mg-n">${i + 1}</em></span>
+                <b>${esc(q.title || '사진')}</b><small>${mapMetaHTML(q)}</small></button>`; }).join('')}
+                <button type="button" class="mg-c mg-add" data-act="addPhoto"><span class="mg-ph"><span aria-hidden="true">+</span></span><b>사진 더 넣기</b><small>한 면에 한 장씩</small></button>
+            </div>
+            <div class="links"><button type="button" data-act="go" data-to="#/print">인쇄</button><button type="button" data-act="go" data-to="#/check">점검</button></div>`;
+    } else { // 목록: 사진 + 안에 든 것 (칸마다 첫 물건)
+        body = `${mapSwitchHTML(v)}${allTitle}
+            <div class="ml">${all.map((q, i) => `<button type="button" class="ml-r" data-act="mapOne" data-p="${esc(q.id)}">
+                <span class="ml-th">${thumbImg(q)}<em>${i + 1}</em></span>
+                <span class="ml-tx"><b>${esc(q.title || '사진')}</b><small>${mapMetaHTML(q)}</small>
+                    <span class="ml-zs">${q.zones.length ? q.zones.slice(0, 4).map((z, zi) => `<span><i>${zi + 1}</i>${esc(zoneSummary(z))}</span>`).join('') + (q.zones.length > 4 ? `<span class="more">외 ${q.zones.length - 4}칸</span>` : '') : '<span>아직 칸이 없어요</span>'}</span>
+                </span></button>`).join('')}</div>
+            ${mapLinks(null)}`;
+    }
+    $('#s-map').innerHTML = `
+        <header class="top">${back}${v === 'one' ? `<button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 고치기</button>` : `<button type="button" class="tlink" data-act="addPhoto">사진 더 넣기</button>`}</header>
+        <main class="wrap" style="flex:1;display:flex;flex-direction:column;padding-bottom:28px">${body}</main>`;
+    if (v === 'flow') requestAnimationFrame(mfTrack);
 }
+// 이어 보기: 화면 위쪽 35% 선을 넘은 마지막 사진을 위 사진 줄에 표시 (v1과 같은 선). 맨 아래까지 내리면 마지막 사진
+function mfTrack() {
+    if (cur !== 'map' || mapNow !== 'flow') return;
+    const secs = [...document.querySelectorAll('#s-map .mf-sec')], strip = $('#mfStrip'); if (!secs.length || !strip) return;
+    let on = secs[0];
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) on = secs[secs.length - 1];
+    else secs.forEach(sec => { if (sec.getBoundingClientRect().top <= innerHeight * 0.35) on = sec; });
+    let btn = null;
+    strip.querySelectorAll('button').forEach(b => { const sel = b.dataset.p === on.dataset.p; if (sel) btn = b; if ((b.getAttribute('aria-selected') === 'true') !== sel) b.setAttribute('aria-selected', String(sel)); });
+    if (btn && mfLast !== on.dataset.p) { mfLast = on.dataset.p; strip.scrollTo({ left: btn.offsetLeft - (strip.clientWidth - btn.offsetWidth) / 2, behavior: 'smooth' }); }
+}
+let mfRaf = 0;
+window.addEventListener('scroll', () => { if (mfRaf || mapNow !== 'flow') return; mfRaf = requestAnimationFrame(() => { mfRaf = 0; mfTrack(); }); }, { passive: true });
+function mfJump(pid, instant) {
+    const sec = [...document.querySelectorAll('#s-map .mf-sec')].find(x => x.dataset.p === String(pid)), strip = $('#mfStrip'); if (!sec) return;
+    const toph = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--toph')) || 60;
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: Math.max(0, window.scrollY + sec.getBoundingClientRect().top - toph - (strip ? strip.offsetHeight : 0) - 4), behavior: instant || reduce ? 'auto' : 'smooth' });
+}
+AFTER_ROUTE.push((name) => { const go = mapFlowGo; mapFlowGo = null; if (name === 'map' && go && window.scrollY < 4) mfJump(go, true); });
+// 물건 창이 열린 채 다른 사진·보는 방식으로 → 창을 연 기록부터 걷고 바꾼다 (뒤로 가기가 엉키지 않게)
+function mapSwap(hash) { if (parseRoute().q.has('sz') && history.state && history.state.zs && depth() > 0) backThen(hash); else nav(hash, true); }
 
 // ────────────────────────────────────────────────────────────
 // B7 물건 전체 목록 (가나다순 · 공간별)
@@ -449,7 +558,7 @@ function renderMenu() {
     const has = vis().length > 0;
     const M = [
         has && ['수납 지도', '공간 보기 · 구역 고치기', `#/map/${encodeURIComponent(vis()[0].id)}`, 0],
-        ['새 공간 만들기', '사진 넣고 칸 나누기 · AI로 찾기', '#/tips', 0],
+        ['새 공간 만들기', '사진 넣고 칸 나누기 · AI로 찾기', null, 0, 'addPhoto'],
         has && ['물건 전체 목록', '한눈에 훑어보기', '#/list', 0],
         has && ['자리 미정', '새로 산 물건 넣어 두고 자리 추천받기', '#/inbox', 0],
         has && ['점검 · 발주', '재고 세기 · 모자란 것 · 오래된 칸', '#/check', 0],
@@ -484,7 +593,7 @@ function renderIntro() {
             <ol class="nums">${pts.map((t, i) => `<li><span>${String(i + 1).padStart(2, '0')}</span>${t}</li>`).join('')}</ol>
             <div class="cta">
                 <button type="button" class="btn btn-p split" data-act="sample">예시로 먼저 둘러보기<span aria-hidden="true">→</span></button>
-                <button type="button" class="btn btn-s split" data-act="go" data-to="#/tips">${home ? '내 수납장 사진으로 시작' : '내 창고 사진으로 시작'}<span aria-hidden="true">→</span></button>
+                <button type="button" class="btn btn-s split" data-act="addPhoto">${home ? '내 수납장 사진으로 시작' : '내 창고 사진으로 시작'}<span aria-hidden="true">→</span></button>
                 <p class="fine">가입 없이 이 폰에만 저장돼요.<br>지도 대신 만들기 · 원격 3곳 ₩19,000부터 · <a href="#/service" data-act="go" data-to="#/service">문의</a></p>
             </div>
         </main>`;
@@ -513,9 +622,12 @@ Object.assign(ACT, {
     yes: () => actYes(),
     moveStart: () => { if (rc && rc.it) nav(`#/move/${encodeURIComponent(rc.p.id)}/${rc.zi}?` + new URLSearchParams({ item: rc.it.name, ...(rc.q ? { q: rc.q } : {}) })); },
     zoom: () => toggleZoom(),
-    zone: (el) => nav(resultHash(el.dataset.p, +el.dataset.z, '', '', 'map')),
-    mapTab: (el) => nav(`#/map/${encodeURIComponent(el.dataset.p)}`, true),
-    mapMore: (el) => { mapOpen.add(el.dataset.p); route(true); },
+    zone: (el) => zsGo(el.dataset.p, +el.dataset.z), // 칸 → 그 자리에서 물건 창 (11/10)
+    mapTab: (el) => mapSwap(`#/map/${encodeURIComponent(el.dataset.p)}${parseRoute().q.get('v') === 'one' ? '?v=one' : ''}`),
+    mapMore: (el) => { mapOpen.add(el.dataset.p); const y = window.scrollY; renderMap(parseRoute()); window.scrollTo(0, y); if (typeof zsMark === 'function') zsMark(); },
+    mapView: (el) => { const v = el.dataset.v; if (v === mapNow) return; lsSet('v2MapView', v); const pid = (mapNow === 'flow' && mfLast) || parseRoute().a; mfLast = null; mapSwap(`#/map/${encodeURIComponent(pid)}`); },
+    mapOne: (el) => nav(`#/map/${encodeURIComponent(el.dataset.p)}?v=one`),
+    mfJump: (el) => mfJump(el.dataset.p),
     item: (el) => nav(resultHash(el.dataset.p, +el.dataset.z, '', el.dataset.item, 'list')),
     listTab: (el) => nav('#/list' + (el.dataset.by === 'zone' ? '?by=zone' : ''), true),
     mvPick: (el) => moveTo(el.dataset.p, +el.dataset.z),

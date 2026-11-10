@@ -8,6 +8,8 @@ const ACT = {};              // data-act="이름" → (el, event)
 const BEFORE_ROUTE = [];     // 화면을 바꾸기 직전에 부르는 것 (말로 찾기 멈추기 등)
 const NODATA = new Set(['menu', 'intro']); // 지도가 없어도 열리는 화면
 const AFTER_BOOT = [];       // 데이터를 다 불러온 뒤 한 번 (사용 통계 등)
+const AFTER_ROUTE = [];      // 화면을 그린 뒤 (물건 창 열기 등)
+let SHEET_ONLY = null;       // 같은 화면에서 주소의 물건 창 부분(?sp=사진&sz=칸)만 바뀌었을 때 — 화면은 그대로 두고 창만 (zone.js)
 function addCSS(css) { const s = document.createElement('style'); s.textContent = css; document.head.appendChild(s); }
 // ────────────────────────────────────────────────────────────
 // 저장소: v1과 같은 곳 (IndexedDB 'udigo' › 'kv' › 'savedSystemData', 옛 기기는 localStorage)
@@ -53,7 +55,7 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 let SAMPLE = null; try { SAMPLE = sessionStorage.getItem('samplePreview'); } catch (e) {}
 //   설정 같은 '취향'(PREF_KEYS, feat_*)은 예시 중에도 진짜로 저장한다 (v1 safeStorage와 같은 규칙)
 //   물건·기록 같은 '데이터'는 예시 중엔 메모리에만, 그중 MEM_ONLY는 진짜 값을 읽지도 않는다 (예시에 내 자리 미정이 섞이지 않게)
-const PREF_KEYS = new Set(['zmSuggestOpen', 'voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint', 'v2FontScale']);
+const PREF_KEYS = new Set(['zmSuggestOpen', 'voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint', 'v2FontScale', 'v2MapView', 'photoTipSeen']);
 const MEM_ONLY = new Set(['inboxItems', 'searchPickCounts', 'searchHistory', 'findLog', 'baseItems', 'isSampleData', 'usageStats', 'statsQueue', 'dataChangedAt', 'stockLog', 'stockCountedAt', 'starterDone']);
 const isPref = (k) => PREF_KEYS.has(k) || String(k).startsWith('feat_');
 const memKV = {};
@@ -100,6 +102,29 @@ function measurePhoto(p) { // 사진 원래 크기 (칸 좌표 세로 비율을 
         const im = new Image(); im.onload = () => done(im.naturalWidth || 800, im.naturalHeight || 450); im.onerror = () => done(800, 450); im.src = p.imgData;
     });
 }
+// 작은 사진 (모아 보기·목록·이어 보기 줄): 큰 사진을 처음 쓸 때 한 번 줄여 메모리에만 둔다. 줄이는 동안은 비워 두고, 다 되면 그 자리에 넣는다
+const thumbs = new Map();
+function thumbOf(p) {
+    const k = String(p.id); let t = thumbs.get(k);
+    if (t && t.src === p.imgData) return t.url || '';
+    if (!p.imgData) return '';
+    t = { src: p.imgData, url: '' }; thumbs.set(k, t);
+    const im = new Image(), rec = t;
+    im.onload = () => {
+        try {
+            const s = Math.min(1, 420 / (im.naturalWidth || 420)), c = document.createElement('canvas');
+            c.width = Math.max(1, Math.round((im.naturalWidth || 420) * s)); c.height = Math.max(1, Math.round((im.naturalHeight || 300) * s));
+            c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+            rec.url = c.toDataURL('image/jpeg', 0.78);
+        } catch (e) { rec.url = rec.src; }
+        document.querySelectorAll('img[data-th]').forEach(i => { if (i.dataset.th === k) i.src = rec.url; });
+    };
+    im.onerror = () => { rec.url = ''; };
+    im.src = p.imgData;
+    return '';
+}
+const thumbImg = (p) => { const u = thumbOf(p); return `<img data-th="${esc(p.id)}" alt=""${u ? ` src="${esc(u)}"` : ''}>`; };
+
 // 자주 바뀌는 곳(재고 세기 등)은 잠깐 모았다가 한 번에 저장 — 사진까지 통째로 쓰니까. 화면을 바꾸거나 앱을 내리면 바로 저장
 let saveTimer = 0;
 function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { saveTimer = 0; saveAll(); }, 700); }
@@ -334,10 +359,18 @@ function parseRoute() {
     return { name: parts[0] || '', a: parts[1], b: parts[2], q: new URLSearchParams(i < 0 ? '' : h.slice(i + 1)) };
 }
 const depth = () => (history.state && history.state.v2) || 0;
-function nav(hash, replace) {
+function nav(hash, replace, extra) { // extra: 기록에 같이 적어 둘 표시 (물건 창을 연 칸이면 { zs: 1 })
     scrollMem.set(location.hash, window.scrollY);
-    if (replace) history.replaceState({ v2: depth() }, '', hash); else history.pushState({ v2: depth() + 1 }, '', hash);
+    const st = Object.assign({ v2: replace ? depth() : depth() + 1 }, extra || {});
+    if (replace) history.replaceState(st, '', hash); else history.pushState(st, '', hash);
     route(true);
+}
+// 주소 끝 ?sp=사진&sz=칸 = 물건 창. 이걸 뺀 주소가 같으면 같은 화면이다
+function zsFree(h) {
+    h = h || '#/'; const i = h.indexOf('?'); if (i < 0) return h;
+    const u = new URLSearchParams(h.slice(i + 1)); if (!u.has('sp') && !u.has('sz')) return h;
+    u.delete('sp'); u.delete('sz');
+    return h.slice(0, i) + (u.toString() ? '?' + u : '');
 }
 function goBack(fallback) { if (depth() > 0) history.back(); else nav(fallback || '#/', true); }
 let wantHome = false, wantHash = null;
@@ -361,11 +394,13 @@ function route(force) {
     const key = location.hash || '#/';
     if (!force && key === lastKey) return;
     if (lastKey && !force) scrollMem.set(lastKey, window.scrollY);
-    lastKey = key;
+    const prev = lastKey; lastKey = key;
     const r = parseRoute();
     if (wantHome) { wantHome = false; if (r.name && r.name !== 'home') { nav('#/', true); return; } }
     if (wantHash) { const h = wantHash; wantHash = null; nav(h, true); return; }
     let name = r.name || 'home';
+    // 같은 화면에서 물건 창만 열고 닫거나 다른 칸으로 → 화면은 다시 그리지 않는다 (사진·스크롤이 그대로)
+    if (SHEET_ONLY && prev && key !== prev && name === cur && zsFree(key) === zsFree(prev)) { popped = false; SHEET_ONLY(r); return; }
     flushSave();
     BEFORE_ROUTE.forEach(f => f(name));
     if (!vis().length && !NODATA.has(name)) name = 'intro'; // 지도가 없으면 첫 소개 (만들기·설정 같은 화면은 그대로)
@@ -373,8 +408,19 @@ function route(force) {
     if (SCREENS[name](r) === false) return; // 다른 화면으로 넘겼다
     show(name);
     const y = popped ? scrollMem.get(key) : 0; popped = false;
-    window.scrollTo(0, y || 0); syncScrolled();
+    window.scrollTo(0, y || 0); syncScrolled(); syncTopH();
+    AFTER_ROUTE.forEach(f => { try { f(name, r); } catch (e) { console.error(e); } });
 }
+// 위 줄 높이 (그 아래에 붙는 줄 — 이어 보기 사진 줄 — 이 쓴다)
+function syncTopH() { const t = document.querySelector('.screen.on > .top'); document.documentElement.style.setProperty('--toph', (t ? t.offsetHeight : 60) + 'px'); }
+window.addEventListener('resize', syncTopH);
+// 키보드가 올라오면 아래에 붙은 창(물건 창)이 키보드 위로 (--kb: 키보드 높이, --vvh: 보이는 높이)
+function syncVV() {
+    const vv = window.visualViewport; if (!vv) return;
+    const zoomed = Math.abs((vv.scale || 1) - 1) > 0.01, kb = zoomed ? 0 : Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    const st = document.documentElement.style; st.setProperty('--kb', kb + 'px'); st.setProperty('--vvh', Math.round(zoomed ? window.innerHeight : vv.height) + 'px');
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', syncVV); visualViewport.addEventListener('scroll', syncVV); syncVV(); }
 function show(name) {
     $('#boot').hidden = true;
     screenEl(name);
