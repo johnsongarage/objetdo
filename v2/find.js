@@ -269,11 +269,15 @@ function renderResult(r) {
     } else if (rest.length) {
         body = `<div class="with"><span class="k">함께 있는 것</span><span>${rest.slice(0, 8).map(x => esc(x.name)).join(' · ')}${rest.length > 8 ? ` 외 ${rest.length - 8}` : ''}</span></div>`;
     }
-    let cta;
-    if (from === 'move') cta = `<span class="kick">새 자리로 옮겼어요 · 다음부턴 여기로 찾아 드려요</span><button type="button" class="btn btn-p" data-act="home">처음으로</button>`;
-    else if (zoneOnly) cta = `<span class="kick">칸을 열어 봤다면 알려 주세요 · 점검 날짜가 바뀌어요</span><button type="button" class="btn btn-p" data-act="yes">이 칸 오늘 확인했어요</button><button type="button" class="btn btn-s" data-act="go" data-to="#/zone/${encodeURIComponent(p.id)}/${zi}">물건 넣기·고치기</button>`;
-    else cta = `<span class="kick">답해 주시면 지도가 계속 정확해져요</span><button type="button" class="btn btn-p" data-act="yes">네, 여기 있어요</button><button type="button" class="btn btn-s" data-act="moveStart">여기 없었어요 · 실제 자리로 옮기기</button><button type="button" class="tlink" data-act="go" data-to="#/zone/${encodeURIComponent(p.id)}/${zi}?item=${esc(encodeURIComponent(it.name))}">이 물건 재고·메모 고치기 →</button>`;
-    if (from !== 'map') cta += `<button type="button" class="tlink" data-act="go" data-to="#/map/${encodeURIComponent(p.id)}">수납 지도에서 보기 →</button>`;
+    // 답 버튼은 아래에 붙여 늘 보이게 (11/10), 나머지 링크는 본문에
+    let dock, links = '';
+    if (from === 'move') dock = `<p class="dk">새 자리로 옮겼어요 · 다음부턴 여기로 찾아 드려요</p><button type="button" class="btn btn-p" data-act="home">처음으로</button>`;
+    else if (zoneOnly) dock = `<p class="dk">칸을 열어 봤다면 알려 주세요 · 점검 날짜가 바뀌어요</p><button type="button" class="btn btn-p" data-act="yes">오늘 확인했어요</button><button type="button" class="btn btn-s" data-act="go" data-to="#/zone/${encodeURIComponent(p.id)}/${zi}">물건 넣기·고치기</button>`;
+    else {
+        dock = `<p class="dk">답해 주시면 지도가 계속 정확해져요</p><button type="button" class="btn btn-p" data-act="yes">네, 여기 있어요</button><button type="button" class="btn btn-s" data-act="moveStart">여기 없었어요</button>`;
+        links = `<button type="button" class="tlink" data-act="go" data-to="#/zone/${encodeURIComponent(p.id)}/${zi}?item=${esc(encodeURIComponent(it.name))}">이 물건 재고·메모 고치기 →</button>`;
+    }
+    if (from !== 'map') links += `<button type="button" class="tlink" data-act="go" data-to="#/map/${encodeURIComponent(p.id)}">수납 지도에서 보기 →</button>`;
     $('#s-r').innerHTML = `
         <header class="top">${backBtn(back[0], back[1])}<span class="meta">${esc(right)}</span></header>
         <main class="wrap" style="flex:1;display:flex;flex-direction:column">
@@ -283,8 +287,9 @@ function renderResult(r) {
             <div id="rPhoto">${photoHTML(p, { hit: zi, zoom: zoomOn ? zm : null })}</div>
             <div class="ph-tools"><span class="hint" style="margin:0;flex:1">두 손가락으로 벌리면 더 크게</span>${zm.s > 1.25 ? `<button type="button" class="tlink" data-act="zoom" id="zoomBtn">사진 전체 보기</button>` : ''}</div>
             ${body}
-            <div class="cta">${cta}</div>
+            ${links ? `<div class="cta">${links}</div>` : ''}
             ${others.length ? `<div class="others"><span class="kick">다른 곳도 있어요</span>${others.map((m, i) => hitHTML(m, q, i)).join('')}</div>` : ''}
+            <div class="dock">${dock}</div>
         </main>`;
     rc.zs = zoomOn ? { s: zm.s, tx: zm.tx, ty: zm.ty } : { s: 1, tx: 0, ty: 0 };
     rc.pz = attachPinch($('#rPhoto .ph'), $('#rPhoto .ph-in'), rc.zs, () => { const b = $('#zoomBtn'); if (b) b.textContent = rc.zs.s > 1.05 ? '사진 전체 보기' : '이 칸 크게 보기'; });
@@ -385,12 +390,12 @@ function paintMove() {
             ${photoTabs(view.id, 'mvView')}
             ${photoHTML(view, { tap: 'mvPick', from: sameView ? mv.zi : null, sel: toHere ? mv.to.zi : null })}
             <div class="mv-from"><span>${esc(label(from, mv.zi))}</span><span aria-hidden="true">→</span>${to ? `<b>${esc(label(to, mv.to.zi))}</b>` : '<span>?</span>'}</div>
-            <div class="cta" style="padding-top:24px">
-                <button type="button" class="btn btn-p" data-act="mvGo"${to ? '' : ' disabled'}>${to ? `${esc(label(to, mv.to.zi))}${esc(josa(label(to, mv.to.zi), '으로', '로').slice(label(to, mv.to.zi).length))} 옮기기` : '칸을 먼저 눌러 주세요'}</button>
+            <div class="cta" style="padding-top:20px">
                 <button type="button" class="btn btn-s" data-act="mvList" aria-expanded="${mv.list}">${mv.list ? '목록 닫기' : '목록에서 고르기'}</button>
                 ${zlist}
                 <div class="mv-foot"><button type="button" class="tlink" data-act="mvLost">찾을 수 없어요</button><span>잘못 옮기면 되돌릴 수 있어요</span></div>
             </div>
+            <div class="dock"><button type="button" class="btn btn-p" data-act="mvGo"${to ? '' : ' disabled'}>${to ? `${esc(label(to, mv.to.zi))}${esc(josa(label(to, mv.to.zi), '으로', '로').slice(label(to, mv.to.zi).length))} 옮기기` : '칸을 먼저 눌러 주세요'}</button></div>
         </main>`;
 }
 function moveTo(pid, zi) {

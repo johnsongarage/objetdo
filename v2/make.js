@@ -184,9 +184,9 @@ function renderTips() {
             </ol>
             <div class="cta">
                 <input type="file" accept="image/*" id="tpFile" hidden>
-                <button type="button" class="btn btn-p" data-act="tpPick">사진 고르기</button>
                 <p class="hint" style="text-align:center">사람 얼굴, 택배 송장, 서류는 찍히지 않게 해 주세요${SAMPLE ? ' · 예시를 보는 중이라 넣은 사진은 저장되지 않아요' : ''}</p>
             </div>
+            <div class="dock"><button type="button" class="btn btn-p" data-act="tpPick">사진 고르기</button></div>
         </main>`;
     $('#tpFile').addEventListener('change', onPhotoPicked);
 }
@@ -393,10 +393,7 @@ function renderAI(r) {
             </div></div>
             <div class="ai-sel"><span>${n}곳 선택됨</span><span class="links"><button type="button" data-act="aiAll" data-v="1">전체 선택</button><button type="button" data-act="aiAll" data-v="0">전체 해제</button></span></div>
             ${low.length ? `<p class="hint">낮음으로 나온 ${low.join('·')}번 칸은 사진에서 직접 확인해 주세요. 나중에 [구역 고치기]로 언제든 바꿀 수 있어요.</p>` : '<p class="hint">칸을 누르면 넣기·빼기가 바뀌어요. 나중에 [구역 고치기]로 언제든 바꿀 수 있어요.</p>'}
-            <div class="cta">
-                <button type="button" class="btn btn-p" data-act="aiOk" ${n ? '' : 'disabled'}>선택 구역 추가 (${n})</button>
-                <button type="button" class="btn btn-s" data-act="aiDraw">직접 그리기로 바꾸기</button>
-            </div>
+            <div class="dock"><button type="button" class="btn btn-p" data-act="aiOk" ${n ? '' : 'disabled'}>선택 구역 추가 (${n})</button><button type="button" class="btn btn-s" data-act="aiDraw">직접 그리기로</button></div>
         </main>`;
 }
 function aiConfirm() {

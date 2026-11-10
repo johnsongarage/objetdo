@@ -253,3 +253,12 @@ button.zn { cursor: pointer; }
 .tabs { overflow-x: auto; scrollbar-width: none; gap: 18px; }
 .tabs::-webkit-scrollbar { display: none; }
 .tabs button { flex: none; white-space: nowrap; }
+
+/* ── 위 줄(뒤로·오른쪽 버튼)은 늘 보이게 · 주로 누르는 버튼은 아래에 붙여 늘 보이게 (11/10) ── */
+.top { position: sticky; top: 0; z-index: 30; background: var(--bg); }
+.scrolled .screen.on > .top { box-shadow: 0 1px 0 var(--line); }
+.dock { position: sticky; bottom: 0; z-index: 25; display: flex; flex-wrap: wrap; gap: 8px; margin: 22px calc(-1 * var(--gut)) 0; padding: 10px var(--gut) calc(10px + env(safe-area-inset-bottom)); background: var(--bg); box-shadow: 0 -1px 0 var(--line); }
+.dock .btn { flex: 1 1 0; min-width: 0; min-height: 52px; padding: 0 10px; font-size: 15px; }
+.dock .dk { flex-basis: 100%; margin: 0 0 2px; font-size: 12px; color: var(--sub); }
+.dock.st-gnav { padding-top: 10px; }
+.toast.lift { bottom: calc(92px + env(safe-area-inset-bottom)); }

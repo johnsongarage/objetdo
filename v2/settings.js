@@ -894,11 +894,10 @@ function renderBackup() {
             </ul>
             ${iphoneWarn()}
             <div class="st-cta">
-                ${SAMPLE ? `<p class="st-fine">지금은 예시를 보고 있어요. 예시는 백업하지 않아요 · 예시를 닫으면 내 지도를 백업할 수 있어요.</p><button type="button" class="btn btn-p" data-act="sampleExit">예시 닫기</button>`
-                    : `<button type="button" class="btn btn-p" data-act="stBackup"${n.photos ? '' : ' disabled'}>백업 파일 받기</button>`}
-                <button type="button" class="btn btn-s" data-act="stRestore">백업 파일로 복구</button>
+                ${SAMPLE ? `<p class="st-fine">지금은 예시를 보고 있어요. 예시는 백업하지 않아요 · 예시를 닫으면 내 지도를 백업할 수 있어요.</p>` : ''}
                 <p class="st-fine">백업 파일은 PDF예요. 열면 복구하는 법과 물건 찾아보기가 보여요. 카톡 ‘나와의 채팅’에 보내 두면 폰을 바꿀 때 편해요.<br>복구하면 지금 이 폰의 사진·구역·물건이 백업 내용으로 바뀌어요.</p>
             </div>
+            <div class="dock">${SAMPLE ? `<button type="button" class="btn btn-p" data-act="sampleExit">예시 닫기</button>` : `<button type="button" class="btn btn-p" data-act="stBackup"${n.photos ? '' : ' disabled'}>백업 파일 받기</button>`}<button type="button" class="btn btn-s" data-act="stRestore">파일로 복구</button></div>
         </main>`;
 }
 
@@ -1009,7 +1008,7 @@ function renderGuide(r) {
             <h1 class="h1 st-title">${st.title}</h1>
             <p class="st-gtext">${st.text}</p>
             <div class="st-dots" role="group" aria-label="단계">${GUIDE_STEPS.map((x, n) => `<button type="button" data-act="stGuide" data-i="${n}" aria-label="${n + 1}단계 · ${esc(x.title)}"${n === i ? ' aria-current="step"' : ''}></button>`).join('')}</div>
-            <div class="st-gnav">
+            <div class="st-gnav dock">
                 <button type="button" class="btn btn-s" data-act="stGuide" data-i="${i - 1}"${i === 0 ? ' disabled' : ''}>이전</button>
                 ${last ? `<button type="button" class="btn btn-p" data-act="stGuideEnd">시작하기</button>` : `<button type="button" class="btn btn-p" data-act="stGuide" data-i="${i + 1}">다음</button>`}
             </div>
