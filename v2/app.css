@@ -503,3 +503,13 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
     body.side-on.zs-on .screen.on > .top, body.side-on.zs-on #s-edit .ed-bar { padding-right: var(--zsgap); }
     body.side-on.zs-on #s-map .mf-strip { margin-right: calc(var(--zsgap) - var(--gut)); }
 }
+
+/* 옆으로 넘기는 줄: 끝에 더 있으면 흐리게 · PC 마우스는 끌어서 */
+:is(.zs-chips, .ptabs, .vsw, .pr-segs).hs-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); }
+:is(.zs-chips, .ptabs, .vsw, .pr-segs).hs-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 44px); mask-image: linear-gradient(90deg, transparent, #000 44px); }
+.hs-l:is(.zs-chips, .ptabs, .vsw, .pr-segs).hs-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 44px, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, transparent, #000 44px, #000 calc(100% - 44px), transparent); }
+@media (hover: hover) and (pointer: fine) {
+    .zs-chips, .ptabs, .tabs, .vsw, .mf-strip, .pr-segs.pr-scroll { cursor: grab; }
+    .hs-drag { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+    .hs-drag * { cursor: grabbing; }
+}

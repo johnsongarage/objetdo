@@ -616,3 +616,45 @@ async function boot() {
     try { await loadAll(); ready = true; route(true); AFTER_BOOT.forEach(f => { try { f(); } catch (e) { console.error(e); } }); }
     catch (e) { console.error(e); $('#boot').innerHTML = `불러오지 못했어요 · <a href="../v1.html">예전 화면으로</a>`; }
 }
+
+// ── 옆으로 넘기는 줄 (자주 쓰는 물건 · 탭 · 사진 줄): PC 마우스로 끌어서 넘기기 · 휠로 옆으로 · 끝에 더 있으면 흐리게 ──
+// 휴대폰은 손가락으로 원래 밀린다. 마우스는 스크롤 막대를 숨겨 둬서 넘길 방법이 없었다 (11/10)
+const HSCROLL = '.zs-chips, .ptabs, .tabs, .vsw, .mf-strip, .pr-segs.pr-scroll';
+function hsEdge(row) {
+    if (!row) return;
+    const max = row.scrollWidth - row.clientWidth;
+    row.classList.toggle('hs-l', max > 2 && row.scrollLeft > 2);
+    row.classList.toggle('hs-r', max > 2 && row.scrollLeft < max - 2);
+}
+let hsDrag = null, hsSwallow = false;
+document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const row = e.target.closest && e.target.closest(HSCROLL);
+    if (!row || row.scrollWidth <= row.clientWidth + 2 || e.target.closest('input, textarea, select')) return;
+    hsDrag = { row, x: e.clientX, left: row.scrollLeft, moved: false, id: e.pointerId };
+});
+document.addEventListener('pointermove', (e) => {
+    const d = hsDrag; if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x;
+    if (!d.moved && Math.abs(dx) < 6) return; // 조금 흔들린 건 그냥 누르기
+    if (!d.moved) { d.moved = true; d.row.classList.add('hs-drag'); try { d.row.setPointerCapture(e.pointerId); } catch (x) {} }
+    d.row.scrollLeft = d.left - dx; e.preventDefault();
+});
+function hsEnd(e) {
+    const d = hsDrag; if (!d || (e && e.pointerId !== d.id)) return;
+    hsDrag = null; d.row.classList.remove('hs-drag');
+    if (d.moved) { hsSwallow = true; setTimeout(() => { hsSwallow = false; }, 0); } // 끌고 놓은 자리의 버튼은 눌리지 않게
+}
+document.addEventListener('pointerup', hsEnd); document.addEventListener('pointercancel', hsEnd);
+document.addEventListener('click', (e) => { if (hsSwallow) { e.preventDefault(); e.stopPropagation(); hsSwallow = false; } }, true);
+document.addEventListener('wheel', (e) => { // 세로 휠을 옆으로 (그 줄이 더 갈 수 있을 때만 · 끝이면 화면이 내려간다)
+    if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const row = e.target.closest && e.target.closest(HSCROLL); if (!row) return;
+    const max = row.scrollWidth - row.clientWidth; if (max <= 2) return;
+    if ((e.deltaY > 0 && row.scrollLeft >= max - 1) || (e.deltaY < 0 && row.scrollLeft <= 0)) return;
+    row.scrollLeft += e.deltaY; e.preventDefault();
+}, { passive: false });
+document.addEventListener('scroll', (e) => { if (e.target && e.target.matches && e.target.matches(HSCROLL)) hsEdge(e.target); }, true);
+function hsAll() { document.querySelectorAll(HSCROLL).forEach(hsEdge); }
+new MutationObserver(() => { cancelAnimationFrame(hsAll.raf); hsAll.raf = requestAnimationFrame(hsAll); }).observe(document.body, { childList: true, subtree: true });
+window.addEventListener('resize', hsAll);
