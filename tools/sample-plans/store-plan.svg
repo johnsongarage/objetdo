@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" font-family="'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+  <!-- 오브젯도 v2 예시: 카페 배치도 (위에서 본 모습). 가구 네모 위치는 tools/v2_samples.py의 STORE_PLAN_ZONES와 같다 -->
+  <rect width="800" height="560" fill="#FBF8F3"/>
+  <rect x="20" y="20" width="760" height="520" fill="#F3EEE5"/>
+  <g stroke="#E6DED1" stroke-width="1">
+    <path d="M20 80H530M20 140H530M20 200H530M20 260H530M20 320H470M20 380H470M20 440H470M20 500H470"/>
+    <path d="M80 20V540M140 20V540M200 20V540M260 20V540M320 20V540M380 20V540M440 20V540"/>
+  </g>
+  <rect x="530" y="20" width="250" height="210" fill="#E9E1D3"/>
+  <rect x="530" y="240" width="250" height="300" fill="#EEE7DB"/>
+  <!-- 홀 탁자·의자 -->
+  <g fill="#E6DCCD" stroke="#B9AE9F" stroke-width="2">
+    <circle cx="130" cy="130" r="34"/><circle cx="300" cy="130" r="34"/><circle cx="130" cy="300" r="34"/><circle cx="300" cy="300" r="34"/>
+  </g>
+  <g fill="#F7F3EC" stroke="#B9AE9F" stroke-width="1.5">
+    <circle cx="80" cy="130" r="11"/><circle cx="180" cy="130" r="11"/><circle cx="250" cy="130" r="11"/><circle cx="350" cy="130" r="11"/>
+    <circle cx="80" cy="300" r="11"/><circle cx="180" cy="300" r="11"/><circle cx="250" cy="300" r="11"/><circle cx="350" cy="300" r="11"/>
+  </g>
+  <rect x="34" y="400" width="300" height="34" rx="4" fill="#E6DCCD" stroke="#B9AE9F" stroke-width="2"/>
+  <!-- 카운터 (아래가 하부장) -->
+  <rect x="470" y="300" width="56" height="200" rx="3" fill="#DCCDB6" stroke="#7C7266" stroke-width="2.5"/>
+  <rect x="478" y="318" width="40" height="30" rx="2" fill="#F7F3EC" stroke="#7C7266" stroke-width="1.5"/>
+  <!-- 바: 작업대·커피 머신, 벽 위 상부장(점선) -->
+  <rect x="640" y="430" width="132" height="70" rx="3" fill="#E3D6C3" stroke="#7C7266" stroke-width="2"/>
+  <rect x="660" y="446" width="44" height="38" rx="4" fill="#C9BBA6" stroke="#7C7266" stroke-width="1.5"/>
+  <rect x="718" y="270" width="56" height="210" rx="2" fill="#E8DCCB" stroke="#7C7266" stroke-width="2.5" stroke-dasharray="7 5"/>
+  <!-- 창고: 선반(위 벽), 냉동고 -->
+  <rect x="556" y="30" width="210" height="52" rx="2" fill="#DCCDB6" stroke="#7C7266" stroke-width="2.5"/>
+  <path d="M608 30V82M661 30V82M714 30V82" stroke="#7C7266" stroke-width="1.5"/>
+  <rect x="676" y="118" width="90" height="84" rx="5" fill="#DCE5EA" stroke="#7C7266" stroke-width="2.5"/>
+  <path d="M684 126H758" stroke="#9AAAB2" stroke-width="2"/>
+  <!-- 벽·문 -->
+  <path d="M170 540H780V20H20V540H80" fill="none" stroke="#3A3530" stroke-width="8" stroke-linejoin="miter"/>
+  <path d="M530 20V230H560M620 230H780" fill="none" stroke="#3A3530" stroke-width="6"/>
+  <path d="M530 240V290" stroke="#3A3530" stroke-width="4"/>
+  <path d="M620 230V170A60 60 0 0 0 560 230" fill="none" stroke="#8C8378" stroke-width="1.5"/>
+  <path d="M80 540V450A90 90 0 0 1 170 540" fill="none" stroke="#8C8378" stroke-width="1.5"/>
+  <!-- 이름 -->
+  <g fill="#8C8378" font-size="22" font-weight="700" letter-spacing="2">
+    <text x="190" y="225">홀</text><text x="560" y="168">창고</text><text x="590" y="350">바</text>
+  </g>
+  <text x="98" y="528" fill="#9E3B2A" font-size="17" font-weight="700">입구</text>
+</svg>

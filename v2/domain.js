@@ -160,9 +160,9 @@ function placedNames() { const s = new Set(); vis().forEach(d => d.zones.forEach
 // 칸 추천: 같은 이름이 이미 있는 칸 > 칸 이름이 그 종류 > 같은 종류 물건이 많은 칸 (v1 suggestZone과 같다)
 function suggestZone(name) {
     let best = null; const nn = normalizeForSearch(name);
-    vis().forEach(d => { if (best) return; d.zones.forEach((z, i) => { if (!best && z.items.some(it => normalizeForSearch(it.name) === nn)) best = { sc: 9, data: d, index: i, kind: '같은 물건이 있는 칸' }; }); });
+    itemPhotos().forEach(d => { if (best) return; d.zones.forEach((z, i) => { if (!best && z.items.some(it => normalizeForSearch(it.name) === nn)) best = { sc: 9, data: d, index: i, kind: '같은 물건이 있는 칸' }; }); });
     if (best) return best;
-    kindsOf(name).forEach(k => vis().forEach(d => d.zones.forEach((z, i) => {
+    kindsOf(name).forEach(k => itemPhotos().forEach(d => d.zones.forEach((z, i) => {
         const n = z.items.filter(it => kindHit(k, it.name)).length, sc = kindHit(k, z.name) ? 3 : n ? 1 + Math.min(1, n / 5) : 0;
         if (sc && (!best || sc > best.sc)) best = { sc, data: d, index: i, kind: k };
     })));

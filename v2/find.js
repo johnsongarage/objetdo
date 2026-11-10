@@ -39,7 +39,7 @@ function renderHome() {
     $('#homeStrip').innerHTML = SAMPLE
         ? `<span>예시 · ${SAMPLE === 'organizer' ? '정리수납 예시 집' : '매장 예시'}</span><button type="button" data-act="sampleExit">${hasReal ? '내 지도로' : '예시 닫기'}</button>`
         : `<span>${storedSample ? '예시 데이터를 보고 있어요' : '새 화면 미리보기 · 베타'}</span><a href="${V1()}" data-v1>이전 화면으로 ${EXT}</a>`;
-    const zs = vis().flatMap(p => p.zones.map((z, i) => ({ p, z, i }))), nItems = zs.reduce((n, x) => n + x.z.items.length, 0), stale = zs.filter(x => isStale(x.z));
+    const zs = itemPhotos().flatMap(p => p.zones.map((z, i) => ({ p, z, i }))), nItems = zs.reduce((n, x) => n + x.z.items.length, 0), stale = zs.filter(x => isStale(x.z));
     const first = vis()[0], staleP = stale[0] ? stale[0].p : first;
     $('#stats').innerHTML = `<button type="button" class="stat" data-act="go" data-to="#/map/${encodeURIComponent(first.id)}"><span>구역</span><b>${zs.length}</b></button>`
         + `<button type="button" class="stat" data-act="go" data-to="#/list"><span>물건</span><b>${nItems}</b></button>`
@@ -130,7 +130,8 @@ function renderLive() {
 }
 function hitHTML(m, q, i) {
     const label = m.item ? highlight(m.item.name, q) : m.field === 'zone' ? highlight(zoneName(m.zone, m.index), q) : esc(zoneName(m.zone, m.index));
-    const sub = `${esc(m.data.title || '사진')} · ${m.index + 1}번${m.zone.name && !autoZoneName(m.zone.name) && (m.item || m.field !== 'zone') ? ' · ' + esc(m.zone.name) : ''}`;
+    const L = itemPhotos().length > 1 ? letterOf(m.data) : '';
+    const sub = `${L ? L + ' · ' : ''}${esc(m.data.title || '사진')} · ${m.index + 1}번${m.zone.name && !autoZoneName(m.zone.name) && (m.item || m.field !== 'zone') ? ' · ' + esc(m.zone.name) : ''}`;
     const tag = tagOf(m);
     return `<button type="button" class="hit" data-act="open" data-i="${i}" data-p="${esc(m.data.id)}" data-z="${m.index}" data-item="${esc(m.item ? m.item.name : '')}" data-q="${esc(q)}">`
         + `<span class="hn">${m.index + 1}</span><span class="hb"><b>${label}</b><small>${sub}</small></span>${tag ? `<span class="ht">${tag}</span>` : ''}</button>`;
@@ -241,7 +242,7 @@ function renderVoice() {
             </main>
             <footer class="foot center" id="vFoot"></footer>`;
     }
-    $('#vCtx').textContent = vis().length > 1 ? `${vis()[0].title} 외 ${vis().length - 1}곳` : (vis()[0] ? vis()[0].title : '');
+    const ip = itemPhotos(); $('#vCtx').textContent = ip.length > 1 ? `${ip[0].title} 외 ${ip.length - 1}곳` : (ip[0] ? ip[0].title : '');
     const ex = exampleNames(1)[0];
     $('#vFoot').innerHTML = `가운데 동그라미를 누르면 멈춰요${ex ? `<br>이렇게 말해 보세요 · “${esc(ex)} 어디 있어?”` : ''}`;
     paintVoice(true);
@@ -316,12 +317,16 @@ function renderResult(r) {
         links = `<button type="button" class="tlink" data-act="go" data-to="#/zone/${encodeURIComponent(p.id)}/${zi}?item=${esc(encodeURIComponent(it.name))}">이 물건 재고·메모 고치기 →</button>`;
     }
     if (from !== 'map') links += `<button type="button" class="tlink" data-act="go" data-to="#/map/${encodeURIComponent(p.id)}">수납 지도에서 보기 →</button>`;
+    // 가는 길 (11/10): 공간 사진이 있으면 '어느 가구'를 먼저 → 아래 사진에서 '어느 칸'
+    const spot = spaceSpotOf(p), L = itemPhotos().length > 1 ? letterOf(p) : '';
+    const way = spot ? `<button type="button" class="way" data-act="wayToggle" aria-expanded="false"><span class="way-ph">${photoHTML(spot.sp, { hit: spot.zi })}</span><span class="way-tx"><span class="kick">가는 길</span><b>${esc(spot.sp.title || '공간 사진')}에서 빨간 곳</b><small>${L ? `${esc(L)} · ` : ''}${esc(p.title || '사진')} → 아래 사진 ${n}번 칸 · 누르면 크게</small></span></button>` : '';
     $('#s-r').innerHTML = `
         <header class="top">${backBtn(back[0], back[1])}<span class="meta">${esc(right)}</span></header>
         <main class="wrap" style="flex:1;display:flex;flex-direction:column">
             <div class="ans"><span class="ans-n">${n}</span><div class="ans-t"><small>${from === 'move' ? '이제 여기예요' : '여기 있어요'}</small><b>${esc(autoZoneName(z.name) ? `${n}번 구역` : z.name)}</b></div></div>
-            <p class="where"><b>${esc(p.title || '사진')}</b>${autoZoneName(z.name) ? `, ${esc(posWords(p, z))}` : ''} ${n}번 칸이에요.</p>
+            <p class="where"><b>${L ? `${esc(L)} · ` : ''}${esc(p.title || '사진')}</b>${autoZoneName(z.name) ? `, ${esc(posWords(p, z))}` : ''} ${n}번 칸이에요.</p>
             <ul class="facts">${facts.map(([k, v]) => `<li><span class="k">${k}</span><span>${v}</span></li>`).join('')}</ul>
+            ${way}
             <div id="rPhoto">${photoHTML(p, { hit: zi, zoom: zoomOn ? zm : null })}</div>
             <div class="ph-tools"><span class="hint" style="margin:0;flex:1">두 손가락으로 벌리면 더 크게</span>${zm.s > 1.25 ? `<button type="button" class="tlink" data-act="zoom" id="zoomBtn">사진 전체 보기</button>` : ''}</div>
             ${body}
@@ -347,17 +352,27 @@ function actYes() {
 }
 
 // ────────────────────────────────────────────────────────────
-// B4 수납 지도 — 보는 방식 4가지를 써 보고 고른다 (11/10): 한 장씩(사진 탭) · 이어 보기(사진을 아래로 이어서, v1처럼) · 모아 보기(사진 바둑판) · 목록(사진 + 안에 든 것)
-//   #/map/사진 = 고른 방식으로 그 사진부터 · #/map/사진?v=one = 모아 보기·목록에서 사진 하나를 눌러 들어온 것 (고른 방식은 그대로)
+// B4 수납 지도 — 보는 방식 (11/10 써 보고 고름: 이어 보기가 기본, 한 장씩은 뺌) · 이어 보기(사진을 아래로 이어서, v1처럼) · 모아 보기(사진 바둑판) · 목록(사진 + 안에 든 것)
+//   #/map/사진 = 고른 방식으로 (이어 보기면 그 사진까지 내려가 있다)
+//   #/map/사진?v=flow = 모아 보기·목록에서 사진을 눌러 들어온 이어 보기 (고른 방식은 그대로, 뒤로 → 모아 보기·목록). 옛 주소 ?v=one도 같게
 //   칸을 누르면 그 자리에서 물건 창 (zone.js)
 // ────────────────────────────────────────────────────────────
-const MAP_VIEWS = [['one', '한 장씩'], ['flow', '이어 보기'], ['grid', '모아 보기'], ['list', '목록']];
-const mapView = () => { const v = ls('v2MapView'); return MAP_VIEWS.some(([k]) => k === v) ? v : 'one'; };
+const MAP_VIEWS = [['flow', '이어 보기'], ['grid', '모아 보기'], ['list', '목록']];
+const mapView = () => { const v = ls('v2MapView'); return MAP_VIEWS.some(([k]) => k === v) ? v : 'flow'; };
 const mapOpen = new Set();
-let mapNow = 'one', mapFlowGo = null, mfLast = null;
+let mapNow = 'flow', mapFlowGo = null, mfLast = null;
 function mapCounts(p) { return { items: p.zones.reduce((n, z) => n + z.items.length, 0), stale: p.zones.filter(isStale).length }; }
-function mapMetaHTML(p) { const c = mapCounts(p); return `구역 ${p.zones.length} · 물건 ${c.items}${c.stale ? ` · <span class="warn">점검 ${c.stale}</span>` : ''}`; }
+function mapMetaHTML(p) {
+    if (isSpace(p)) { const n = p.zones.filter(z => linkedPhoto(z)).length; return `가구 ${n}곳${p.zones.length > n ? ` · <span class="warn">고를 것 ${p.zones.length - n}</span>` : ''}`; }
+    const c = mapCounts(p); return `구역 ${p.zones.length} · 물건 ${c.items}${c.stale ? ` · <span class="warn">점검 ${c.stale}</span>` : ''}`;
+}
+const mapLetter = (q) => (itemPhotos().length > 1 ? letterOf(q) : '');
 function mapRowsHTML(p) {
+    if (isSpace(p)) { // 공간 사진: 가구 목록 (누르면 그 가구 사진으로)
+        if (!p.zones.length) return `<p class="empty">아직 가구를 안 그렸어요 · <button type="button" class="tlink" style="padding:0;min-height:0;color:var(--accent)" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">가구 그리기</button></p>`;
+        return `<div class="zt-head"><span>가구</span><span></span></div>` + p.zones.map((z, i) => { const q = linkedPhoto(z);
+            return `<button type="button" class="zrow" data-act="spaceGo" data-p="${esc(p.id)}" data-z="${i}"><span class="n">${esc(q ? letterOf(q) || '·' : '?')}</span><span class="t">${q ? esc(q.title || '사진') : '어느 가구인지 골라 주세요'}<small>${q ? mapMetaHTML(q).replace(/<[^>]+>/g, '') : `${i + 1}번 네모`}</small></span><span class="d">${q ? '→' : '고르기'}</span></button>`; }).join('');
+    }
     const rows = p.zones.map((z, i) => ({ z, i })), shown = mapOpen.has(String(p.id)) ? rows : rows.slice(0, 5);
     if (!rows.length) return `<p class="empty">아직 칸이 없어요 · <button type="button" class="tlink" style="padding:0;min-height:0;color:var(--accent)" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 그리기</button>에서 칸을 나눠 주세요.</p>`;
     return `<div class="zt-head"><span>구역 · 물건</span><span>마지막 확인</span></div>`
@@ -367,53 +382,49 @@ function mapRowsHTML(p) {
 function mapSwitchHTML(v) {
     return `<div class="vsw" role="tablist" aria-label="지도 보는 방식"><span class="vsw-l">보기</span>${MAP_VIEWS.map(([k, l]) => `<button type="button" role="tab" aria-selected="${k === v}" data-act="mapView" data-v="${k}">${l}</button>`).join('')}</div>`;
 }
-const mapLinks = (p) => `<div class="links">${p ? `<button type="button" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 그리기</button><button type="button" data-act="go" data-to="#/print?photo=${encodeURIComponent(p.id)}">인쇄</button>` : `<button type="button" data-act="go" data-to="#/print">인쇄</button>`}<button type="button" data-act="go" data-to="#/check">점검</button><button type="button" data-act="addPhoto">사진 더 넣기</button></div>`;
+const mapLinks = () => `<div class="links"><button type="button" data-act="go" data-to="#/print">인쇄</button><button type="button" data-act="go" data-to="#/check">점검</button><button type="button" data-act="addPhoto">사진 더 넣기</button>${spacePhotos().length ? '' : '<button type="button" data-act="addSpace">공간 사진 넣기</button>'}</div>`;
+// 공간 사진이 아직 없고 가구 사진이 2장 넘으면 한 번 권한다 (닫으면 다시 안 띄움)
+const spaceAskHTML = () => (spacePhotos().length || itemPhotos().length < 2 || ls('v2SpaceAskHidden') ? '' : `<div class="sp-ask"><div class="sp-ask-t"><b>가구가 어디 있는지도 보여 줄까요?</b><span>방·창고를 넓게 한 장 찍고 가구를 네모로 그리면, 찾을 때 '어느 가구 → 어느 칸'으로 알려 줘요</span><button type="button" class="btn btn-s" data-act="addSpace">공간 사진 넣기</button></div><button type="button" class="x" data-act="spaceAskX" aria-label="닫기">×</button></div>`);
 function renderMap(r) {
-    const p = photoById(r.a) || vis()[0], one = r.q.get('v') === 'one';
-    if (!r.a || String(p.id) !== String(r.a)) { nav(`#/map/${encodeURIComponent(p.id)}${one ? '?v=one' : ''}`, true); return false; }
-    const multi = vis().length > 1, v = one || !multi ? 'one' : mapView(), all = vis();
+    const p = photoById(r.a) || vis()[0], qv = r.q.get('v'), into = qv === 'flow' || qv === 'one'; // into: 모아 보기·목록에서 사진을 눌러 들어옴
+    if (!r.a || String(p.id) !== String(r.a)) { nav(`#/map/${encodeURIComponent(p.id)}${into ? '?v=flow' : ''}`, true); return false; }
+    const all = [...spacePhotos(), ...itemPhotos()], multi = all.length > 1, pref = mapView(), v = into || !multi ? 'flow' : pref, fromList = into && pref !== 'flow';
     mapNow = v; mapFlowGo = v === 'flow' && p !== all[0] ? String(p.id) : null;
-    const total = all.reduce((a, q) => { const c = mapCounts(q); return { z: a.z + q.zones.length, i: a.i + c.items }; }, { z: 0, i: 0 });
-    const allTitle = `<div class="title-row"><h1 class="h1">수납 지도</h1><span class="meta">사진 ${all.length} · 구역 ${total.z} · 물건 ${total.i}</span></div>`;
-    const back = one ? backBtn(MAP_VIEWS.find(([k]) => k === mapView())[1], `#/map/${encodeURIComponent(p.id)}`) : backBtn('검색', '#/');
+    const total = itemPhotos().reduce((a, q) => { const c = mapCounts(q); return { z: a.z + q.zones.length, i: a.i + c.items }; }, { z: 0, i: 0 });
+    const head = `${multi && !fromList ? mapSwitchHTML(v) : ''}<div class="title-row"><h1 class="h1">수납 지도</h1><span class="meta">사진 ${all.length} · 구역 ${total.z} · 물건 ${total.i}</span></div>`;
+    const back = fromList ? backBtn(MAP_VIEWS.find(([k]) => k === pref)[1], `#/map/${encodeURIComponent(p.id)}`) : backBtn('검색', '#/');
+    const badge = (q) => (isSpace(q) ? '공간' : mapLetter(q));
     let body;
-    if (v === 'one') {
-        const pi = all.indexOf(p), c = mapCounts(p);
-        body = `${multi && !one ? mapSwitchHTML(v) : ''}
-            <div class="title-row"><h1 class="h1">${esc(p.title || '사진')}</h1><span class="meta">#${pi + 1} · 구역 ${p.zones.length} · 물건 ${c.items}</span></div>
-            ${photoTabs(p.id, 'mapTab')}
-            ${photoHTML(p, { tap: 'zone', stale: true })}
-            ${mapLinks(p)}
-            ${mapRowsHTML(p)}`;
-    } else if (v === 'flow') { // 사진을 아래로 이어서 (위에 작은 사진 줄이 붙어 따라오고, 지금 보는 사진을 표시)
-        body = `${mapSwitchHTML(v)}${allTitle}
-            <div class="mf-strip" id="mfStrip" role="tablist" aria-label="사진으로 바로 가기">${all.map((q, i) => `<button type="button" role="tab" data-act="mfJump" data-p="${esc(q.id)}" aria-selected="${q === p}"><span class="th">${thumbImg(q)}</span><span class="tx"><b>${i + 1}</b>${esc(q.title || '사진')}</span></button>`).join('')}</div>
-            ${all.map((q, i) => `<section class="mf-sec" data-p="${esc(q.id)}" aria-label="${esc(q.title || '사진')}">
-                <div class="mf-h"><span class="n">${i + 1}</span><h2>${esc(q.title || '사진')}</h2><button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(q.id)}">구역 고치기</button></div>
-                <p class="mf-meta">${mapMetaHTML(q)}</p>
-                ${photoHTML(q, { tap: 'zone', stale: true })}
+    if (v === 'flow') { // 사진을 아래로 이어서: 공간 사진(가구 위치)이 맨 위, 그다음 가구 사진들. 사진이 여러 장이면 위에 작은 사진 줄이 붙어 따라온다
+        body = `${head}${spaceAskHTML()}
+            ${multi ? `<div class="mf-strip" id="mfStrip" role="tablist" aria-label="사진으로 바로 가기">${all.map(q => `<button type="button" role="tab" data-act="mfJump" data-p="${esc(q.id)}" aria-selected="${q === p}"><span class="th">${thumbImg(q)}</span><span class="tx">${badge(q) ? `<b>${esc(badge(q))}</b>` : ''}${esc(q.title || '사진')}</span></button>`).join('')}</div>` : ''}
+            ${all.map(q => { const sp = isSpace(q), spot = sp ? null : spaceSpotOf(q); return `<section class="mf-sec${sp ? ' mf-space' : ''}" data-p="${esc(q.id)}" aria-label="${esc(q.title || '사진')}">
+                <div class="mf-h">${badge(q) ? `<span class="n${sp ? ' sp' : ''}">${esc(badge(q))}</span>` : ''}<h2>${esc(q.title || '사진')}</h2><button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(q.id)}">${sp ? '가구 고치기' : '구역 고치기'}</button></div>
+                <p class="mf-meta">${mapMetaHTML(q)}${sp ? ' · 가구를 누르면 그 사진으로' : spot ? ` · <button type="button" class="mf-where" data-act="mfJump" data-p="${esc(spot.sp.id)}">어디 있는지 보기</button>` : ''}</p>
+                ${photoHTML(q, sp ? { tap: 'zone', spaceTap: 'spaceGo' } : { tap: 'zone', stale: true })}
                 ${mapRowsHTML(q)}
-            </section>`).join('')}
-            ${mapLinks(null)}`;
-    } else if (v === 'grid') { // 사진 바둑판 (칸 테두리만 얇게) → 누르면 그 사진 한 장
-        body = `${mapSwitchHTML(v)}${allTitle}
-            <div class="mg">${all.map((q, i) => { const ar = 800 / h800(q); return `<button type="button" class="mg-c" data-act="mapOne" data-p="${esc(q.id)}">
-                <span class="mg-ph"><span class="mg-in" style="--ar:${ar};${ar >= 4 / 3 ? 'width:100%' : 'height:100%'}">${thumbImg(q)}${q.zones.map(z => { const b = zoneBox(q, z); return `<i class="${isStale(z) ? 'st' : ''}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"></i>`; }).join('')}</span><em class="mg-n">${i + 1}</em></span>
+            </section>`; }).join('')}
+            ${mapLinks()}`;
+    } else if (v === 'grid') { // 사진 바둑판 (칸 테두리만 얇게) → 누르면 이어 보기로 그 사진
+        body = `${head}
+            <div class="mg">${all.map(q => { const ar = 800 / h800(q), sp = isSpace(q); return `<button type="button" class="mg-c${sp ? ' mg-space' : ''}" data-act="mapOne" data-p="${esc(q.id)}">
+                <span class="mg-ph"><span class="mg-in" style="--ar:${ar};${ar >= 4 / 3 ? 'width:100%' : 'height:100%'}">${thumbImg(q)}${q.zones.map(z => { const b = zoneBox(q, z); return `<i class="${sp ? 'sp' : isStale(z) ? 'st' : ''}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"></i>`; }).join('')}</span>${badge(q) ? `<em class="mg-n">${esc(badge(q))}</em>` : ''}</span>
                 <b>${esc(q.title || '사진')}</b><small>${mapMetaHTML(q)}</small></button>`; }).join('')}
                 <button type="button" class="mg-c mg-add" data-act="addPhoto"><span class="mg-ph"><span aria-hidden="true">+</span></span><b>사진 더 넣기</b><small>한 면에 한 장씩</small></button>
             </div>
-            <div class="links"><button type="button" data-act="go" data-to="#/print">인쇄</button><button type="button" data-act="go" data-to="#/check">점검</button></div>`;
-    } else { // 목록: 사진 + 안에 든 것 (칸마다 첫 물건)
-        body = `${mapSwitchHTML(v)}${allTitle}
-            <div class="ml">${all.map((q, i) => `<button type="button" class="ml-r" data-act="mapOne" data-p="${esc(q.id)}">
-                <span class="ml-th">${thumbImg(q)}<em>${i + 1}</em></span>
+            <div class="links"><button type="button" data-act="go" data-to="#/print">인쇄</button><button type="button" data-act="go" data-to="#/check">점검</button>${spacePhotos().length ? '' : '<button type="button" data-act="addSpace">공간 사진 넣기</button>'}</div>`;
+    } else { // 목록: 사진 + 안에 든 것 (칸마다 첫 물건 · 공간 사진은 가구들) → 누르면 이어 보기로 그 사진
+        body = `${head}
+            <div class="ml">${all.map(q => { const sp = isSpace(q), zs = sp ? q.zones.map(z => linkedPhoto(z)).filter(Boolean) : q.zones;
+                return `<button type="button" class="ml-r" data-act="mapOne" data-p="${esc(q.id)}">
+                <span class="ml-th">${thumbImg(q)}${badge(q) ? `<em>${esc(badge(q))}</em>` : ''}</span>
                 <span class="ml-tx"><b>${esc(q.title || '사진')}</b><small>${mapMetaHTML(q)}</small>
-                    <span class="ml-zs">${q.zones.length ? q.zones.slice(0, 4).map((z, zi) => `<span><i>${zi + 1}</i>${esc(zoneSummary(z))}</span>`).join('') + (q.zones.length > 4 ? `<span class="more">외 ${q.zones.length - 4}칸</span>` : '') : '<span>아직 칸이 없어요</span>'}</span>
-                </span></button>`).join('')}</div>
-            ${mapLinks(null)}`;
+                    <span class="ml-zs">${zs.length ? zs.slice(0, 4).map((z, zi) => sp ? `<span><i>${esc(letterOf(z))}</i>${esc(z.title || '사진')}</span>` : `<span><i>${zi + 1}</i>${esc(zoneSummary(z))}</span>`).join('') + (zs.length > 4 ? `<span class="more">외 ${zs.length - 4}${sp ? '곳' : '칸'}</span>` : '') : `<span>${sp ? '아직 가구를 안 이었어요' : '아직 칸이 없어요'}</span>`}</span>
+                </span></button>`; }).join('')}</div>
+            ${mapLinks()}`;
     }
     $('#s-map').innerHTML = `
-        <header class="top">${back}${v === 'one' ? `<button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}">구역 고치기</button>` : `<button type="button" class="tlink" data-act="addPhoto">사진 더 넣기</button>`}</header>
+        <header class="top">${back}<button type="button" class="tlink" data-act="addPhoto">사진 더 넣기</button></header>
         <main class="wrap" style="flex:1;display:flex;flex-direction:column;padding-bottom:28px">${body}</main>`;
     if (v === 'flow') requestAnimationFrame(mfTrack);
 }
@@ -435,6 +446,7 @@ function mfJump(pid, instant) {
     const toph = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--toph')) || 60;
     const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: Math.max(0, window.scrollY + sec.getBoundingClientRect().top - toph - (strip ? strip.offsetHeight : 0) - 4), behavior: instant || reduce ? 'auto' : 'smooth' });
+    if (!instant) { sec.classList.remove('flash'); void sec.offsetWidth; sec.classList.add('flash'); setTimeout(() => sec.classList.remove('flash'), 1600); }
 }
 AFTER_ROUTE.push((name) => { const go = mapFlowGo; mapFlowGo = null; if (name === 'map' && go && window.scrollY < 4) mfJump(go, true); });
 // 물건 창이 열린 채 다른 사진·보는 방식으로 → 창을 연 기록부터 걷고 바꾼다 (뒤로 가기가 엉키지 않게)
@@ -451,24 +463,24 @@ function groupOf(name) {
     return '#';
 }
 function renderList(r) {
-    const by = r.q.get('by') === 'zone' ? 'zone' : 'abc', multi = vis().length > 1;
-    const rows = []; vis().forEach(p => p.zones.forEach((z, zi) => z.items.forEach(it => rows.push({ p, zi, it }))));
+    const ips = itemPhotos(), by = r.q.get('by') === 'zone' ? 'zone' : 'abc', multi = ips.length > 1;
+    const rows = []; ips.forEach(p => p.zones.forEach((z, zi) => z.items.forEach(it => rows.push({ p, zi, it }))));
     const li = (x, left, right) => `<button type="button" class="li" data-act="item" data-p="${esc(x.p.id)}" data-z="${x.zi}" data-item="${esc(x.it.name)}"><span class="lg">${left}</span><span class="ln">${x.it.pin ? '★ ' : ''}${esc(x.it.name)}</span><span class="lz">${right}</span></button>`;
     let body = '';
     if (!rows.length) body = `<p class="empty">아직 넣은 물건이 없어요.</p>`;
     else if (by === 'abc') {
-        rows.sort((a, b) => a.it.name.localeCompare(b.it.name, 'ko') || (vis().indexOf(a.p) - vis().indexOf(b.p)) || (a.zi - b.zi));
+        rows.sort((a, b) => a.it.name.localeCompare(b.it.name, 'ko') || (ips.indexOf(a.p) - ips.indexOf(b.p)) || (a.zi - b.zi));
         let last = null;
         body = rows.map(x => { const g = groupOf(x.it.name), lead = g !== last ? esc(g) : ''; last = g; return li(x, lead, `${multi ? `<small>${esc(x.p.title)}</small> ` : ''}${x.zi + 1}번`); }).join('');
     } else {
-        body = vis().map(p => (multi ? `<h2 class="lh">${esc(p.title || '사진')}</h2>` : '') + p.zones.map((z, zi) => z.items.length
+        body = ips.map(p => (multi ? `<h2 class="lh">${esc(letterOf(p))} · ${esc(p.title || '사진')}</h2>` : '') + p.zones.map((z, zi) => z.items.length
             ? `<div class="lzh"><b>${zi + 1}</b>${esc(zoneName(z, zi))}</div>` + itemsSorted(z).map(it => li({ p, zi, it }, '', it.comment ? `<small>${esc(it.comment)}</small>` : '')).join('')
             : '').join('')).join('');
     }
     $('#s-list').innerHTML = `
         <header class="top">${backBtn('검색', '#/')}<button type="button" class="tlink" data-act="go" data-to="#/print">인쇄</button></header>
         <main class="wrap" style="padding-bottom:30px">
-            <div class="title-row"><h1 class="h1">물건 전체 목록</h1><span class="meta">${rows.length}개 · ${multi ? `사진 ${vis().length}장` : esc(vis()[0].title || '')}</span></div>
+            <div class="title-row"><h1 class="h1">물건 전체 목록</h1><span class="meta">${rows.length}개 · ${multi ? `사진 ${ips.length}장` : esc((ips[0] && ips[0].title) || '')}</span></div>
             <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="${by === 'abc'}" data-act="listTab" data-by="abc">가나다순</button><button type="button" role="tab" aria-selected="${by === 'zone'}" data-act="listTab" data-by="zone">공간별</button></div>
             ${body}
         </main>`;
@@ -487,8 +499,8 @@ function renderMove(r) {
 function paintMove() {
     const from = photoById(mv.pid), view = photoById(mv.view) || from, to = mv.to ? photoById(mv.to.pid) : null;
     const sameView = String(view.id) === mv.pid, toHere = mv.to && String(mv.to.pid) === String(view.id);
-    const label = (p, i) => (vis().length > 1 && String(p.id) !== mv.pid ? `${p.title} ` : '') + `${i + 1}번 구역`;
-    const zlist = mv.list ? `<div class="mv-list rows">${vis().map(p => p.zones.map((z, i) => (String(p.id) === mv.pid && i === mv.zi) ? '' :
+    const label = (p, i) => (itemPhotos().length > 1 && String(p.id) !== mv.pid ? `${p.title} ` : '') + `${i + 1}번 구역`;
+    const zlist = mv.list ? `<div class="mv-list rows">${itemPhotos().map(p => p.zones.map((z, i) => (String(p.id) === mv.pid && i === mv.zi) ? '' :
         `<button type="button" class="zrow" data-act="mvPick" data-p="${esc(p.id)}" data-z="${i}"><span class="n">${i + 1}</span><span class="t">${esc(zoneSummary(z))}<small>${esc(p.title || '사진')}${z.name ? ' · ' + esc(z.name) : ''}</small></span><span class="d">${mv.to && String(mv.to.pid) === String(p.id) && mv.to.zi === i ? '고름' : ''}</span></button>`).join('')).join('')}</div>` : '';
     $('#s-move').innerHTML = `
         <header class="top">${backBtn('결과', resultHash(mv.pid, mv.zi, mv.q, mv.name, 'search'))}<button type="button" class="tlink" data-act="back" data-fb="${esc(resultHash(mv.pid, mv.zi, mv.q, mv.name, 'search'))}">취소</button></header>
@@ -558,7 +570,8 @@ function renderMenu() {
     const has = vis().length > 0;
     const M = [
         has && ['수납 지도', '공간 보기 · 구역 고치기', `#/map/${encodeURIComponent(vis()[0].id)}`, 0],
-        ['새 공간 만들기', '사진 넣고 칸 나누기 · AI로 찾기', null, 0, 'addPhoto'],
+        ['사진 더 넣기', '선반·수납장 사진 넣고 칸 나누기 · AI로 찾기', null, 0, 'addPhoto'],
+        has && ['공간 사진', spacePhotos().length ? '가구가 어디 있는지 · 고치기' : '방·창고 전체 한 장 · 가구 위치 알려 주기', spacePhotos().length ? `#/map/${encodeURIComponent(spacePhotos()[0].id)}` : null, 0, spacePhotos().length ? null : 'addSpace'],
         has && ['물건 전체 목록', '한눈에 훑어보기', '#/list', 0],
         has && ['자리 미정', '새로 산 물건 넣어 두고 자리 추천받기', '#/inbox', 0],
         has && ['점검 · 발주', '재고 세기 · 모자란 것 · 오래된 칸', '#/check', 0],
@@ -623,11 +636,19 @@ Object.assign(ACT, {
     moveStart: () => { if (rc && rc.it) nav(`#/move/${encodeURIComponent(rc.p.id)}/${rc.zi}?` + new URLSearchParams({ item: rc.it.name, ...(rc.q ? { q: rc.q } : {}) })); },
     zoom: () => toggleZoom(),
     zone: (el) => zsGo(el.dataset.p, +el.dataset.z), // 칸 → 그 자리에서 물건 창 (11/10)
-    mapTab: (el) => mapSwap(`#/map/${encodeURIComponent(el.dataset.p)}${parseRoute().q.get('v') === 'one' ? '?v=one' : ''}`),
     mapMore: (el) => { mapOpen.add(el.dataset.p); const y = window.scrollY; renderMap(parseRoute()); window.scrollTo(0, y); if (typeof zsMark === 'function') zsMark(); },
     mapView: (el) => { const v = el.dataset.v; if (v === mapNow) return; lsSet('v2MapView', v); const pid = (mapNow === 'flow' && mfLast) || parseRoute().a; mfLast = null; mapSwap(`#/map/${encodeURIComponent(pid)}`); },
-    mapOne: (el) => nav(`#/map/${encodeURIComponent(el.dataset.p)}?v=one`),
+    mapOne: (el) => nav(`#/map/${encodeURIComponent(el.dataset.p)}?v=flow`), // 모아 보기·목록 → 이어 보기로 그 사진
     mfJump: (el) => mfJump(el.dataset.p),
+    spaceGo: (el) => { // 공간 사진의 가구 → 그 가구 사진으로 (아직 안 이었으면 고르는 창)
+        const sp = photoById(el.dataset.p), z = sp && sp.zones[+el.dataset.z], q = linkedPhoto(z);
+        if (!q) { zsGo(el.dataset.p, +el.dataset.z); return; }
+        if (zsOpen()) { zsClose(); return; }
+        if (cur === 'map' && mapNow === 'flow' && [...document.querySelectorAll('#s-map .mf-sec')].some(x => x.dataset.p === String(q.id))) mfJump(q.id);
+        else nav(`#/map/${encodeURIComponent(q.id)}?v=flow`);
+    },
+    spaceAskX: () => { lsSet('v2SpaceAskHidden', '1'); const a = $('#s-map .sp-ask'); if (a) a.remove(); },
+    wayToggle: (el) => { const on = !el.classList.contains('open'); el.classList.toggle('open', on); el.setAttribute('aria-expanded', String(on)); },
     item: (el) => nav(resultHash(el.dataset.p, +el.dataset.z, '', el.dataset.item, 'list')),
     listTab: (el) => nav('#/list' + (el.dataset.by === 'zone' ? '?by=zone' : ''), true),
     mvPick: (el) => moveTo(el.dataset.p, +el.dataset.z),

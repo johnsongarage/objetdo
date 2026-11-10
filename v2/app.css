@@ -321,3 +321,57 @@ button.zn { cursor: pointer; }
 .ml-zs span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ml-zs i { display: inline-block; min-width: 18px; margin-right: 6px; font-style: normal; font-family: var(--serif); color: var(--accent); }
 .ml-zs .more { font-size: 12px; color: var(--sub); }
+
+/* ── 글자 입력칸은 모두 type=search (11/10): 안드로이드 크롬·삼성 키보드의 자동 채우기 줄(열쇠·카드·주소)이 뜨지 않게 — v1 물건 넣기 칸과 같은 방법.
+      검색칸 모양(둥근 테·돋보기·지우기 ×)은 숨겨 보통 글자 칸처럼 보이게 ── */
+input[type=search] { -webkit-appearance: none; appearance: none; }
+input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-search-decoration, input[type=search]::-webkit-search-results-button, input[type=search]::-webkit-search-results-decoration { -webkit-appearance: none; display: none; }
+
+/* ── 공간 사진 (11/10): 넓게 찍은 한 장 위 가구 네모 → 가구 사진 ── */
+.zn.sp { border: calc(2px * var(--k)) solid var(--ink); box-shadow: 0 0 0 calc(1px * var(--k)) rgba(251, 248, 243, .9); background: rgba(158, 59, 42, .06); }
+.zn.sp b { background: var(--ink); color: #fff; }
+.zn.sp-none { border-style: dashed; background: rgba(251, 248, 243, .25); }
+.zn.sp-none b { background: var(--sheet); color: var(--accent); }
+.zn em { position: absolute; left: calc(3px * var(--k)); bottom: calc(3px * var(--k)); max-width: calc(100% - 6px * var(--k)); padding: 0 calc(4px * var(--k)); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-style: normal; font-size: calc(12px * var(--k)); line-height: 1.5; background: rgba(251, 248, 243, .92); color: var(--ink); text-align: left; }
+.zn.sp.hit { border: calc(3px * var(--k)) solid var(--accent); }
+.zn.sp.hit b { background: var(--accent); }
+.zn.dim em { opacity: .7; }
+.ed-z.sp { border-color: var(--ink); box-shadow: 0 0 0 1px rgba(251, 248, 243, .9); }
+.ed-z.sp b { background: var(--ink); color: #fff; }
+.ed-z.sp span { color: var(--ink); text-shadow: none; background: rgba(251, 248, 243, .9); left: 3px; right: auto; max-width: calc(100% - 6px); padding: 0 4px; }
+.ed-z.sp.sel b { background: var(--accent); }
+.mf-h .n.sp { font-family: var(--sans); font-size: 13px; padding: 2px 7px; border: 1px solid var(--accent); line-height: 1.4; align-self: center; }
+.mf-space .ph { border-width: 1.5px; }
+.mf-where { border: 0; background: none; padding: 0; color: var(--accent); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.mf-sec.flash .mf-h h2 { animation: mfFlash 1.4s ease-out; }
+@keyframes mfFlash { 0%, 40% { color: var(--accent); } 100% { color: var(--ink); } }
+.mg-in i.sp { border: 1.5px solid var(--ink); box-shadow: 0 0 0 1px rgba(251, 248, 243, .9); }
+.mg-space .mg-n, .ml-th em { font-family: var(--sans); }
+/* 가는 길 (찾은 결과): 공간 사진에서 그 가구를 먼저 */
+.way { display: flex; align-items: center; gap: 14px; width: 100%; margin: 2px 0 14px; padding: 10px; border: 1px solid var(--line); background: var(--sheet); text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+.way-ph { flex: none; width: 44%; }
+.way-ph .ph { width: 100%; margin: 0; }
+.way-tx { min-width: 0; }
+.way-tx .kick { color: var(--accent); }
+.way-tx b { display: block; margin-top: 2px; font-size: 15px; font-weight: 500; line-height: 1.4; }
+.way-tx small { display: block; margin-top: 2px; font-size: 13px; color: var(--sub); }
+.way.open { flex-direction: column; align-items: stretch; }
+.way.open .way-ph { width: 100%; }
+/* 공간 사진 권하기 (이어 보기 위) */
+.sp-ask { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 16px; padding: 14px 6px 14px 16px; border: 1px solid var(--accent); background: var(--accent-soft); }
+.sp-ask-t { flex: 1; min-width: 0; }
+.sp-ask b { display: block; font-size: 15px; font-weight: 500; }
+.sp-ask span { display: block; margin: 4px 0 10px; font-size: 13px; color: var(--sub); }
+.sp-ask .btn { width: auto; min-height: 44px; padding: 0 16px; font-size: 15px; background: var(--bg); }
+.sp-ask .x { flex: none; width: 36px; height: 36px; border: 0; background: none; color: var(--sub); font-size: 20px; cursor: pointer; }
+/* 가구 고르기 (공간 사진 네모의 창) */
+.zs-static { display: block; font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1.35; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sp-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.sp-opt { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 6px; border: 1px solid var(--line); border-radius: 2px; background: var(--sheet); text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+.sp-opt.on { border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.sp-opt .th { position: relative; flex: none; width: 58px; height: 44px; overflow: hidden; background: var(--hl); }
+.sp-opt .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.sp-opt .th em { position: absolute; left: 0; top: 0; min-width: 18px; height: 18px; padding: 0 4px; display: flex; align-items: center; justify-content: center; background: var(--ink); color: #fff; font-style: normal; font-family: var(--serif); font-size: 12px; font-weight: 700; }
+.sp-opt .tt { min-width: 0; font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
+.sp-opt .tt small { display: block; font-size: 11px; color: var(--accent); }
+.sp-new { display: inline-flex; align-items: center; margin-top: 10px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--accent); font-size: 15px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }

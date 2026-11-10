@@ -68,6 +68,23 @@ let photos = [], ready = false, storedSample = false;
 const dims = new Map();
 const vis = () => photos.filter(p => p && p.id !== 'dummy_root');
 const photoById = (id) => vis().find(p => String(p.id) === String(id));
+// 공간 사진 (11/10): 방·창고를 넓게 찍은 한 장. 칸 = 가구, 칸마다 그 가구 사진을 가리킨다 (z.link = 사진 id)
+//   v1은 사진의 처음 보는 표시(space)를 저장할 때 버리지만 칸의 link는 남긴다 → 가구를 하나라도 이었으면 link로도 알아본다
+//   물건·검색·점검·인쇄 목록은 가구 사진(itemPhotos)만 본다. 가구 사진 글자 A·B·C…는 인쇄와 같다 ("C-6" = C 가구의 6번 칸)
+const isSpace = (p) => !!p && (!!p.space || (Array.isArray(p.zones) && p.zones.some(z => z && z.link != null)));
+const itemPhotos = () => vis().filter(p => !isSpace(p));
+const spacePhotos = () => vis().filter(isSpace);
+function photoLetterAt(i) { return i < 26 ? String.fromCharCode(65 + i) : `P${i + 1}`; }
+const letterOf = (p) => { const i = itemPhotos().indexOf(p); return i < 0 ? '' : photoLetterAt(i); };
+const linkedPhoto = (z) => (z && z.link != null ? photoById(z.link) || null : null);
+function spaceSpotOf(p) { // 이 가구 사진을 가리키는 공간 사진의 칸 { sp, zi }
+    if (!p) return null;
+    for (const sp of spacePhotos()) { const zi = sp.zones.findIndex(z => z.link != null && String(z.link) === String(p.id)); if (zi >= 0) return { sp, zi }; }
+    return null;
+}
+function syncSpaceNames() { // 가구 사진 이름이 바뀌면 그 칸 이름도 (v1에서도 같은 이름으로 보이게)
+    spacePhotos().forEach(sp => sp.zones.forEach(z => { const q = linkedPhoto(z); if (q && z.name !== (q.title || '')) z.name = q.title || ''; }));
+}
 const isHome = () => SAMPLE ? SAMPLE === 'organizer' : document.documentElement.dataset.mode === 'home';
 
 async function loadAll() {
@@ -232,7 +249,7 @@ function kindsOf(query) {
 function kindHit(kind, text) { const n = normalizeForSearch(text); return !!n && KIND_GROUPS[kind].some(t => { const m = normalizeForSearch(t); return m.length >= 2 && n.includes(m); }); }
 function findSearchMatches(query) {
     const matches = [], syn = synonymsOf(query), kinds = kindsOf(query);
-    vis().forEach(data => {
+    itemPhotos().forEach(data => { // 공간 사진(가구 칸)은 빼고
         data.zones.forEach((z, idx) => {
             let best = null;
             z.items.forEach(it => {
@@ -451,17 +468,22 @@ function zoomFor(p, z) { // 칸이 작으면 그 칸을 화면 가운데로 크�
 function photoHTML(p, o = {}) {
     const ar = 800 / h800(p);
     const order = p.zones.map((z, i) => i).sort((a, b) => p.zones[b].w * p.zones[b].h - p.zones[a].w * p.zones[a].h); // 큰 칸 먼저 그려 작은 칸이 위에 (눌리게)
+    const space = isSpace(p);
     const zones = order.map(i => {
         const z = p.zones[i], b = zoneBox(p, z), cls = ['zn'];
-        let tag = '';
+        let tag = '', num = String(i + 1), cap = '';
+        if (space) { // 가구: 글자(A·B·C)가 먼저 — 이름은 네모가 넉넉할 때만 (작은 네모는 글자를 가린다, 이름은 아래 목록에)
+            const q = linkedPhoto(z); num = q ? (letterOf(q) || '·') : '?'; cls.push(q ? 'sp' : 'sp sp-none');
+            if (b.w >= 22 && b.h >= 16) cap = q ? (q.title || '사진') : '가구 고르기';
+        }
         if (o.hit != null) cls.push(i === o.hit ? 'hit' : 'dim');
         if (o.from === i) { cls.push('from'); tag = '원래 기록'; }
         if (o.sel === i) { cls.push('sel'); tag = '여기로'; }
-        if (o.stale && isStale(z) && !tag) tag = '점검';
-        const lab = `${i + 1}번 구역 · ${zoneSummary(z)}`;
-        const attrs = o.tap ? `type="button" data-act="${o.tap}" data-p="${esc(p.id)}" data-z="${i}" aria-label="${esc(lab)}"` : 'aria-hidden="true"';
+        if (o.stale && !space && isStale(z) && !tag) tag = '점검';
+        const lab = space ? `${num} ${cap}` : `${i + 1}번 구역 · ${zoneSummary(z)}`;
+        const attrs = o.tap ? `type="button" data-act="${space && o.spaceTap ? o.spaceTap : o.tap}" data-p="${esc(p.id)}" data-z="${i}" aria-label="${esc(lab)}"` : 'aria-hidden="true"';
         const el = o.tap ? 'button' : 'span';
-        return `<${el} ${attrs} class="${cls.join(' ')}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"><b>${i + 1}</b>${tag ? `<i>${tag}</i>` : ''}</${el}>`;
+        return `<${el} ${attrs} class="${cls.join(' ')}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"><b>${esc(num)}</b>${tag ? `<i>${tag}</i>` : ''}${cap ? `<em>${esc(cap)}</em>` : ''}</${el}>`;
     }).join('');
     const zm = o.zoom;
     const st = zm ? `transform:translate(${zm.tx}%,${zm.ty}%) scale(${zm.s});--k:${1 / zm.s}` : '';
@@ -510,8 +532,8 @@ function attachPinch(ph, inn, st, onChange) {
     return { set(s, tx, ty) { st.s = s; st.tx = tx; st.ty = ty; clampT(); inn.style.transition = ''; apply(); } };
 }
 function photoTabs(curId, act) {
-    if (vis().length < 2) return '';
-    return `<div class="ptabs" role="tablist" aria-label="사진">${vis().map((p, i) => `<button type="button" role="tab" aria-selected="${String(p.id) === String(curId)}" data-act="${act}" data-p="${esc(p.id)}"><span>${i + 1}</span>${esc(p.title || '사진')}</button>`).join('')}</div>`;
+    if (itemPhotos().length < 2) return '';
+    return `<div class="ptabs" role="tablist" aria-label="사진">${itemPhotos().map((p, i) => `<button type="button" role="tab" aria-selected="${String(p.id) === String(curId)}" data-act="${act}" data-p="${esc(p.id)}"><span>${photoLetterAt(i)}</span>${esc(p.title || '사진')}</button>`).join('')}</div>`;
 }
 
 // ────────────────────────────────────────────────────────────
