@@ -59,7 +59,7 @@ function renderHome() {
         + `<button type="button" class="row" data-act="go" data-to="#/print">인쇄물 보기<span class="ar">→</span></button>`;
     $('#homeSpaces').innerHTML = `<span class="kick">사진 ${vis().length}장</span><div class="hs-grid">${vis().map(p => { const sp = isSpace(p), L = sp ? '' : letterOf(p), n = p.zones.reduce((a, z) => a + z.items.length, 0);
         return `<button type="button" class="hs-c" data-act="mapOne" data-p="${esc(p.id)}"><span class="hs-th">${thumbImg(p)}</span><b>${L ? `<em>${esc(L)}</em>` : sp ? '<em class="sp">공간</em>' : ''}${esc(p.title || '사진')}</b><small>${sp ? `가구 ${p.zones.length}` : `구역 ${p.zones.length} · 물건 ${n}`}</small></button>`; }).join('')}</div>`; // PC만 보인다
-    $('#homeFoot').innerHTML = SAMPLE ? '예시는 저장되지 않아요 · 마음껏 눌러 보세요' : `이 폰에만 저장돼요 · <a href="#/backup" data-act="go" data-to="#/backup">백업 받기</a>`;
+    $('#homeFoot').innerHTML = SAMPLE ? '예시는 저장되지 않아요 · 마음껏 눌러 보세요' : `이 ${DEV}에만 저장돼요 · <a href="#/backup" data-act="go" data-to="#/backup">백업 받기</a>`;
     $('#homeNudge').innerHTML = homeNudge();
     syncMicHint();
     renderLive();
@@ -114,7 +114,7 @@ function homeNudge() {
     if (vis().some(d => d.zones.some(z => z.items.length)) && now >= num('backupBannerHiddenUntil')) {
         const last = num('lastBackupAt');
         if (!last || (now - last >= BACKUP_REMIND_MS && num('dataChangedAt') > last))
-            return `<div class="nudge"><span>${last ? '마지막 백업 뒤에 바뀐 게 있어요' : '아직 백업이 없어요'} · 폰을 바꾸거나 잃어버려도 살리려면 <button type="button" data-act="go" data-to="#/backup">백업 받기</button></span><button type="button" class="x" data-act="nudgeX" data-k="backupBannerHiddenUntil" data-d="14" aria-label="닫기">×</button></div>`;
+            return `<div class="nudge"><span>${last ? '마지막 백업 뒤에 바뀐 게 있어요' : '아직 백업이 없어요'} · ${DEV_OBJ} 바꾸거나 잃어버려도 살리려면 <button type="button" data-act="go" data-to="#/backup">백업 받기</button></span><button type="button" class="x" data-act="nudgeX" data-k="backupBannerHiddenUntil" data-d="14" aria-label="닫기">×</button></div>`;
     }
     return '';
 }
@@ -602,7 +602,7 @@ function renderMenu() {
                     : `<button type="button" class="mi" data-act="go" data-to="${href}">${inner}</button>`}</li>`;
             }).join('')}</ul>
         </main>
-        <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 폰에만 저장돼요 · <a href="${V1()}" data-v1>예전 화면으로 ${EXT}</a></span></footer>`;
+        <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 ${DEV}에만 저장돼요 · <a href="${V1()}" data-v1>예전 화면으로 ${EXT}</a></span></footer>`;
 }
 // ── PC 왼쪽 메뉴 (넓은 화면에서만 보인다 · app.css '넓은 화면') ─────────────────
 //   지도가 있는 화면마다 늘 보이는 메뉴: 찾기 · 수납 지도 · 목록 · 자리 미정 · 점검 · 인쇄 + 사진 더 넣기 · 사용법 · 설정 (폰 메뉴와 같은 줄)
@@ -640,7 +640,7 @@ function renderIntro() {
             <div class="cta">
                 <button type="button" class="btn btn-p split" data-act="sample">예시로 먼저 둘러보기<span aria-hidden="true">→</span></button>
                 <button type="button" class="btn btn-s split" data-act="addPhoto">${home ? '내 수납장 사진으로 시작' : '내 창고 사진으로 시작'}<span aria-hidden="true">→</span></button>
-                <p class="fine">가입 없이 이 폰에만 저장돼요.<br>지도 대신 만들기 · 원격 3곳 ₩19,000부터 · <a href="#/service" data-act="go" data-to="#/service">문의</a></p>
+                <p class="fine">가입 없이 이 ${DEV}에만 저장돼요.<br>지도 대신 만들기 · 원격 3곳 ₩19,000부터 · <a href="#/service" data-act="go" data-to="#/service">문의</a></p>
             </div>
         </main>`;
 }

@@ -436,7 +436,13 @@ Object.assign(ACT, {
         if (zsOpen()) zsHide(false);
         delete p.space; p.zones.forEach(z => { delete z.link; }); ed.sel = null; saveAll(); paintEdit(true);
         toast('보통 사진으로 바꿨어요', () => { if (was) p.space = true; p.zones = JSON.parse(before); saveAll(); if (cur === 'edit') paintEdit(true); toast('되돌렸어요'); }); },
-    edDone: () => { const p = edPhoto(); const t = $('#edTitle'); if (p && t && t.value.trim() && t.value.trim() !== p.title) { p.title = t.value.trim(); saveAll(); } goBack(p ? `#/map/${encodeURIComponent(p.id)}` : '#/'); },
+    edDone: () => {
+        const p = edPhoto(); const t = $('#edTitle'); if (p && t && t.value.trim() && t.value.trim() !== p.title) { p.title = t.value.trim(); saveAll(); }
+        const to = p ? `#/map/${encodeURIComponent(p.id)}` : '#/';
+        // 물건 창이 열린 채 누르면 창만 닫히고 고치기는 그대로였다(두 번 눌러야 나감, 11/10 고침) → 창을 연 기록까지 한 번에 걷고 나간다
+        if (parseRoute().q.has('sz') && history.state && history.state.zs) { if (depth() > 1) history.go(-2); else backThen(to); return; }
+        goBack(to);
+    },
     edDraw: () => { ed.draw = !ed.draw; if (ed.draw) ed.sel = null; paintEdit(true); if (ed.draw) toast('사진 위를 끌어서 칸을 그려요'); },
     edDel: () => edDeleteZone(),
     edDelOk: () => { const f = ed && ed.pendingDel; closeSheet(); if (f) { ed.pendingDel = null; f(); } },

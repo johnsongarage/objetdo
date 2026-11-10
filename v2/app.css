@@ -21,7 +21,8 @@ button { font: inherit; color: inherit; }
 /* 위 띠 */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: calc(4px + env(safe-area-inset-top)) 12px 0 var(--gut); }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--serif); font-size: 20px; font-weight: 700; white-space: nowrap; }
-.brand::before { content: ''; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+/* 이름 앞 표시 = 앱·탭 아이콘과 같은 '칸 마크' (11/10 가르시아가 ①로 고름 — 예전엔 빨간 점) */
+.brand::before { content: ''; flex: none; width: 18px; height: 18px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='16' y='16' width='11' height='11' fill='%239E3B2A'/%3E%3Crect x='4' y='4' width='24' height='24' rx='1.5' fill='none' stroke='%233A3530' stroke-width='3.2'/%3E%3Cpath d='M16 4V28M4 16H28' stroke='%233A3530' stroke-width='3.2'/%3E%3C/svg%3E") center / contain no-repeat; }
 .brand small { font-family: var(--sans); font-size: 12px; font-weight: 400; letter-spacing: .22em; color: var(--sub); }
 .tlink { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border: 0; background: none; font-size: 15px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; white-space: nowrap; }
 .back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-left: -6px; padding: 0 12px 0 0; border: 0; background: none; font-size: 15px; cursor: pointer; white-space: nowrap; }
@@ -381,7 +382,7 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
 /* ────────────────────────────────────────────────────────────
    넓은 화면 (PC · 가로 1024px 이상) — 11/10
    왼쪽에 늘 보이는 메뉴 + 넓은 본문, 화면마다 2단(사진은 왼쪽에 크게). 폰·태블릿(1023px 이하)은 그대로
-   물건 창이 열리면(body.zs-on) 창이 오른쪽을 쓰고 본문은 한 단으로 (zone.js)
+   물건 창(body.zs-on)은 오른쪽 단 위에 겹쳐 열리고 본문은 그대로 (작은 PC 1024~1279만 한 단으로 — 맨 아래, zone.js)
    ──────────────────────────────────────────────────────────── */
 .side, .home-sp { display: none; }
 @media (min-width: 1024px) {
@@ -439,13 +440,15 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
     .hs-c b em.sp { font-family: var(--sans); font-size: 12px; }
     .hs-c small { display: block; font-size: 12px; color: var(--sub); }
 
-    /* 수납 지도: 사진 왼쪽 크게 · 칸 목록 오른쪽 (물건 창이 열리면 한 단) */
+    /* 수납 지도: 사진 왼쪽 크게 · 칸 목록 오른쪽. 물건 창은 칸 목록 자리에 겹쳐 열린다 — 두 단 그대로라 사진이 안 움직인다
+       (11/10 고침: 창이 열리면 한 단으로 바꾸던 때는 사진이 커졌다 작아지며 페이지 길이가 바뀌어, '완료'로 닫는 순간 다른 사진·칸이 그 자리에 왔다)
+       작은 PC(1024~1279)는 두 단이면 창이 사진을 가려 맨 아래에서 한 단으로 */
     body.side-on .mf-sec .ph { width: min(100%, calc(72vh * var(--ar))); margin: 0; }
-    body.side-on.zs-on .mf-sec > .mf-rows { display: none; }   /* 물건 창이 열려 있으면 칸 목록은 창이 대신 — 사진 자리가 덜 움직인다 */
-    body.side-on:not(.zs-on) .mf-sec { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); column-gap: 36px; align-items: start; }
-    body.side-on:not(.zs-on) .mf-sec > .mf-h, body.side-on:not(.zs-on) .mf-sec > .mf-meta { grid-column: 1 / -1; }
-    body.side-on:not(.zs-on) .mf-sec > .ph { grid-column: 1; margin: 0; }
-    body.side-on:not(.zs-on) .mf-sec > .mf-rows { grid-column: 2; min-width: 0; }
+    body.side-on .mf-sec { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); column-gap: 36px; align-items: start; }
+    body.side-on .mf-sec > .mf-h, body.side-on .mf-sec > .mf-meta { grid-column: 1 / -1; }
+    body.side-on .mf-sec > .ph { grid-column: 1; margin: 0; }
+    body.side-on .mf-sec > .mf-rows { grid-column: 2; min-width: 0; }
+    body.side-on.zs-on .mf-sec > .mf-rows { visibility: hidden; }   /* 창이 칸 목록을 대신 — 자리는 그대로 둔다(높이가 안 바뀌게) */
     body.side-on .mg { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 26px 18px; }
     body.side-on .ml { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
 
@@ -462,13 +465,16 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
     body.side-on .lst .lh, body.side-on .lst .lzh { break-after: avoid; }
     body.side-on .lst .lh:first-child { margin-top: 6px; }
 
-    /* 구역 고치기: 사진 왼쪽 크게(따라 내려옴) · 이름·안내·구역 목록 오른쪽 (물건 창이 열리면 한 단) */
+    /* 구역 고치기: 사진 왼쪽 크게(따라 내려옴) · 이름·안내·구역 목록 오른쪽. 물건 창은 오른쪽 단에 겹쳐 열린다(사진 그대로 — 위 지도와 같다) */
     body.side-on #s-edit .ed-ph { width: min(100%, calc((100vh - 200px) * var(--ar))); margin: 0 auto; }
     body.side-on #s-edit .ed-wrap { margin: 0; padding: 0; }
-    body.side-on:not(.zs-on) #s-edit main.wrap { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); column-gap: 40px; align-content: start; }
-    body.side-on:not(.zs-on) #s-edit main.wrap > * { grid-column: 2; min-width: 0; }
-    body.side-on:not(.zs-on) #s-edit main.wrap > .ed-wrap { grid-column: 1; grid-row: 1 / span 40; align-self: start; position: sticky; top: 84px; margin-top: 20px; }
-    body.side-on #s-edit .ed-tools { grid-template-columns: repeat(4, 132px); justify-content: center; }
+    body.side-on #s-edit main.wrap { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); column-gap: 40px; align-content: start; }
+    body.side-on #s-edit main.wrap > * { grid-column: 2; min-width: 0; }
+    body.side-on #s-edit main.wrap > .ed-wrap { grid-column: 1; grid-row: 1 / span 40; align-self: start; position: sticky; top: 84px; margin-top: 20px; }
+    body.side-on.zs-on #s-edit main.wrap > :not(.ed-wrap) { visibility: hidden; }
+    body.side-on #s-edit .ed-tools { grid-template-columns: repeat(4, 132px); justify-content: start; padding-left: var(--gut); }   /* 도구는 사진 밑에 (창이 열려도 안 가려지고 안 움직인다) */
+    body.side-on #s-edit .ed-bar > div { min-width: 0; }
+    body.side-on #s-edit .ed-bar small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* 창이 열려 줄이 좁아져도 두 줄이 되지 않게 (위 줄 높이가 바뀌면 사진이 움직인다) */
 
     /* 인쇄: 미리보기 왼쪽 · 고르기·받기 오른쪽 */
     body.side-on .pr-main { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, 1fr); column-gap: 40px; align-content: start; }
@@ -479,10 +485,23 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
     body.side-on .pr-opts { margin-top: 0; }
     body.side-on .pr-dock { position: static; margin: 22px 0 0; padding: 0; border: 0; background: none; box-shadow: none; }
 }
-/* 작은 PC(1024~1279px)에서 물건 창이 열리면 왼쪽 메뉴를 잠깐 접어 본문(사진)을 넓게 — 창을 닫으면 다시 보인다 */
+/* 작은 PC(1024~1279px): 두 단 그대로면 창(420px)이 사진을 가린다 → 창이 열리면 왼쪽 메뉴를 잠깐 접고 본문을 창 왼쪽에 한 단으로
+   (zone.js가 본문 오른쪽을 비우고, 열고 닫을 때 그 칸이 화면에서 같은 높이에 남게 스크롤을 맞춘다). 창을 닫으면 다시 메뉴 + 두 단 */
 @media (min-width: 1024px) and (max-width: 1279px) {
     body.side-on.zs-on { --sidew: 0px; }
     body.side-on.zs-on .side { display: none; }
+    body.side-on.zs-on .mf-sec { display: block; }
+    body.side-on.zs-on .mf-sec > .mf-rows { display: none; }
+    body.side-on.zs-on #s-edit main.wrap { display: block; }
+    body.side-on.zs-on #s-edit main.wrap > :not(.ed-wrap) { visibility: visible; }
+    body.side-on.zs-on #s-edit main.wrap > .ed-wrap { position: static; margin-top: 0; }
+}
+/* 1280px 이상: 본문은 그대로 두고 창이 오른쪽 단 위에 겹친다 → 창 밑으로 들어가는 위 줄(뒤로·사진 더 넣기 / 고치기 완료)·사진 줄만 창 왼쪽에서 끝나게.
+   --zsgap = 본문(가운데 정렬, 최대 1200px) 오른쪽 끝에서 창 왼쪽 끝 + 12px까지 (100vw엔 스크롤 막대가 들어 있어 12px 넉넉히) */
+@media (min-width: 1280px) {
+    body.side-on.zs-on { --zsgap: max(12px, calc(456px - (100vw - var(--sidew) - min(100vw - var(--sidew), 1200px)) / 2)); }
+    body.side-on.zs-on .screen.on > .top, body.side-on.zs-on #s-edit .ed-bar { padding-right: var(--zsgap); }
+    body.side-on.zs-on #s-map .mf-strip { margin-right: calc(var(--zsgap) - var(--gut)); }
 }
 
 /* 옆으로 넘기는 줄: 끝에 더 있으면 흐리게 · PC 마우스는 끌어서 */

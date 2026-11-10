@@ -99,7 +99,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.10.12'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.10.14'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -284,7 +284,7 @@ function renderSettings() {
                 <nav class="rows">
                     <button type="button" class="row" data-act="go" data-to="#/backup">백업하기 · 백업 파일로 복구<span class="ar">→</span></button>
                 </nav>
-                <p class="st-note">사진·물건은 이 폰에만 있어요. 폰을 바꾸기 전에 백업 파일을 받아 두세요.</p>
+                <p class="st-note">사진·물건은 이 ${DEV}에만 있어요. ${DEV_OBJ} 바꾸기 전에 백업 파일을 받아 두세요.</p>
             </section>
             <section class="st-sec">
                 <h2 class="st-lab">도움</h2>
@@ -355,11 +355,11 @@ async function shareBackup() { // 카톡 등으로 보내기: 제목·글 없이
     try {
         await navigator.share({ files: [file] });
         markBackedUp();
-        toast('보냈어요. 받은 파일은 폰에도 저장해 두세요');
+        toast(`보냈어요. 받은 파일은 ${DEV}에도 저장해 두세요`);
     } catch (err) {
         if (err && err.name === 'AbortError') return; // 공유 창을 닫음 → 백업한 걸로 치지 않는다
         exportSystemData();
-        toast('보내기가 안 돼서 이 폰에 저장했어요');
+        toast(`보내기가 안 돼서 이 ${DEV}에 저장했어요`);
     }
 }
 function startBackup() { // 보내기가 되는 폰이면 보내기/저장 중 고르게, 아니면 바로 저장
@@ -369,8 +369,8 @@ function startBackup() { // 보내기가 되는 폰이면 보내기/저장 중 �
     if (!canShareBackup()) { exportSystemData(); return; }
     openSheet(`<span class="kick">백업</span>
         <h2>백업 파일을 어디에 둘까요?</h2>
-        <p>카톡 ‘나와의 채팅’에 보내 두면 폰을 바꿀 때 편해요.</p>
-        <div class="stack"><button type="button" class="btn btn-p" data-act="stShare">카톡 등으로 보내기</button><button type="button" class="btn btn-s" data-act="stSave">이 폰에 저장</button><button type="button" class="tlink" style="align-self:center" data-act="sheetClose">취소</button></div>`);
+        <p>카톡 ‘나와의 채팅’에 보내 두면 ${DEV_OBJ} 바꿀 때 편해요.</p>
+        <div class="stack"><button type="button" class="btn btn-p" data-act="stShare">카톡 등으로 보내기</button><button type="button" class="btn btn-s" data-act="stSave">이 ${DEV}에 저장</button><button type="button" class="tlink" style="align-self:center" data-act="sheetClose">취소</button></div>`);
 }
 function extractBackupText(text) {
     const a = text.indexOf(BACKUP_PDF_BEGIN), b = text.lastIndexOf(BACKUP_PDF_END);
@@ -386,7 +386,7 @@ function buildBackupPdf(json) {
     g.fillText('이 파일 안에 사진·구역·물건이 모두 들어 있어요.', 80, 240);
     g.fillStyle = '#c44444'; g.font = '30px sans-serif'; g.fillText('PDF 편집 앱으로 고쳐서 다시 저장하면 백업이 지워질 수 있어요.', 80, 295);
     g.fillStyle = '#1a1a18';
-    ['복구하는 법', '1. 이 파일을 폰에 저장해요.', `2. ${APP_NAME} → 설정 → [백업 파일로 복구]`, '3. 이 파일을 골라요.'].forEach((t, i) => { g.font = i ? '38px sans-serif' : 'bold 40px sans-serif'; g.fillText(t, 80, 385 + i * 62); });
+    ['복구하는 법', '1. 이 파일을 저장해 둬요.', `2. ${APP_NAME} → 설정 → [백업 파일로 복구]`, '3. 이 파일을 골라요.'].forEach((t, i) => { g.font = i ? '38px sans-serif' : 'bold 40px sans-serif'; g.fillText(t, 80, 385 + i * 62); });
     if (extra.length) { g.fillStyle = '#3b3577'; g.font = 'bold 34px sans-serif'; g.fillText('2쪽부터: 물건 찾아보기와 칸 번호 지도 (앱 없이 이 PDF로도 보여요)', 80, 650, W - 160); }
     g.fillStyle = '#6b6960'; g.font = '30px sans-serif'; g.fillText(`만든 날: ${fileDateTime().replace('_', ' ')}`, 80, extra.length ? 740 : 660);
     const jpg = atob(cv.toDataURL('image/jpeg', 0.85).split(',')[1]);
@@ -812,8 +812,8 @@ function askRestore(imported) {
     const when = t && !isNaN(t) ? ` · ${t.getFullYear()}.${p2(t.getMonth() + 1)}.${p2(t.getDate())} ${p2(t.getHours())}:${p2(t.getMinutes())} 백업` : '';
     openSheet(`<span class="kick">백업 파일로 복구</span>
         <h2>백업 파일로 복구할까요?</h2>
-        <p>지금 이 폰에 있는 사진·구역·물건이 모두 백업 파일 내용으로 바뀌어요.</p>
-        <p class="st-sum">백업 파일: 사진 ${ps.length}장 · 물건 ${items}개${when}${ps.length ? '' : '<small class="st-red">사진이 없는 백업이에요 · 복구하면 지도가 비어요</small>'}${vis().length && !SAMPLE ? `<small>지금 이 폰: 사진 ${vis().length}장 · 물건 ${counts().items}개</small>` : ''}</p>
+        <p>지금 이 ${DEV}에 있는 사진·구역·물건이 모두 백업 파일 내용으로 바뀌어요.</p>
+        <p class="st-sum">백업 파일: 사진 ${ps.length}장 · 물건 ${items}개${when}${ps.length ? '' : '<small class="st-red">사진이 없는 백업이에요 · 복구하면 지도가 비어요</small>'}${vis().length && !SAMPLE ? `<small>지금 이 ${DEV}: 사진 ${vis().length}장 · 물건 ${counts().items}개</small>` : ''}</p>
         <div class="stack"><button type="button" class="btn btn-p" data-act="stRestoreGo">복구하기</button><button type="button" class="btn btn-s" data-act="sheetClose">취소</button></div>`, () => { if (!restoring) pendingRestore = null; });
 }
 function writePhotoData(json) { // v1 safeStorage.setItem('savedSystemData', …)와 같은 곳 (IndexedDB, 없으면 localStorage)
@@ -850,7 +850,7 @@ function resetAll(withBackup) {
     if (withBackup) {
         exportSystemData();
         // 파일이 실제로 저장됐는지 본 뒤에 지운다 (내려받기가 막히면 데이터만 사라지는 일이 없게)
-        setTimeout(() => openSheet(`<span class="kick st-red">되돌릴 수 없어요</span><h2>백업 파일이 저장됐는지 확인해 주세요</h2><p>확인을 누르면 이 폰의 데이터를 모두 지워요.</p>
+        setTimeout(() => openSheet(`<span class="kick st-red">되돌릴 수 없어요</span><h2>백업 파일이 저장됐는지 확인해 주세요</h2><p>확인을 누르면 이 ${DEV}의 데이터를 모두 지워요.</p>
             <div class="stack"><button type="button" class="btn btn-p" data-act="stWipe">확인, 지우기</button><button type="button" class="btn btn-s" data-act="sheetClose">취소</button></div>`), 800);
         return;
     }
@@ -887,15 +887,15 @@ function renderBackup() {
         <main class="wrap st-main">
             <span class="kick st-kick">백업</span>
             <h1 class="h1 st-title">백업·복구</h1>
-            <p class="st-lead">사진·구역·물건은 이 폰에만 있어요. 백업 파일을 받아 두면 폰을 바꾸거나 지워져도 되살릴 수 있어요.</p>
+            <p class="st-lead">사진·구역·물건은 ${DEV_HERE}에만 있어요. 백업 파일을 받아 두면 ${DEV_OBJ} 바꾸거나 지워져도 되살릴 수 있어요.</p>
             <ul class="st-facts">
                 <li><span class="st-k">마지막 백업</span><span><b class="${!last || due ? 'st-red' : ''}">${last ? agoDays(last) : '아직 없음'}</b>${t ? `<small>${t.getMonth() + 1}월 ${t.getDate()}일 ${p2(t.getHours())}:${p2(t.getMinutes())}${due ? ' · 그 뒤로 바뀐 게 있어요' : ''}</small>` : ''}</span></li>
-                <li><span class="st-k">${SAMPLE ? '지금 보는 예시' : '이 폰에 있는 것'}</span><span>${n.photos ? `사진 ${n.photos}장 · 구역 ${n.zones}개 · 물건 ${n.items}개` : '아직 사진이 없어요'}</span></li>
+                <li><span class="st-k">${SAMPLE ? '지금 보는 예시' : `이 ${DEV}에 있는 것`}</span><span>${n.photos ? `사진 ${n.photos}장 · 구역 ${n.zones}개 · 물건 ${n.items}개` : '아직 사진이 없어요'}</span></li>
             </ul>
             ${iphoneWarn()}
             <div class="st-cta">
                 ${SAMPLE ? `<p class="st-fine">지금은 예시를 보고 있어요. 예시는 백업하지 않아요 · 예시를 닫으면 내 지도를 백업할 수 있어요.</p>` : ''}
-                <p class="st-fine">백업 파일은 PDF예요. 열면 복구하는 법과 물건 찾아보기가 보여요. 카톡 ‘나와의 채팅’에 보내 두면 폰을 바꿀 때 편해요.<br>복구하면 지금 이 폰의 사진·구역·물건이 백업 내용으로 바뀌어요.</p>
+                <p class="st-fine">백업 파일은 PDF예요. 열면 복구하는 법과 물건 찾아보기가 보여요. 카톡 ‘나와의 채팅’에 보내 두면 ${DEV_OBJ} 바꿀 때 편해요.<br>복구하면 지금 이 ${DEV}의 사진·구역·물건이 백업 내용으로 바뀌어요.</p>
             </div>
             <div class="dock">${SAMPLE ? `<button type="button" class="btn btn-p" data-act="sampleExit">예시 닫기</button>` : `<button type="button" class="btn btn-p" data-act="stBackup"${n.photos ? '' : ' disabled'}>백업 파일 받기</button>`}<button type="button" class="btn btn-s" data-act="stRestore">파일로 복구</button></div>
         </main>`;
@@ -910,15 +910,15 @@ function renderData() {
         <header class="top">${backBtn(lab, fb)}</header>
         <main class="wrap st-main">
             <h1 class="h1 st-title">내 데이터는<br>어디에 있나요?</h1>
-            <p class="st-note">지금 이 폰: <span id="stDataSum">${esc(summaryLine())}</span></p>
+            <p class="st-note">지금 이 ${DEV}: <span id="stDataSum">${esc(summaryLine())}</span></p>
             <div class="st-tbl">
-                <div class="st-tr"><span>이 폰</span><span>사진, 구역, 물건, 메모 전부<small>항상</small></span></div>
+                <div class="st-tr"><span>이 ${DEV}</span><span>사진, 구역, 물건, 메모 전부<small>항상</small></span></div>
                 <div class="st-tr"><span>Roboflow<small>미국</small></span><span>사진 1장 (저장하지 않도록 설정)<small>[AI로 구역 찾기]를 누를 때만 · Google 중계 서버를 거쳐 전달</small></span></div>
                 <div class="st-tr"><span>Google 폼</span><span>직접 적은 의견<small>[의견 보내기]를 쓸 때만</small></span></div>
                 <div class="st-tr"><span>Google 시트<small>사용 통계</small></span><span>앱을 쓴 날짜와 무작위 번호만<small>하루 한 번 · 사진·이름·메모·개수는 보내지 않음 · 설정에서 끌 수 있음</small></span></div>
                 <div class="st-tr"><span>Cloudflare<small>방문 통계</small></span><span>이 페이지를 연 기록 (쿠키 없음)<small>몇 명이 들어왔는지 세는 용도</small></span></div>
             </div>
-            <p class="st-p">사진·물건 같은 내용은 <b>기본으로 이 폰에만</b> 저장돼요. 같이 보기 같은 기능이 생겨도 <b>직접 켤 때만</b> 서버에 올라가요. 폰을 바꾸기 전에는 설정에서 백업 파일을 받아 두세요.</p>
+            <p class="st-p">사진·물건 같은 내용은 <b>기본으로 ${DEV_HERE}에만</b> 저장돼요. 같이 보기 같은 기능이 생겨도 <b>직접 켤 때만</b> 서버에 올라가요. ${DEV_OBJ} 바꾸기 전에는 설정에서 백업 파일을 받아 두세요.</p>
             <p class="st-fine">사파리·크롬·카톡 안 브라우저는 저장하는 곳이 따로라, 넣은 곳에서만 보여요. 옮길 땐 <a href="#/backup" data-act="go" data-to="#/backup">백업 파일</a>로 옮겨요.</p>
             <div class="st-cta"><button type="button" class="btn btn-s" data-act="back" data-fb="${esc(fb)}">닫기</button></div>
         </main>`;
@@ -937,7 +937,7 @@ function renderReset() {
         <main class="wrap st-main">
             <span class="kick st-kick st-red">되돌릴 수 없어요</span>
             <h1 class="h1 st-title">${can || SAMPLE ? '모든 데이터를 지울까요?' : '지울 데이터가 없어요'}</h1>
-            <p class="st-lead">사진·구역·물건·메모가 이 폰에서 모두 지워지고 <b>되돌릴 수 없어요.</b> 지우기 전에 백업을 받아 두는 걸 권해요.</p>
+            <p class="st-lead">사진·구역·물건·메모가 이 ${DEV}에서 모두 지워지고 <b>되돌릴 수 없어요.</b> 지우기 전에 백업을 받아 두는 걸 권해요.</p>
             <ul class="st-facts"${can ? '' : ' hidden'}>
                 <li><span class="st-k">지워지는 것</span><span>${n.photos && can ? `사진 ${n.photos}장 · 물건 ${n.items}개<small>자리 미정 · 찾은 기록 · 업종</small>` : '—'}</span></li>
                 <li><span class="st-k">남는 것</span><span>쓰는 곳 · 기능 켜기 · 글자 크기<small>매장·업체 이름 · 사용 통계 설정</small></span></li>
@@ -945,7 +945,7 @@ function renderReset() {
             <div class="st-cta">
                 ${SAMPLE ? `<p class="st-fine">지금은 예시를 보고 있어요. 예시를 닫은 뒤에 지울 수 있어요.</p><button type="button" class="btn btn-p" data-act="sampleExit">예시 닫기</button>`
                     : can ? `<button type="button" class="btn btn-p" data-act="stResetBk">백업 받고 지우기</button><button type="button" class="btn btn-s st-danger" data-act="stResetNo">백업 없이 지우기</button>`
-                    : '<p class="st-fine">이 폰엔 지울 사진이 없어요.</p>'}
+                    : `<p class="st-fine">이 ${DEV}엔 지울 사진이 없어요.</p>`}
                 <button type="button" class="tlink" data-act="back" data-fb="${esc(fb)}">취소</button>
             </div>
         </main>`;

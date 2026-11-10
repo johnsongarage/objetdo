@@ -7,7 +7,7 @@
   - index.html(기본 주소 → 새 화면으로 넘기는 페이지) · v2/index.html · v2/*.js: 제목·공유 미리보기 글·APP_NAME·화면 글자
   - manifest.webmanifest: 설치 이름(name, short_name)
   - server/ai-proxy.gs: 맨 위 설명 주석
-손으로 해야 하는 것 (끝나면 다시 알려 준다): og-image.png 그림 속 글자, 카톡 채널 이름
+손으로 해야 하는 것 (끝나면 다시 알려 준다): og-image.png 그림 속 글자(tools/og-image.html 고치고 node tools/make_og_image.js), 카톡 채널 이름
 """
 import json, pathlib, re, sys
 
@@ -45,7 +45,7 @@ def main():
         gs_p.write_text(gs_p.read_text(encoding='utf-8').replace(old, new), encoding='utf-8')
 
     print(f'"{old}" → "{new}" (v1.html·index.html·v2 {n_html}곳, manifest, ai-proxy.gs 주석)')
-    print('남은 일: og-image.png 그림 속 글자 새로 만들기 · v1.html·index.html·v2/index.html의 og-image.png?v= 숫자 올리기 · 카톡 채널 이름')
+    print('남은 일: og-image.png 그림 속 글자 새로 만들기(tools/og-image.html → node tools/make_og_image.js) · v1.html·index.html·v2/index.html의 og-image.png?v= 숫자 올리기 · 카톡 채널 이름')
 
 if __name__ == '__main__':
     main()

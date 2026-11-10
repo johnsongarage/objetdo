@@ -1193,7 +1193,7 @@ function syncViewerPage() { // 지금 보고 있는 쪽 "3 / 9쪽"
 function openPrintNameSheet() {
     const home = isHome();
     const card = openSheet(`<h2>종이에 넣을 이름</h2>
-        <p>비워 두면 넣지 않아요 · 이 폰에 저장돼요</p>
+        <p>비워 두면 넣지 않아요 · 이 ${DEV}에 저장돼요</p>
         <label class="pr-field"><span>${home ? '머리글 이름' : '매장 이름'}<small>인쇄물 머리글·파일 이름에 들어가요</small></span><input type="search" id="prStoreIn" maxlength="20" autocomplete="off" enterkeyhint="next" placeholder="${home ? '예: 우리 집' : '예: 다산점 창고'}"></label>
         <label class="pr-field"><span>정리 업체 이름<small>정리해 드린 분이 넣으면 인쇄물·백업 PDF 아래에 ‘정리 · 이름’으로 들어가요</small></span><input type="search" id="prOrgIn" maxlength="30" autocomplete="off" enterkeyhint="done" placeholder="예: 다산정리수납 010-1234-5678"></label>
         <div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">다 했어요</button></div>`, () => { if (parseRoute().name === 'print') renderPrintPreview(); });
