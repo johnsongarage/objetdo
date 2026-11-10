@@ -6,7 +6,7 @@
 ## 지금 상태
 - 앱 이름 **오브젯도 (Objetdo)**, 옛 이름 창고여지도. 앱 버전 **베타 2026.11.02.13**
 - 저장소 `johnsongarage/udigo` (GitHub 도구에선 owner `trafficjourney`로 불러도 넘어감), 작업 브랜치 `claude/relaxed-archimedes-1zuo3k`
-- 앱 https://johnsongarage.github.io/objetdo/ · 랜딩 https://johnsongarage.github.io/objetdo/start/
+- 앱 https://johnsongarage.co.kr/objetdo/ · 랜딩 https://johnsongarage.co.kr/objetdo/start/
 - 홈페이지 저장소 `johnsongarage/johnsongarage.github.io` (같은 브랜치 이름), 사업 본부 `kery27/hq`
 - 미배포 커밋 없음 (마지막 배포 #254)
 
