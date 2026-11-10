@@ -221,6 +221,19 @@ button.zn { cursor: pointer; }
 .sheet-card { width: 100%; max-width: 480px; background: var(--bg); padding: 26px var(--gut) calc(22px + env(safe-area-inset-bottom)); border-top: 1px solid var(--ink); }
 .sheet-card h2 { margin: 0; font-family: var(--serif); font-size: 22px; }
 .sheet-card p { margin: 10px 0 22px; font-size: 15px; color: var(--sub); }
+/* 움직임 (11/10): 알림은 아래에서 쓱 올라오고 내려가며 사라짐 · 확인 창은 바탕이 서서히 + 창이 올라옴 · 닫힐 땐 거꾸로 (app.js ghostOut: 상태는 바로 닫히고 모습만 사라진다) */
+.toast.in { animation: toastIn .24s cubic-bezier(.2, .8, .2, 1); }
+.toast.out { animation: toastOut .17s ease-in forwards; pointer-events: none; }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 18px); } }
+@keyframes toastOut { to { opacity: 0; transform: translate(-50%, 12px); } }
+.sheet.in { animation: shFade .22s ease-out; }
+.sheet.in .sheet-card { animation: shUp .28s cubic-bezier(.2, .8, .2, 1); }
+.sheet.out { animation: shFade .18s ease-in reverse forwards; }
+.sheet.out .sheet-card { animation: shUp .18s ease-in reverse forwards; }
+@keyframes shFade { from { background: rgba(36, 30, 26, 0); } }
+@keyframes shUp { from { transform: translateY(40px); opacity: .4; } }
+@keyframes shPop { from { transform: scale(.96); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .toast.in, .toast.out, .sheet.in, .sheet.out, .sheet.in .sheet-card, .sheet.out .sheet-card { animation: none; } }
 
 @media (prefers-reduced-motion: reduce) {
     .ph-in { transition: none; }
@@ -413,6 +426,7 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
 
     /* 아래에서 올라오던 확인 창 → 가운데 */
     .sheet { align-items: center; }
+    .sheet.in .sheet-card, .sheet.out .sheet-card { animation-name: shPop; }   /* PC: 가운데서 살짝 커지며 */
     .sheet-card { max-width: 520px; max-height: calc(100vh - 48px); overflow-y: auto; border: 1px solid var(--ink); box-shadow: 0 18px 50px rgba(36, 30, 26, .22); padding-bottom: 24px; }
     body.side-on .toast { left: calc(50% + var(--sidew) / 2); }
 

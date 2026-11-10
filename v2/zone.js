@@ -112,12 +112,22 @@ body.zs-on .toast { bottom: calc(var(--zsh, 50vh) + var(--kb, 0px) + 10px); }
 /* 본문 폭이 줄어드는 걸 천천히 하면 그동안 사진 자리가 움직여 '고른 칸 보이게'(zsReveal)가 빗나간다 → 바로 */
 @media (min-width: 1024px) and (max-width: 1279px) { body.zs-on .app { padding-right: 444px; } }
 @keyframes zsSide { from { transform: translateX(24px); opacity: .5; } }
+/* 움직임 (11/10): 물건 창이 닫힐 땐 내려가며(PC는 오른쪽으로) · 넣은 물건은 목록으로 날아 들어가 그 줄이 잠깐 빛나고 물건 수가 톡 */
+.zs.zs-out { animation: zsDown .2s ease-in forwards; }
+@keyframes zsDown { to { transform: translateY(44px); opacity: 0; } }
+@keyframes zsSideOut { to { transform: translateX(32px); opacity: 0; } }
+@media (min-width: 1024px) { .zs.zs-out { animation-name: zsSideOut; } body.zs-on .toast.lift { bottom: calc(92px + env(safe-area-inset-bottom)); } }
+.zz-fly { position: fixed; left: 0; top: 0; z-index: 60; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: #FBF8F3; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 16px rgba(36, 30, 26, .22); }
+.zz-it.zz-new { animation: zzNew 1.6s ease-out; }
+@keyframes zzNew { 0% { background: transparent; } 28% { background: var(--accent-soft); } 100% { background: transparent; } }
+#zzCount em.bump { display: inline-block; animation: zzBump .45s ease-out .34s; }
+@keyframes zzBump { 45% { transform: scale(1.4); color: var(--accent); } }
 /* 창을 닫은 칸: 빨간 테두리가 바로 꺼지지 않고 잠깐 남았다 사라진다 (PC — 어느 칸을 닫았는지 눈에 남게) */
 .zn.was { z-index: 4; animation: znWas 1.2s ease-out; }
 .zn.was b { animation: znWasB 1.2s ease-out; }
 @keyframes znWas { from { border: calc(3px * var(--k)) solid var(--accent); box-shadow: 0 0 0 calc(2px * var(--k)) #fff; } }
 @keyframes znWasB { from { background: var(--accent); color: #fff; } }
-@media (prefers-reduced-motion: reduce) { .zs.up, .zn.was, .zn.was b { animation: none; } .app { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .zs.up, .zn.was, .zn.was b, .zs.zs-out, .zz-it.zz-new, #zzCount em.bump { animation: none; } .app { transition: none; } }
 `);
 
 const MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>';
@@ -336,6 +346,7 @@ function zsHide(refresh) {
     if (activeDictation) activeDictation.stop();
     zzSaveName();
     const spot = refresh ? zsSpot() : null; // 같은 화면에 남을 때만 (다른 화면으로 가면 그 화면이 스크롤을 정한다)
+    if (refresh) ghostOut(el, 'zs-out', 220); // 닫히는 모습: 내려가며 (PC는 오른쪽으로) — 다른 화면으로 갈 땐 그냥 사라진다
     el.hidden = true; el.innerHTML = ''; document.body.classList.remove('zs-on'); syncZsH();
     document.querySelectorAll('.zn.cur, .zrow.cur').forEach(e => e.classList.remove('cur'));
     if (zz && zz.mode === 'sheet') zz = null;
@@ -393,12 +404,12 @@ function zsReveal() { // 그 칸이 창에 가리지 않게 화면을 살짝 올
     window.scrollBy({ top: dy, behavior: reduce ? 'auto' : 'smooth' });
 }
 // 아래 줄 (이전 · 완료 · 다음 또는 새 칸 그리기) — 물건 창·가구 고르기 같이
-function zsFootHTML(zi, n, inEdit) {
+function zsFootHTML(zi, n, inEdit, sp) {
     const last = zi >= n - 1;
     return `<div class="zs-foot">
             <button type="button" class="btn btn-s" data-act="zsStep" data-d="-1"${zi > 0 ? '' : ' disabled'} aria-label="이전 칸">‹ 이전</button>
             <button type="button" class="btn btn-p" data-act="zsDone">완료</button>
-            ${inEdit && last ? `<button type="button" class="btn btn-s" data-act="zsDrawNext">새 칸 그리기</button>` : `<button type="button" class="btn btn-s" data-act="zsStep" data-d="1"${last ? ' disabled' : ''} aria-label="다음 칸">다음 ›</button>`}
+            ${inEdit && last ? `<button type="button" class="btn btn-s" data-act="zsDrawNext">${sp ? '새 가구 그리기' : '새 칸 그리기'}</button>` : `<button type="button" class="btn btn-s" data-act="zsStep" data-d="1"${last ? ' disabled' : ''} aria-label="다음 칸">다음 ›</button>`}
         </div>`;
 }
 // 공간 사진의 네모 = 가구: 물건 넣기 대신 '어느 가구 사진인지' 고른다 (한 가구는 한 네모에만). 없으면 바로 찍어 넣기
@@ -420,7 +431,7 @@ function paintSpaceSheet() {
             <button type="button" class="sp-new" data-act="spNew">+ 이 가구 사진 새로 넣기</button>
             <div class="zs-more">${q ? `<button type="button" data-act="spOpen">${esc(q.title || '사진')} 보기 →</button>` : ''}<button type="button" class="danger" data-act="zzDelete">이 네모 지우기</button></div>
         </div>
-        ${zsFootHTML(zi, p.zones.length, cur === 'edit')}`;
+        ${zsFootHTML(zi, p.zones.length, cur === 'edit', true)}`;
 }
 function paintZoneSheet() {
     const c = zzCur(); if (!c) return;
@@ -488,6 +499,31 @@ function zzSuggest(q) { // 칠 때: 새로 넣기 + 다른 칸에 있는 같은 
 // 넣기 (여러 개 한 번에). 이미 있는 이름은 건너뛴다. 되돌리기는 넣은 것·새로 만든 자주 쓰는 물건·자리 미정까지 원래대로
 // 고치던 카드 칸(수량·메모…)이 아직 눌린 채면 먼저 저장 (blur → change)
 function zzCommitCard() { const a = document.activeElement; if (a && a.closest && a.closest('.zz-card [data-f]')) a.blur(); }
+// 넣은 물건이 '이 칸의 물건' 목록으로 날아 들어간다 (11/10) — 들어간 줄은 잠깐 빛나고 물건 수는 톡.
+// 목록이 창 안에서 가려져 있으면 창을 굴리지 않고(넣던 칸이 밀려나지 않게) 목록 제목으로 날아간다
+let zzFlyFrom = null; // 누른 칩·추천 줄의 자리
+function zzFly(names, from) {
+    const list = zzQ('#zzItems'); if (!list) return;
+    const rows = names.map(n => list.querySelector(`.zz-it[data-n="${CSS.escape(n)}"]`)).filter(Boolean);
+    rows.forEach(r => replay(r, 'zz-new')); replay(zzQ('#zzCount em'), 'bump');
+    if (!from || RM() || !rows.length) return;
+    const box = (zz.mode === 'sheet' ? zzQ('#zsBody') : null), vb = box ? box.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+    const head = zzQ('#zzCount');
+    rows.slice(0, 3).forEach((r, k) => {
+        const rr = r.getBoundingClientRect(), seen = rr.top >= vb.top && rr.bottom <= vb.bottom, to = ((seen ? r.querySelector('.nm') : head) || r).getBoundingClientRect();
+        const g = document.createElement('div'); g.className = 'zz-fly'; g.textContent = names[k]; g.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(g);
+        const gw = g.offsetWidth, gh = g.offsetHeight;
+        const x0 = from.chip ? from.r.left + (from.r.width - gw) / 2 : from.r.left + 4, y0 = from.r.top + (from.r.height - gh) / 2;
+        g.style.left = x0 + 'px'; g.style.top = y0 + 'px';
+        const dx = to.left - 12 - x0, dy = to.top + (Math.min(to.height, 26) - gh) / 2 - y0;
+        g.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${dx}px, ${dy}px) scale(.94)`, opacity: 1, offset: .78 },
+            { transform: `translate(${dx}px, ${dy}px) scale(.9)`, opacity: 0 }
+        ], { duration: 560, delay: k * 80, easing: 'cubic-bezier(.35, .1, .25, 1)', fill: 'both' }).onfinish = () => g.remove();
+    });
+}
 function zzAdd(names, label) {
     const c = zzCur(); if (!c) return;
     zzCommitCard();
@@ -499,9 +535,10 @@ function zzAdd(names, label) {
     const newBase = addBaseItems(added); // 처음 쓴 물건은 자주 쓰는 물건 맨 앞에 (v1과 같다)
     markChecked(c.z); saveAll(); cleanInbox();
     zz.open = null; // 물건을 넣으면 고치던 카드는 닫는다 (11/10)
-    const inp = zzQ('#zzIn'); if (inp && label !== 'chip') inp.value = '';
+    const inp = zzQ('#zzIn'), from = zzFlyFrom || (inp && label !== 'chip' && label !== 'review' ? { r: inp.getBoundingClientRect() } : null); zzFlyFrom = null;
+    if (inp && label !== 'chip') inp.value = '';
     const sug = zzQ('#zzSug'); if (sug && label !== 'chip') sug.innerHTML = '';
-    zzRepaint();
+    zzRepaint(); zzFly(added, from);
     const first = added.length > 1 ? `${added[0]} 외 ${added.length - 1}개` : added[0];
     toast(`${josa(first, '을', '를')} 넣었어요`, () => {
         c.z.items = c.z.items.filter(i => !added.includes(i.name));
@@ -574,11 +611,11 @@ Object.assign(ACT, {
     },
     zzPin: (el) => { const c = zzCur(), card = el.closest('.zz-card'), it = c && card && c.z.items.find(x => x.name === card.dataset.n); if (!it) return; if (it.pin) delete it.pin; else it.pin = true; saveAll(); zzRepaint(); },
     zzRemove: (el) => { const card = el.closest('.zz-card'); if (card) zzRemove(card.dataset.n); },
-    zzPut: (el) => zzAdd([el.dataset.n], el.closest('#zzSug') ? 'typed' : 'chip'),
+    zzPut: (el) => { zzFlyFrom = { r: el.getBoundingClientRect(), chip: true }; zzAdd([el.dataset.n], el.closest('#zzSug') ? 'typed' : 'chip'); },
     zzAddTyped: () => { const inp = zzQ('#zzIn'); if (inp && inp.value.trim()) zzAdd(parseTypedItems(inp.value)); },
     zzMore: () => { zz.more = true; zzRepaint(); },
     zzMic: () => zzMic(),
-    zzReviewOk: () => { const picked = [...document.querySelectorAll('#sheet .check-list input:checked')].map(i => i.value); closeSheet(); if (picked.length) zzAdd(picked); },
+    zzReviewOk: () => { const picked = [...document.querySelectorAll('#sheet .check-list input:checked')].map(i => i.value); closeSheet(); if (picked.length) zzAdd(picked, 'review'); },
     zzIndustry: (el) => { if (el.dataset.k) { setIndustry(el.dataset.k); toast('자주 쓰는 물건을 맞췄어요'); } else kvSet('industryAsked', '1'); zzRepaint(); },
     zzDelete: () => zzDelete(),
     zzDeleteOk: () => zzDeleteOk(),

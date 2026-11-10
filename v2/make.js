@@ -67,6 +67,14 @@ addCSS(`
 .ed-z.low { border-style: dashed; border-color: #FBF8F3; box-shadow: 0 0 0 1px rgba(158, 59, 42, .9); }
 /* AI '확인' 딱지 — '.ed-z i' 처럼 i 전체에 걸면 모서리 손잡이(<i class=ed-h>)까지 못 누른다 (11/10 고침) */
 .ed-z .ed-tag { position: absolute; right: 3px; top: 3px; padding: 1px 5px; font-style: normal; font-size: 11px; line-height: 1.4; background: var(--accent); color: #fff; white-space: nowrap; pointer-events: none; }
+/* 움직임 (11/10): 칸이 생기면 하나씩 톡톡(AI는 번호 순서) · 그리기를 켜면 빨간 테두리가 바깥에서 조여 오고 안내 줄이 펼쳐짐 */
+.ed-z.pop { animation: edPop .34s cubic-bezier(.2, .9, .3, 1.3) var(--d, 0ms) both; }
+@keyframes edPop { from { opacity: 0; transform: scale(.82); } }
+.ed-ph.drawing.fx { animation: edDrawOn .5s ease-out; }
+@keyframes edDrawOn { from { outline-color: transparent; outline-offset: 14px; } }
+.hint.ed-hint-in { overflow: hidden; animation: edHintIn .32s ease-out; }
+@keyframes edHintIn { from { opacity: 0; max-height: 0; margin-top: 0; transform: translateY(-4px); } to { opacity: 1; max-height: 64px; } }
+@media (prefers-reduced-motion: reduce) { .ed-z.pop, .ed-ph.drawing.fx, .hint.ed-hint-in { animation: none; } }
 `);
 
 // ── AI 칸 찾기 (v1과 같은 서버·같은 규칙) ──
@@ -251,7 +259,7 @@ function paintEdit(keepScroll) {
             <div class="ed-name"><span class="kick">${sp ? '공간 사진' : L ? `${L} 사진` : `사진 #${vis().indexOf(p) + 1}`} 이름</span><span class="meta">${Z} ${p.zones.length}</span></div>
             <input class="ed-title" id="edTitle" type="search" value="${defTitle ? '' : esc(p.title)}" placeholder="예: ${sp ? (isHome() ? '우리 집 전체, 거실' : '매장 전체, 1층 창고') : isHome() ? '거실 수납장, 붙박이장 위' : '창고 A, 냉장고 안'}" aria-label="사진 이름" enterkeyhint="done" autocomplete="off">
             <div class="ed-wrap${ed.zoom > 1 ? ' zoomed' : ''}" id="edWrap">
-                <div class="ed-ph${ed.draw ? ' drawing' : ''}" id="edPh" style="--ar:${800 / h800(p)}">
+                <div class="ed-ph${ed.draw ? ' drawing' : ''}${ed.draw && ed.drawFx ? ' fx' : ''}" id="edPh" style="--ar:${800 / h800(p)}">
                     ${p.imgData ? `<img src="${esc(p.imgData)}" alt="">` : ''}
                     ${p.zones.map((z, i) => edZoneHTML(p, z, i)).join('')}
                     ${empty && !ed.draw && !ed.busy && sp ? `<div class="ed-start"><b style="display:block;margin-bottom:4px">가구를 네모로 그려요</b><p>선반·냉장고·서랍장처럼 물건을 넣어 둔 가구마다 하나씩</p><button type="button" class="btn btn-p" data-act="edDraw">가구 그리기</button></div>` : ''}
@@ -260,7 +268,7 @@ function paintEdit(keepScroll) {
                 </div>
             </div>
             ${mixed && !ed.draw ? `<div class="ed-order"><span>번호가 사진 순서와 달라요 · 나중에 그린 칸이 뒤 번호예요</span><button type="button" class="btn btn-s" data-act="edSort">왼쪽 위부터 다시 매기기</button></div>` : ''}
-            ${ed.draw ? `<p class="hint">${sp ? '가구 모서리에서 반대 모서리까지 끌어요 · 다 그리면 어느 가구인지 고르는 창이 열려요' : '손가락으로 칸 모서리에서 반대 모서리까지 끌어요 · 다 그리면 바로 물건 창이 열려요'}</p>` : ''}
+            ${ed.draw ? `<p class="hint${ed.drawFx ? ' ed-hint-in' : ''}">${sp ? '가구 모서리에서 반대 모서리까지 끌어요 · 다 그리면 어느 가구인지 고르는 창이 열려요' : '손가락으로 칸 모서리에서 반대 모서리까지 끌어요 · 다 그리면 바로 물건 창이 열려요'}</p>` : ''}
             ${!empty && sp ? `<div class="ed-help"><b>공간 사진, 이렇게 해요</b><ol><li>가구 그리기 · [가구 그리기]를 누르고 가구 위를 끌어요</li><li>잇기 · 네모를 누르고 어느 가구 사진인지 골라요 (없으면 바로 찍어 넣기)</li><li>찾을 때 · 찾은 결과의 ‘가는 길’에 이 사진이 나와 그 가구가 빛나요</li></ol></div>` : ''}
             ${!empty && !sp ? `<div class="ed-help"><b>구역 고치기, 이렇게 해요</b><ol><li>구역 만들기 · [구역 그리기]를 누르고 사진 위를 끌어요</li><li>물건 넣기 · 구역을 누르면 물건 창이 열려요</li><li>옮기기·크기 · 고른 구역을 끌거나, 모서리를 당겨요</li>${p.zones.some(z => AI_LOW.has(z)) ? '<li>점선 ‘확인’ · AI가 덜 확실한 칸이에요. 맞으면 그대로, 아니면 지우세요</li>' : ''}</ol></div>` : ''}
             <div class="sec-head"><span>${Z} 목록 ${p.zones.length}</span>${!sp && p.zones.length > 1 ? '<button type="button" class="ed-sort" data-act="edSort">번호 다시 매기기</button>' : '<span></span>'}</div>
@@ -281,6 +289,7 @@ function paintEdit(keepScroll) {
     const tPid = String(p.id); // 이 칸이 가리키는 사진 (늦게 오는 change도 이 사진에만)
     t.addEventListener('change', () => { const pp = photoById(tPid); if (!pp) return; const v = t.value.trim(); pp.title = v || pp.title || '#' + (vis().indexOf(pp) + 1); syncSpaceNames(); saveAll(); });
     bindEditPointer();
+    if (ed.drawFx || ed.pop != null) { const e0 = ed; setTimeout(() => { e0.drawFx = false; e0.pop = null; }, 0); } // 그 순간에만 움직이게 (같은 틱에 한 번 더 그려도 마지막 그림이 움직인다)
     if (keepScroll) { window.scrollTo(0, y); const w = $('#edWrap'); if (w) w.scrollLeft = wrapX; }
 }
 // AI가 덜 확실하게 찾은 칸 (점선 '확인'): 저장하지 않고 이 화면에서만. 옮기거나 크기를 맞추거나 물건 창을 열면 없어진다
@@ -289,7 +298,8 @@ function edZoneHTML(p, z, i) {
     const b = zoneBox(p, z), sel = ed.sel === i, low = AI_LOW.has(z), sp = isSpace(p), q = sp ? linkedPhoto(z) : null;
     const hs = sel ? [['tl', 0, 0], ['tr', 100, 0], ['bl', 0, 100], ['br', 100, 100]].map(([h, x, y]) => `<i class="ed-h" data-h="${h}" style="left:${x}%;top:${y}%"></i>`).join('') : '';
     const num = sp ? (q ? letterOf(q) || '·' : '?') : String(i + 1), cap = sp ? (q ? q.title || '사진' : '가구 고르기') : `${z.name || ''}${z.items.length ? ` · ${z.items.length}` : ''}`;
-    return `<div class="ed-z${sel ? ' sel' : ''}${low ? ' low' : ''}${sp ? ' sp' : ''}" data-i="${i}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"><b>${esc(num)}</b>${low && !sel ? '<i class="ed-tag">확인</i>' : ''}<span>${esc(cap)}</span>${hs}</div>`;
+    const pop = ed.pop === 'all' || ed.pop === i;
+    return `<div class="ed-z${sel ? ' sel' : ''}${low ? ' low' : ''}${sp ? ' sp' : ''}${pop ? ' pop' : ''}" data-i="${i}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%${pop ? `;--d:${ed.pop === 'all' ? i * 55 : 0}ms` : ''}"><b>${esc(num)}</b>${low && !sel ? '<i class="ed-tag">확인</i>' : ''}<span>${esc(cap)}</span>${hs}</div>`;
 }
 function edPush() { const p = edPhoto(); if (!p) return; ed.undo.push(JSON.stringify(p.zones)); if (ed.undo.length > 30) ed.undo.shift(); }
 // 사진 위 손가락: 그리기 모드면 끌어서 새 칸(→ 바로 물건 창) · 칸 누르기는 그 칸 물건 창 · 고른 칸은 끌어서 옮기기 · 모서리는 크기 · 빈 곳 누르기는 닫기
@@ -339,7 +349,7 @@ function bindEditPointer() {
             if (w > 25 && h > 25) { // v1과 같은 최소 크기
                 edPush();
                 p.zones.push({ x, y, w, h, name: isSpace(p) ? '' : newZoneName(), items: [], checkedAt: Date.now() }); // 공간 사진의 네모는 이름 대신 가구 사진을 잇는다
-                ed.sel = p.zones.length - 1; ed.draw = false; saveAll(); paintEdit(true);
+                ed.sel = p.zones.length - 1; ed.draw = false; ed.pop = ed.sel; saveAll(); paintEdit(true);
                 zsGo(p.id, p.zones.length - 1); // 그린 칸에 바로 물건 넣기 (11/10)
             } else toast('조금 더 크게 끌어 주세요');
             return;
@@ -394,13 +404,13 @@ async function edAIGo() {
         const raw = preds.map(pr => { const w = pr.width * k, h = pr.height * k; return { x: pr.x * k - w / 2, y: pr.y * k - h / 2, w, h, confidence: pr.confidence }; }).filter(b => b.w > 0 && b.h > 0);
         const boxes = readingOrder(refineZones(applyNMS(raw, 0.45), 800, h800(p)));
         ed.busy = false;
-        if (!boxes.length) { ed.draw = true; paintEdit(true); toast('구역을 찾지 못했어요 · 사진 위를 끌어서 직접 그려 주세요'); return; }
+        if (!boxes.length) { ed.draw = true; ed.drawFx = true; paintEdit(true); toast('구역을 찾지 못했어요 · 사진 위를 끌어서 직접 그려 주세요'); return; }
         // 찾은 칸을 바로 사진 위에 (11/10 — 예전엔 고르는 화면을 한 번 거쳤다). 이름은 v1과 같게 1구역·2구역…
         edPush();
         p.zones = boxes.map((b, i) => ({ x: b.x, y: b.y, w: b.w, h: b.h, name: `${i + 1}구역`, items: [], checkedAt: Date.now() }));
         const low = p.zones.filter((z, i) => (boxes[i].confidence || 0) < 0.6);
         low.forEach(z => AI_LOW.add(z));
-        ed.sel = null; saveAll(); paintEdit(true);
+        ed.sel = null; ed.pop = 'all'; saveAll(); paintEdit(true);
         toast(`구역 ${boxes.length}개를 넣었어요${low.length ? ` · 점선 ${low.length}곳은 맞는지 봐 주세요` : ' · 칸을 눌러 물건을 넣어요'}`, () => ACT.edUndo());
     } catch (err) {
         ed.busy = false; paintEdit(true);
@@ -416,8 +426,8 @@ function edSheetSel(zi) {
 }
 function edArmDraw() {
     if (!ed) return;
-    ed.draw = true; ed.sel = null; zsClose();
-    toast('사진 위를 끌어서 다음 칸을 그려요');
+    ed.draw = true; ed.sel = null; ed.drawFx = true; zsClose();
+    toast(isSpace(edPhoto()) ? '사진 위를 끌어서 다음 가구를 그려요' : '사진 위를 끌어서 다음 칸을 그려요');
     setTimeout(() => { const ph = $('#edPh'), bar = document.querySelector('#s-edit .ed-bar'); if (!ph) return; const top = (bar ? bar.getBoundingClientRect().bottom : 0) + 10, r = ph.getBoundingClientRect(); if (r.top < top || r.bottom > innerHeight) window.scrollBy({ top: r.top - top, behavior: 'smooth' }); }, 80);
 }
 
@@ -443,7 +453,7 @@ Object.assign(ACT, {
         if (parseRoute().q.has('sz') && history.state && history.state.zs) { if (depth() > 1) history.go(-2); else backThen(to); return; }
         goBack(to);
     },
-    edDraw: () => { ed.draw = !ed.draw; if (ed.draw) ed.sel = null; paintEdit(true); if (ed.draw) toast('사진 위를 끌어서 칸을 그려요'); },
+    edDraw: () => { ed.draw = !ed.draw; if (ed.draw) { ed.sel = null; ed.drawFx = true; } paintEdit(true); if (ed.draw) toast(isSpace(edPhoto()) ? '사진 위를 끌어서 가구를 그려요' : '사진 위를 끌어서 칸을 그려요'); },
     edDel: () => edDeleteZone(),
     edDelOk: () => { const f = ed && ed.pendingDel; closeSheet(); if (f) { ed.pendingDel = null; f(); } },
     edUndo: () => { const p = edPhoto(); if (!p || !ed.undo.length) return; if (zsOpen()) zsHide(false); p.zones = JSON.parse(ed.undo.pop()); ed.sel = null; saveAll(); if (cur === 'edit') { if (parseRoute().q.has('sz')) zsClose(); paintEdit(true); } toast('되돌렸어요'); },
@@ -465,7 +475,7 @@ Object.assign(ACT, {
     edPickRow: (el) => zsGo(ed.pid, +el.dataset.i), // 목록에서 눌러도 그 칸 물건 창 (사진은 그 칸이 보이게)
     edAI: () => edAI(),
     edAIGo: () => edAIGo(),
-    edAIDraw: () => { closeSheet(); ed.draw = true; paintEdit(true); },
+    edAIDraw: () => { closeSheet(); ed.draw = true; ed.drawFx = true; paintEdit(true); },
     edAIInfo: () => openSheet(`<h2>AI 구역 찾기</h2><p>사진을 칸 찾는 분석 서버로 보내 선반·칸 모양만 찾아요. 찾은 결과(칸 위치)만 돌아오고, 사진은 저장하지 않아요. 무료 베타는 기기마다 ${AI_FREE}번이에요. 사람 얼굴·송장·서류가 찍힌 사진은 보내지 마세요.</p><div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">알겠어요</button></div>`),
     edDelPhoto: () => { const p = edPhoto(); if (!p) return; const n = p.zones.reduce((a, z) => a + z.items.length, 0);
         openSheet(`<h2>이 사진을 지울까요?</h2><p>구역 ${p.zones.length}개${n ? `와 물건 ${n}개` : ''}도 같이 지워져요. 지운 뒤에도 잠깐은 되돌릴 수 있어요.</p><div class="stack"><button type="button" class="btn btn-p" data-act="edDelPhotoOk">사진 지우기</button><button type="button" class="btn btn-s" data-act="sheetClose">그대로 두기</button></div>`); },
