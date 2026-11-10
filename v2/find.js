@@ -22,6 +22,7 @@ function renderHome() {
                 <div id="homeRest" style="display:flex;flex-direction:column;gap:30px">
                     <div class="stats" id="stats"></div>
                     <div id="chipsBox"><span class="kick" id="chipsLabel"></span><div class="chips" id="chips"></div></div>
+                    <div class="home-sp" id="homeSpaces"></div>
                     <nav class="rows" id="homeNav" aria-label="바로 가기"></nav>
                 </div>
             </main>
@@ -56,6 +57,8 @@ function renderHome() {
         + `<button type="button" class="row" data-act="go" data-to="#/map/${encodeURIComponent(first.id)}">수납 지도 보기<span class="ar">→</span></button>`
         + `<button type="button" class="row" data-act="go" data-to="#/list">물건 전체 목록<span class="ar">→</span></button>`
         + `<button type="button" class="row" data-act="go" data-to="#/print">인쇄물 보기<span class="ar">→</span></button>`;
+    $('#homeSpaces').innerHTML = `<span class="kick">사진 ${vis().length}장</span><div class="hs-grid">${vis().map(p => { const sp = isSpace(p), L = sp ? '' : letterOf(p), n = p.zones.reduce((a, z) => a + z.items.length, 0);
+        return `<button type="button" class="hs-c" data-act="mapOne" data-p="${esc(p.id)}"><span class="hs-th">${thumbImg(p)}</span><b>${L ? `<em>${esc(L)}</em>` : sp ? '<em class="sp">공간</em>' : ''}${esc(p.title || '사진')}</b><small>${sp ? `가구 ${p.zones.length}` : `구역 ${p.zones.length} · 물건 ${n}`}</small></button>`; }).join('')}</div>`; // PC만 보인다
     $('#homeFoot').innerHTML = SAMPLE ? '예시는 저장되지 않아요 · 마음껏 눌러 보세요' : `이 폰에만 저장돼요 · <a href="#/backup" data-act="go" data-to="#/backup">백업 받기</a>`;
     $('#homeNudge').innerHTML = homeNudge();
     syncMicHint();
@@ -330,8 +333,8 @@ function renderResult(r) {
             <p class="where"><b>${L ? `${esc(L)} · ` : ''}${esc(p.title || '사진')}</b>${autoZoneName(z.name) ? `, ${esc(posWords(p, z))}` : ''} ${n}번 칸이에요.</p>
             <ul class="facts">${facts.map(([k, v]) => `<li><span class="k">${k}</span><span>${v}</span></li>`).join('')}</ul>
             ${way}
-            <div id="rPhoto">${photoHTML(p, { hit: zi, zoom: zoomOn ? zm : null })}</div>
-            <div class="ph-tools"><span class="hint" style="margin:0;flex:1">두 손가락으로 벌리면 더 크게</span>${zm.s > 1.25 ? `<button type="button" class="tlink" data-act="zoom" id="zoomBtn">사진 전체 보기</button>` : ''}</div>
+            <div class="r-ph"><div id="rPhoto">${photoHTML(p, { hit: zi, zoom: zoomOn ? zm : null })}</div>
+            <div class="ph-tools"><span class="hint" style="margin:0;flex:1">두 손가락으로 벌리면 더 크게</span>${zm.s > 1.25 ? `<button type="button" class="tlink" data-act="zoom" id="zoomBtn">사진 전체 보기</button>` : ''}</div></div>
             ${body}
             ${links ? `<div class="cta">${links}</div>` : ''}
             ${others.length ? `<div class="others"><span class="kick">다른 곳도 있어요</span>${others.map((m, i) => hitHTML(m, q, i)).join('')}</div>` : ''}
@@ -405,7 +408,7 @@ function renderMap(r) {
                 <div class="mf-h">${badge(q) ? `<span class="n${sp ? ' sp' : ''}">${esc(badge(q))}</span>` : ''}<h2>${esc(q.title || '사진')}</h2><button type="button" class="tlink" data-act="go" data-to="#/edit/${encodeURIComponent(q.id)}">${sp ? '가구 고치기' : '구역 고치기'}</button></div>
                 <p class="mf-meta">${mapMetaHTML(q)}${sp ? ' · 가구를 누르면 그 사진으로' : spot ? ` · <button type="button" class="mf-where" data-act="mfJump" data-p="${esc(spot.sp.id)}">어디 있는지 보기</button>` : ''}</p>
                 ${photoHTML(q, sp ? { tap: 'zone', spaceTap: 'spaceGo' } : { tap: 'zone', stale: true })}
-                ${mapRowsHTML(q)}
+                <div class="mf-rows">${mapRowsHTML(q)}</div>
             </section>`; }).join('')}
             ${mapLinks()}`;
     } else if (v === 'grid') { // 사진 바둑판 (칸 테두리만 얇게) → 누르면 이어 보기로 그 사진
@@ -485,7 +488,7 @@ function renderList(r) {
         <main class="wrap" style="padding-bottom:30px">
             <div class="title-row"><h1 class="h1">물건 전체 목록</h1><span class="meta">${rows.length}개 · ${multi ? `사진 ${ips.length}장` : esc((ips[0] && ips[0].title) || '')}</span></div>
             <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="${by === 'abc'}" data-act="listTab" data-by="abc">가나다순</button><button type="button" role="tab" aria-selected="${by === 'zone'}" data-act="listTab" data-by="zone">공간별</button></div>
-            ${body}
+            <div class="lst">${body}</div>
         </main>`;
 }
 
@@ -569,9 +572,10 @@ function doLost() {
 // B8 메뉴 · B1 첫 소개
 // ────────────────────────────────────────────────────────────
 const FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeasXUyRCQNDvlBqHDo4SbQMsNkBpBaHqFqL6aWU091yDmpLw/viewform';
-function renderMenu() {
+// 메뉴 줄: [글, 설명, 주소, 바깥 링크, 누름 동작] — 폰 메뉴 화면과 PC 왼쪽 메뉴(paintSide)가 같이 쓴다
+function menuList() {
     const has = vis().length > 0;
-    const M = [
+    return [
         has && ['수납 지도', '공간 보기 · 구역 고치기', `#/map/${encodeURIComponent(vis()[0].id)}`, 0],
         ['사진 더 넣기', '선반·수납장 사진 넣고 칸 나누기 · AI로 찾기', null, 0, 'addPhoto'],
         has && ['공간 사진', spacePhotos().length ? '가구가 어디 있는지 · 고치기' : '방·창고 전체 한 장 · 가구 위치 알려 주기', spacePhotos().length ? `#/map/${encodeURIComponent(spacePhotos()[0].id)}` : null, 0, spacePhotos().length ? null : 'addSpace'],
@@ -584,6 +588,9 @@ function renderMenu() {
         ['사용법', '처음 쓰는 분을 위한 네 단계', '#/guide', 0],
         ['설정', '백업 · 쓰는 곳 · 기능 켜기', '#/settings', 0]
     ].filter(Boolean);
+}
+function renderMenu() {
+    const M = menuList();
     $('#s-menu').innerHTML = `
         <header class="top"><span class="brand">오브젯도</span><button type="button" class="tlink" data-act="back" data-fb="#/">닫기</button></header>
         <main class="wrap" style="flex:1">
@@ -597,6 +604,29 @@ function renderMenu() {
         </main>
         <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 폰에만 저장돼요 · <a href="${V1()}" data-v1>예전 화면으로 ${EXT}</a></span></footer>`;
 }
+// ── PC 왼쪽 메뉴 (넓은 화면에서만 보인다 · app.css '넓은 화면') ─────────────────
+//   지도가 있는 화면마다 늘 보이는 메뉴: 찾기 · 수납 지도 · 목록 · 자리 미정 · 점검 · 인쇄 + 사진 더 넣기 · 사용법 · 설정 (폰 메뉴와 같은 줄)
+const SIDE_OF = { home: 'home', r: 'home', voice: 'home', map: 'map', edit: 'map', zone: 'map', tips: 'map', list: 'list', move: 'list', inbox: 'inbox', check: 'check', print: 'print', settings: 'settings', backup: 'settings', data: 'settings', reset: 'settings', iphone: 'settings', guide: 'guide', service: 'service' };
+const SIDE_KEY = { '수납 지도': 'map', '공간 사진': 'space', '물건 전체 목록': 'list', '자리 미정': 'inbox', '점검 · 발주': 'check', '번호 스티커 · 지도 인쇄': 'print', '가격 · 대신 만들기': 'service', '사용법': 'guide', '설정': 'settings' };
+function paintSide(name) {
+    const side = $('#side'); if (!side) return;
+    const on = name !== 'intro' && vis().length > 0;
+    document.body.classList.toggle('side-on', on); side.hidden = !on;
+    if (!on) { side.innerHTML = ''; return; }
+    const curK = SIDE_OF[name] || '', ib = inboxItems().length;
+    const row = ([t, s, href, , act], k) => {
+        const a = `class="side-a" title="${esc(s)}"${k && k === curK ? ' aria-current="page"' : ''}`, inner = `<span>${esc(t === '번호 스티커 · 지도 인쇄' ? '인쇄' : t)}</span>${k === 'inbox' && ib ? `<small>${ib}</small>` : ''}`;
+        return act ? `<button type="button" ${a} data-act="${act}">${inner}</button>` : `<button type="button" ${a} data-act="go" data-to="${esc(href)}">${inner}</button>`;
+    };
+    const main = [], more = [];
+    menuList().forEach(m => { if (m[4] === 'addPhoto') return; const k = SIDE_KEY[m[0]]; (k === 'service' || k === 'guide' || k === 'settings' || m[4] === 'sample' || m[4] === 'sampleExit' ? more : main).push(row(m, k)); });
+    side.innerHTML = `<button type="button" class="brand side-brand" data-act="home">오브젯도</button>
+        <nav class="side-nav" aria-label="화면">${row(['찾기', '물건 이름으로 찾기 · 말로 찾기', null, 0, 'home'], 'home')}${main.join('')}</nav>
+        <button type="button" class="btn btn-s side-add" data-act="addPhoto">+ 사진 더 넣기</button>
+        <nav class="side-nav side-more" aria-label="더 보기">${more.join('')}</nav>
+        <p class="side-foot">${SAMPLE ? '예시는 저장되지 않아요' : '가입 없이 이 기기에만 저장돼요'}<br><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">의견 보내기 (1분)</a> · <a href="${V1()}" data-v1>예전 화면 ${EXT}</a></p>`;
+}
+AFTER_ROUTE.push((name) => paintSide(name));
 function renderIntro() {
     const home = isHome();
     const pts = home ? ['사진 위에 물건 위치 기록', '말로 물으면 그 칸이 보여요', '가족 누구나 같은 지도로', '지도 출력해 수납장에 부착'] : ['사진 위에 물건 위치 기록', '말·검색으로 보관 칸 찾기', '수량·유통기한 점검', '지도 출력해 현장에 부착'];
