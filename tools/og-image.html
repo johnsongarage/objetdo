@@ -20,10 +20,11 @@
     .desc { margin: 20px 0 0; font-size: 27px; font-weight: 500; line-height: 1.5; color: var(--sub); }
     .acts { display: flex; gap: 12px; margin-top: 30px; }
     .acts b { padding: 9px 24px 11px; border-radius: 999px; background: var(--ink); color: var(--sheet); font-size: 23px; font-weight: 700; }
-    .right { position: absolute; left: 776px; top: 78px; width: 380px; display: flex; flex-direction: column; align-items: center; }
-    .tile { width: 360px; height: 360px; border-radius: 80px; box-shadow: 0 26px 60px rgba(58, 53, 48, .16), 0 0 0 1px var(--line); overflow: hidden; }
+    /* 아이콘 + 그 아래 검색 줄: 겹치지 않게 띄우고(11/10 가르시아 "아이콘 아래 글씨 너무 붙어 있어"), 둘을 왼쪽 글 묶음 높이 가운데에 */
+    .right { position: absolute; left: 760px; top: 96px; width: 380px; display: flex; flex-direction: column; align-items: center; }
+    .tile { width: 316px; height: 316px; border-radius: 70px; box-shadow: 0 26px 60px rgba(58, 53, 48, .16), 0 0 0 1px var(--line); overflow: hidden; }
     .tile svg { display: block; }
-    .ask { display: flex; align-items: center; gap: 14px; margin-top: -26px; padding: 16px 30px; border-radius: 999px; background: #fff; box-shadow: 0 12px 30px rgba(58, 53, 48, .14); font-size: 25px; font-weight: 700; white-space: nowrap; }
+    .ask { display: flex; align-items: center; gap: 13px; margin-top: 40px; padding: 15px 28px; border-radius: 999px; background: #fff; box-shadow: 0 8px 22px rgba(58, 53, 48, .08), 0 0 0 1px var(--line); font-size: 24px; font-weight: 700; white-space: nowrap; }
     .ask .ar { color: var(--mute); font-weight: 500; }
     .ask .hit { color: var(--accent); }
 </style>
@@ -40,7 +41,7 @@
 </div>
 <div class="right">
     <!-- 앱 아이콘과 같은 칸 마크 (바탕만 미리보기 바탕보다 밝게) -->
-    <div class="tile"><svg viewBox="0 0 512 512" width="360" height="360"><rect width="512" height="512" fill="#FBF8F3"/><rect x="266" y="266" width="130" height="130" fill="#9E3B2A"/><rect x="108" y="108" width="296" height="296" rx="12" fill="none" stroke="#3A3530" stroke-width="30"/><path d="M256 108V404M108 256H404" stroke="#3A3530" stroke-width="30"/></svg></div>
+    <div class="tile"><svg viewBox="0 0 512 512" width="316" height="316"><rect width="512" height="512" fill="#FBF8F3"/><rect x="266" y="266" width="130" height="130" fill="#9E3B2A"/><rect x="108" y="108" width="296" height="296" rx="12" fill="none" stroke="#3A3530" stroke-width="30"/><path d="M256 108V404M108 256H404" stroke="#3A3530" stroke-width="30"/></svg></div>
     <div class="ask">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#3A3530" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
         건전지 <span class="ar">→</span> <span class="hit">여깃도! 팬트리 7번</span>
