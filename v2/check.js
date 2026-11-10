@@ -6,9 +6,11 @@
 //   유통기한: 가까운 순서 · 오래된 칸: 30일 넘게 확인 안 한 칸을 모아 하나씩 '확인했어요'
 // ────────────────────────────────────────────────────────────
 addCSS(`
-.ck-intro { margin: 14px 0 0; font-size: 14px; color: var(--sub); }
+.ck-intro { margin: 14px 0 0; font-size: 14px; line-height: 1.6; color: var(--sub); }
+@media (max-width: 1023px) { .ck-intro { min-height: 3.2em; } }   /* 폰: 탭마다 안내가 한 줄·두 줄이라 목록 시작선이 달라지던 것 → 두 줄 높이로 (11/10) */
 .ck-head { display: grid; grid-template-columns: 1fr 150px 46px; align-items: end; margin-top: 18px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-size: 13px; color: var(--sub); }
 .ck-head span:nth-child(2) { text-align: center; } .ck-head span:nth-child(3) { text-align: right; }
+.ck-head.two { grid-template-columns: 1fr auto; } .ck-head.two span:nth-child(2) { text-align: right; }   /* 발주·유통기한·오래된 칸도 세기처럼 머리줄 — 목록이 같은 높이에서 시작 */
 .ck-row { display: grid; grid-template-columns: 1fr 150px 46px; align-items: center; gap: 4px; min-height: 60px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .ck-row .nm { min-width: 0; font-size: 16px; }
 .ck-row .nm small { display: block; font-size: 12px; color: var(--sub); }
@@ -74,9 +76,10 @@ function renderCheck(r) {
 function paintCheck() {
     const el = screenEl('check'), tab = ck.tab, { lines, uncounted } = ckOrderLines(), stale = staleZones(), photos = ckPhotos(), multi = photos.length > 1;
     const tabBtn = (k, label, n) => `<button type="button" role="tab" aria-selected="${tab === k}" data-act="ckTab" data-t="${k}">${label}${n ? `<b>${n}</b>` : ''}</button>`;
-    let body = '', right = '', foot = '';
+    // 위 오른쪽은 탭마다 늘 '도움말' (11/10 — 세기에만 있어 탭을 바꾸면 보였다 사라졌다). 탭마다 하는 일(목록 복사·인쇄)은 아래 줄에
+    let body = '', foot = '';
+    const right = '<button type="button" class="tlink" data-act="ckHelp">도움말</button>';
     if (tab === 'count') {
-        right = '<button type="button" class="tlink" data-act="ckHelp">도움말</button>';
         if (!stockOn()) body = `<p class="ck-intro">재고 세기가 꺼져 있어요. 켜면 물건마다 지금 수량과 최소 수량을 적고, 모자란 것을 발주 목록으로 모아요.</p><div class="cta" style="margin-top:18px"><button type="button" class="btn btn-p" data-act="ckStockOn">재고 세기 켜기</button></div>`;
         else {
             const rows = []; photos.forEach((d, pi) => d.zones.forEach((z, zi) => { if (!z.items.length) return;
@@ -90,24 +93,23 @@ function paintCheck() {
             foot = `<button type="button" class="btn btn-p" data-act="ckTab" data-t="order">발주 목록 보기 (${lines.length})</button>`;
         }
     } else if (tab === 'order') {
-        right = lines.length ? '<button type="button" class="tlink" data-act="ckShare">목록 복사</button>' : '';
-        body = `<p class="ck-intro">최소 수량보다 적은 물건이에요.</p><div style="border-top:1px solid var(--ink);margin-top:14px"></div>`
+        body = `<p class="ck-intro">최소 수량보다 적은 물건이에요.</p><div class="ck-head two"><span>물건 · 있는 곳</span><span>부족</span></div>`
             + (lines.length ? lines.map(o => `<div class="ck-line"><span><b>${esc(o.name)}</b><small>${esc(o.where.join(', '))} · 지금 ${o.qty} · 최소 ${o.par}</small></span><span class="need">부족<b>${o.need}</b></span></div>`).join('') : '<p class="empty">모자란 물건이 없어요.</p>')
             + `<p class="hint">채워 넣은 뒤 [세기]에서 개수를 고치면 목록에서 빠져요.${uncounted ? ` 최소 수량은 있는데 아직 안 센 물건이 ${uncounted}개 있어요.` : ''}</p>`;
-        foot = `<button type="button" class="btn btn-p" data-act="go" data-to="#/print?form=check">점검표로 인쇄</button>`;
+        foot = `${lines.length ? '<button type="button" class="btn btn-s" data-act="ckShare">목록 복사</button>' : ''}<button type="button" class="btn btn-p" data-act="go" data-to="#/print?form=check">점검표로 인쇄</button>`;
     } else if (tab === 'exp') {
         const list = expItems();
-        body = `<p class="ck-intro">유통기한이 가까운 순서예요. ${EXP_SOON_DAYS}일 안이면 '임박', 지났으면 '기한 지남'으로 보여요.</p><div style="border-top:1px solid var(--ink);margin-top:14px"></div>`
+        body = `<p class="ck-intro">유통기한이 가까운 순서예요. ${EXP_SOON_DAYS}일 안이면 '임박', 지났으면 '기한 지남'으로 보여요.</p><div class="ck-head two"><span>물건 · 칸</span><span>기한</span></div>`
             + (list.length ? list.map(x => { const st = expState(x.it); return `<button type="button" class="ck-line" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer" data-act="go" data-to="${esc(resultHash(x.p.id, x.zi, '', x.it.name, 'list'))}"><span><b>${esc(x.it.name)}</b><small>${ckCode(x.pi, x.zi, multi)}번 구역 · ${esc(x.it.exp.replace(/-/g, '. '))}</small></span><span class="need" style="${st ? '' : 'color:var(--sub)'}">${esc(st ? expLabel(x.it) : expLabel(x.it))}</span></button>`; }).join('')
                 : '<p class="empty">유통기한을 적은 물건이 없어요 · 칸에서 물건을 눌러 적을 수 있어요</p>');
     } else {
-        body = `<p class="ck-intro">${STALE_DAYS}일 넘게 확인 안 한 칸이에요. 열어 보고 맞으면 [확인]을 눌러 주세요 — 지도가 계속 정확해져요.</p><div style="border-top:1px solid var(--ink);margin-top:14px"></div>`
+        body = `<p class="ck-intro">${STALE_DAYS}일 넘게 확인 안 한 칸이에요. 열어 보고 맞으면 [확인]을 눌러 주세요 — 지도가 계속 정확해져요.</p><div class="ck-head two"><span>칸 · 든 물건</span><span>보기 · 확인</span></div>`
             + (stale.length ? stale.map(x => `<div class="ck-line"><span><b>${esc(x.p.title || '사진')} ${x.zi + 1}번 · ${esc(x.z.name || '')}</b><small>${esc(zoneSummary(x.z))} · ${agoText(x.z.checkedAt)} 확인</small></span><span style="display:flex;gap:6px;flex:none"><button type="button" class="ok" data-act="go" data-to="${esc(resultHash(x.p.id, x.zi, '', '', 'map'))}">보기</button><button type="button" class="ok" data-act="ckStaleOk" data-p="${esc(x.p.id)}" data-z="${x.zi}">확인</button></span></div>`).join('')
                 : '<p class="empty">오래된 칸이 없어요 · 다 최근에 확인했어요</p>');
     }
     el.innerHTML = `
         <header class="top">${backBtn('지도', vis()[0] ? `#/map/${encodeURIComponent(vis()[0].id)}` : '#/')}${right}</header>
-        <main class="wrap" style="flex:1;display:flex;flex-direction:column;padding-bottom:22px">
+        <main class="wrap" style="flex:1;display:flex;flex-direction:column;padding-bottom:${foot ? 0 : 22}px">
             <h1 class="h1" style="margin-top:20px">점검</h1>
             <div class="tabs" role="tablist" style="margin-top:14px">${tabBtn('count', '세기')}${tabBtn('order', '발주 목록', lines.length)}${feat('exp') ? tabBtn('exp', '유통기한', expItems().filter(x => expState(x.it)).length) : ''}${tabBtn('stale', '오래된 칸', stale.length)}</div>
             ${body}
@@ -151,5 +153,10 @@ Object.assign(ACT, {
     ckStockOn: () => { setStockOn(true); paintCheck(); toast('재고 세기를 켰어요'); },
     ckShare: () => ckShare(),
     ckStaleOk: (el) => { const p = photoById(el.dataset.p), z = p && p.zones[+el.dataset.z]; if (!z) return; const before = z.checkedAt; markChecked(z); saveAll(); paintCheck(); toast('확인했어요', () => { z.checkedAt = before; saveAll(); if (cur === 'check') paintCheck(); }); },
-    ckHelp: () => openSheet(`<h2>점검, 이렇게 해요</h2><ol class="nums" style="margin:12px 0 18px"><li><span>01</span>[세기]에서 지금 개수를 −·+로 맞춰요</li><li><span>02</span>[최소]에 '이만큼은 있어야 한다'는 수를 적어요</li><li><span>03</span>모자란 물건은 [발주 목록]에 모여요 · [목록 복사]로 카톡에 보내요</li></ol><div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">알겠어요</button></div>`)
+    ckHelp: () => { // 탭 네 개를 다 (11/10 — 도움말이 모든 탭에 있게 되어서)
+        const steps = ['[세기]에서 지금 개수를 −·+로 맞춰요', "[최소]에 '이만큼은 있어야 한다'는 수를 적어요", '모자란 물건은 [발주 목록]에 모여요 · [목록 복사]로 카톡에 보내요'];
+        if (feat('exp')) steps.push(`[유통기한]은 날짜가 가까운 순서예요 · ${EXP_SOON_DAYS}일 안이면 임박`);
+        steps.push(`[오래된 칸]은 ${STALE_DAYS}일 넘게 안 본 칸이에요 · 열어 보고 맞으면 [확인]`);
+        openSheet(`<h2>점검, 이렇게 해요</h2><ol class="nums" style="margin:12px 0 18px">${steps.map((t, k) => `<li><span>${String(k + 1).padStart(2, '0')}</span>${esc(t)}</li>`).join('')}</ol><div class="stack"><button type="button" class="btn btn-p" data-act="sheetClose">알겠어요</button></div>`);
+    }
 });

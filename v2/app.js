@@ -298,6 +298,14 @@ function highlight(text, query) {
     if (!r) return esc(t);
     return esc(t.slice(0, r[0])) + '<mark>' + esc(t.slice(r[0], r[1])) + '</mark>' + esc(t.slice(r[1]));
 }
+// 데이터가 있는 기기를 말로 (11/10): PC에서도 '이 폰에만 저장돼요'가 나오던 것 → 폰 · 태블릿 · 컴퓨터
+//   DEV_HERE는 자세한 안내용 — PC는 브라우저마다 따로라 '이 컴퓨터의 이 브라우저'
+const DEV = (() => {
+    const ua = navigator.userAgent || '', ipad = /iPad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (/iPhone|iPod/i.test(ua) || (/Android/i.test(ua) && /Mobile/i.test(ua))) return '폰';
+    return ipad || /Android|Tablet/i.test(ua) ? '태블릿' : '컴퓨터';
+})();
+const DEV_OBJ = josa(DEV, '을', '를'), DEV_HERE = DEV === '컴퓨터' ? '이 컴퓨터의 이 브라우저' : `이 ${DEV}`;
 function josa(word, withBatchim, withoutBatchim) {
     const w = String(word || ''), code = w.charCodeAt(w.length - 1) - 0xAC00;
     if (code < 0 || code > 11171) return `${w}${withBatchim}(${withoutBatchim})`;
