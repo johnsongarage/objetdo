@@ -65,7 +65,8 @@ addCSS(`
 .ed-help li { counter-increment: h; display: flex; gap: 10px; padding: 3px 0; color: var(--sub); }
 .ed-help li::before { content: counter(h); flex: none; width: 14px; font-family: var(--serif); color: var(--accent); }
 .ed-z.low { border-style: dashed; border-color: #FBF8F3; box-shadow: 0 0 0 1px rgba(158, 59, 42, .9); }
-.ed-z i { position: absolute; right: 3px; top: 3px; padding: 1px 5px; font-style: normal; font-size: 11px; line-height: 1.4; background: var(--accent); color: #fff; white-space: nowrap; pointer-events: none; }
+/* AI '확인' 딱지 — '.ed-z i' 처럼 i 전체에 걸면 모서리 손잡이(<i class=ed-h>)까지 못 누른다 (11/10 고침) */
+.ed-z .ed-tag { position: absolute; right: 3px; top: 3px; padding: 1px 5px; font-style: normal; font-size: 11px; line-height: 1.4; background: var(--accent); color: #fff; white-space: nowrap; pointer-events: none; }
 `);
 
 // ── AI 칸 찾기 (v1과 같은 서버·같은 규칙) ──
@@ -288,7 +289,7 @@ function edZoneHTML(p, z, i) {
     const b = zoneBox(p, z), sel = ed.sel === i, low = AI_LOW.has(z), sp = isSpace(p), q = sp ? linkedPhoto(z) : null;
     const hs = sel ? [['tl', 0, 0], ['tr', 100, 0], ['bl', 0, 100], ['br', 100, 100]].map(([h, x, y]) => `<i class="ed-h" data-h="${h}" style="left:${x}%;top:${y}%"></i>`).join('') : '';
     const num = sp ? (q ? letterOf(q) || '·' : '?') : String(i + 1), cap = sp ? (q ? q.title || '사진' : '가구 고르기') : `${z.name || ''}${z.items.length ? ` · ${z.items.length}` : ''}`;
-    return `<div class="ed-z${sel ? ' sel' : ''}${low ? ' low' : ''}${sp ? ' sp' : ''}" data-i="${i}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"><b>${esc(num)}</b>${low && !sel ? '<i>확인</i>' : ''}<span>${esc(cap)}</span>${hs}</div>`;
+    return `<div class="ed-z${sel ? ' sel' : ''}${low ? ' low' : ''}${sp ? ' sp' : ''}" data-i="${i}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%"><b>${esc(num)}</b>${low && !sel ? '<i class="ed-tag">확인</i>' : ''}<span>${esc(cap)}</span>${hs}</div>`;
 }
 function edPush() { const p = edPhoto(); if (!p) return; ed.undo.push(JSON.stringify(p.zones)); if (ed.undo.length > 30) ed.undo.shift(); }
 // 사진 위 손가락: 그리기 모드면 끌어서 새 칸(→ 바로 물건 창) · 칸 누르기는 그 칸 물건 창 · 고른 칸은 끌어서 옮기기 · 모서리는 크기 · 빈 곳 누르기는 닫기
