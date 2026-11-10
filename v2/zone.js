@@ -94,14 +94,15 @@ body.zs-on .toast { bottom: calc(var(--zsh, 50vh) + var(--kb, 0px) + 10px); }
 .zn.cur { border: calc(3px * var(--k)) solid var(--accent); box-shadow: 0 0 0 calc(2px * var(--k)) #fff; z-index: 4; }
 .zn.cur b { background: var(--accent); color: #fff; }
 .zrow.cur { background: var(--hl); box-shadow: -10px 0 0 var(--hl), 10px 0 0 var(--hl); }
-/* 넓은 화면(PC): 창을 사진 오른쪽 옆에 세로로 길게 — 사진을 가리지 않고, 위아래를 다 써서 안쪽 스크롤도 줄어든다 */
-@media (min-width: 1000px) {
-    .zs, .zs.sized { top: 12px; bottom: 12px; left: calc(50% + 42px); right: auto; width: 420px; max-width: 420px; height: auto; max-height: none; margin: 0; border: 1px solid var(--ink); box-shadow: 0 12px 40px rgba(36, 30, 26, .18); }
+/* 넓은 화면(PC · app.css와 같은 1024px): 창을 화면 오른쪽 끝에 세로로 길게 — 본문은 그만큼 좁아져(오른쪽 여백) 사진을 가리지 않고,
+   지도·구역 고치기는 한 단이 된다 (app.css body.zs-on). 위아래를 다 써서 안쪽 스크롤도 줄어든다 */
+@media (min-width: 1024px) {
+    .zs, .zs.sized { top: 12px; bottom: 12px; left: auto; right: 12px; width: 420px; max-width: 420px; height: auto; max-height: none; margin: 0; border: 1px solid var(--ink); box-shadow: 0 12px 40px rgba(36, 30, 26, .18); }
     .zs.up { animation-name: zsSide; }
     .zs-grab { display: none; }
-    .app { transition: margin-left .2s ease; }
-    body.zs-on .app { margin-left: calc(50% - 462px); padding-bottom: 0; }
-    body.zs-on .toast { bottom: calc(18px + env(safe-area-inset-bottom)); left: calc(50% - 222px); }
+    /* 본문 폭이 줄어드는 걸 천천히 하면 그동안 사진 자리가 움직여 '고른 칸 보이게'(zsReveal)가 빗나간다 → 바로 */
+    body.zs-on .app { padding-right: 444px; padding-bottom: 0; }
+    body.zs-on .toast { bottom: calc(18px + env(safe-area-inset-bottom)); left: calc(50% + var(--sidew, 0px) / 2 - 222px); }
 }
 @keyframes zsSide { from { transform: translateX(24px); opacity: .5; } }
 @media (prefers-reduced-motion: reduce) { .zs.up { animation: none; } .app { transition: none; } }
@@ -343,7 +344,7 @@ function zsReveal() { // 그 칸이 창에 가리지 않게 화면을 살짝 올
     const t = zsTarget(), sh = $('#zsheet'); if (!t || !sh || sh.hidden) return;
     const bar = document.querySelector('.screen.on > .top, .screen.on > .ed-bar'), strip = document.querySelector('.screen.on .mf-strip');
     const top = Math.max(bar ? bar.getBoundingClientRect().bottom : 0, strip ? strip.getBoundingClientRect().bottom : 0) + 8;
-    const app = $('.app'), side = !!app && sh.getBoundingClientRect().left >= app.getBoundingClientRect().right - 2; // 창이 사진 옆에 (넓은 화면)
+    const side = !!(window.matchMedia && matchMedia('(min-width: 1024px)').matches); // 창이 오른쪽 옆에 (넓은 화면 · 위 CSS와 같은 폭)
     const bottom = (side ? innerHeight : sh.getBoundingClientRect().top) - 8, r = t.getBoundingClientRect(), room = bottom - top;
     if (room <= 40 || (r.top >= top && r.bottom <= bottom)) return;
     const dy = r.height > room ? r.top - top : (r.top + r.height / 2) - (top + room / 2);

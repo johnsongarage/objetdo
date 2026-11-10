@@ -1079,7 +1079,7 @@ function setPrintZoom(z) {
     const max = Math.min(3, Math.max(1, (pv.clientWidth || 342) / 128));
     z = Math.min(max, Math.max(0.5, Math.round(z * 100) / 100));
     printUI.zoom = z;
-    pv.style.setProperty('--pw', `${Math.round(128 * z)}px`);
+    pv.style.setProperty('--pw', `${Math.round((window.matchMedia && matchMedia('(min-width: 1024px)').matches ? 200 : 128) * z)}px`); // PC는 미리보기를 크게 (넓은 화면 · 11/10)
     pv.classList.toggle('pr-wide', Math.round(128 * z) + 18 + 136 > (pv.clientWidth || 342)); // 옆 칸(크기 단추 136px)이 못 들어가면 아래 한 줄로
     const pct = `${Math.round(z * 100)}%`, zv = $('#prZv');
     zv.textContent = pct; zv.setAttribute('aria-label', `미리보기 ${pct} · 누르면 처음 크기로`);

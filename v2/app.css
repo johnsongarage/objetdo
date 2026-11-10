@@ -376,3 +376,111 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
 .sp-opt .tt { min-width: 0; font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
 .sp-opt .tt small { display: block; font-size: 11px; color: var(--accent); }
 .sp-new { display: inline-flex; align-items: center; margin-top: 10px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--accent); font-size: 15px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+
+
+/* ────────────────────────────────────────────────────────────
+   넓은 화면 (PC · 가로 1024px 이상) — 11/10
+   왼쪽에 늘 보이는 메뉴 + 넓은 본문, 화면마다 2단(사진은 왼쪽에 크게). 폰·태블릿(1023px 이하)은 그대로
+   물건 창이 열리면(body.zs-on) 창이 오른쪽을 쓰고 본문은 한 단으로 (zone.js)
+   ──────────────────────────────────────────────────────────── */
+.side, .home-sp { display: none; }
+@media (min-width: 1024px) {
+    :root { --gut: 32px; --sidew: 240px; }
+    .app { max-width: 1080px; }                              /* 왼쪽 메뉴가 없는 화면 (첫 소개) */
+    body.side-on .app { max-width: none; margin-left: var(--sidew); }
+    body.side-on .screen { width: 100%; max-width: 1200px; margin: 0 auto; }
+    body.side-on :is(#s-settings, #s-backup, #s-data, #s-reset, #s-iphone, #s-guide, #s-service, #s-menu, #s-inbox, #s-move, #s-voice, #s-tips, #s-zone) { max-width: 780px; }
+    body.side-on #s-check { max-width: 960px; }
+
+    /* 왼쪽 메뉴 */
+    body.side-on .side { position: fixed; left: 0; top: 0; bottom: 0; z-index: 30; display: flex; flex-direction: column; width: var(--sidew); padding: 18px 14px 16px; overflow-y: auto; background: var(--sheet); border-right: 1px solid var(--line); }
+    .side-brand { min-height: 48px; padding: 0 10px; border: 0; background: none; cursor: pointer; color: var(--ink); }
+    .side-nav { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; }
+    .side-more { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line2); }
+    .side-a { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; padding: 0 12px; border: 0; border-radius: 2px; background: none; color: var(--ink); font-size: 15px; text-align: left; cursor: pointer; }
+    .side-a span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .side-a small { flex: none; min-width: 22px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: #fff; font-size: 12px; line-height: 20px; text-align: center; }
+    .side-a:hover { background: var(--hl); }
+    .side-a[aria-current="page"] { background: var(--ink); color: #FBF8F3; }
+    .side-more .side-a { min-height: 38px; font-size: 14px; color: var(--sub); }
+    .side-more .side-a[aria-current="page"] { color: #FBF8F3; }
+    .side-add { width: auto; min-height: 46px; margin: 16px 4px 0; font-size: 15px; }
+    .side-foot { margin: auto 0 0; padding: 16px 10px 0; font-size: 12px; line-height: 1.8; color: var(--sub); }
+    .side-foot a { color: var(--sub); text-underline-offset: 3px; }
+    body.side-on #s-home > .top { display: none; }   /* 이름·메뉴는 늘 왼쪽에 */
+    body.side-on #s-r .ph-tools .hint { visibility: hidden; }   /* '두 손가락으로 벌리면' — PC엔 맞지 않는 말 */
+
+    /* 아래에서 올라오던 확인 창 → 가운데 */
+    .sheet { align-items: center; }
+    .sheet-card { max-width: 520px; max-height: calc(100vh - 48px); overflow-y: auto; border: 1px solid var(--ink); box-shadow: 0 18px 50px rgba(36, 30, 26, .22); padding-bottom: 24px; }
+    body.side-on .toast { left: calc(50% + var(--sidew) / 2); }
+
+    /* 첫 소개 (메뉴 없음): 왼쪽 글 · 오른쪽 할 수 있는 일 */
+    #s-intro .intro { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 80px; align-content: center; padding: 6vh var(--gut) 4vh; }
+    #s-intro .intro > * { grid-column: 1; }
+    #s-intro .intro > .nums { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; }
+    #s-intro .intro h1 { font-size: 46px; }
+    #s-intro .lead { font-size: 17px; }
+    #s-intro .intro .cta { max-width: 440px; padding-top: 34px; }
+
+    /* 찾기 첫 화면: 왼쪽 검색 · 오른쪽 숫자·예시·사진 카드 (바로 가기는 왼쪽 메뉴에 있어 숨김) */
+    body.side-on .home { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 1fr); column-gap: 64px; align-items: start; padding-top: 6vh; }
+    body.side-on .ask { font-size: 40px; margin-bottom: 22px; }
+    body.side-on .sbox input { font-size: 22px; }
+    body.side-on #homeNav { display: none; }
+    body.side-on .home-sp { display: block; }
+    .hs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 14px; margin-top: 10px; }
+    .hs-c { display: flex; flex-direction: column; min-width: 0; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+    .hs-th { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid var(--ink); background: var(--hl); }
+    .hs-th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hs-c:hover .hs-th { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .hs-c b { display: block; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 500; }
+    .hs-c b em { margin-right: 6px; font-style: normal; font-family: var(--serif); color: var(--accent); }
+    .hs-c b em.sp { font-family: var(--sans); font-size: 12px; }
+    .hs-c small { display: block; font-size: 12px; color: var(--sub); }
+
+    /* 수납 지도: 사진 왼쪽 크게 · 칸 목록 오른쪽 (물건 창이 열리면 한 단) */
+    body.side-on .mf-sec .ph { width: min(100%, calc(72vh * var(--ar))); margin: 0; }
+    body.side-on.zs-on .mf-sec > .mf-rows { display: none; }   /* 물건 창이 열려 있으면 칸 목록은 창이 대신 — 사진 자리가 덜 움직인다 */
+    body.side-on:not(.zs-on) .mf-sec { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); column-gap: 36px; align-items: start; }
+    body.side-on:not(.zs-on) .mf-sec > .mf-h, body.side-on:not(.zs-on) .mf-sec > .mf-meta { grid-column: 1 / -1; }
+    body.side-on:not(.zs-on) .mf-sec > .ph { grid-column: 1; margin: 0; }
+    body.side-on:not(.zs-on) .mf-sec > .mf-rows { grid-column: 2; min-width: 0; }
+    body.side-on .mg { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 26px 18px; }
+    body.side-on .ml { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; }
+
+    /* 찾은 결과: 사진 왼쪽 크게(따라 내려옴) · 답·정보·버튼 오른쪽 */
+    body.side-on #s-r main.wrap { display: grid !important; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr); column-gap: 40px; align-content: start; }
+    body.side-on #s-r main.wrap > * { grid-column: 2; min-width: 0; }
+    body.side-on #s-r main.wrap > .r-ph { grid-column: 1; grid-row: 1 / span 40; align-self: start; position: sticky; top: calc(var(--toph, 60px) + 12px); margin-top: 24px; }
+    body.side-on #s-r .r-ph .ph { width: min(100%, calc(76vh * var(--ar))); }
+    body.side-on #s-r .dock { position: static; margin: 24px 0 0; padding: 0; border: 0; background: none; box-shadow: none; }
+
+    /* 물건 전체 목록: 두 단 */
+    body.side-on .lst { columns: 2; column-gap: 56px; }
+    body.side-on .lst .li { break-inside: avoid; }
+    body.side-on .lst .lh, body.side-on .lst .lzh { break-after: avoid; }
+    body.side-on .lst .lh:first-child { margin-top: 6px; }
+
+    /* 구역 고치기: 사진 왼쪽 크게(따라 내려옴) · 이름·안내·구역 목록 오른쪽 (물건 창이 열리면 한 단) */
+    body.side-on #s-edit .ed-ph { width: min(100%, calc((100vh - 200px) * var(--ar))); margin: 0 auto; }
+    body.side-on #s-edit .ed-wrap { margin: 0; padding: 0; }
+    body.side-on:not(.zs-on) #s-edit main.wrap { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); column-gap: 40px; align-content: start; }
+    body.side-on:not(.zs-on) #s-edit main.wrap > * { grid-column: 2; min-width: 0; }
+    body.side-on:not(.zs-on) #s-edit main.wrap > .ed-wrap { grid-column: 1; grid-row: 1 / span 40; align-self: start; position: sticky; top: 84px; margin-top: 20px; }
+    body.side-on #s-edit .ed-tools { grid-template-columns: repeat(4, 132px); justify-content: center; }
+
+    /* 인쇄: 미리보기 왼쪽 · 고르기·받기 오른쪽 */
+    body.side-on .pr-main { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, 1fr); column-gap: 40px; align-content: start; }
+    body.side-on .pr-main > * { grid-column: 2; min-width: 0; }
+    body.side-on .pr-main > .title-row { grid-column: 1 / -1; }
+    body.side-on .pr-main > .pr-pv { grid-column: 1; grid-row: 2 / span 10; align-self: start; }
+    body.side-on .pr-strip { flex-wrap: wrap; overflow-x: visible; max-width: none; }
+    body.side-on .pr-opts { margin-top: 0; }
+    body.side-on .pr-dock { position: static; margin: 22px 0 0; padding: 0; border: 0; background: none; box-shadow: none; }
+}
+/* 작은 PC(1024~1279px)에서 물건 창이 열리면 왼쪽 메뉴를 잠깐 접어 본문(사진)을 넓게 — 창을 닫으면 다시 보인다 */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    body.side-on.zs-on { --sidew: 0px; }
+    body.side-on.zs-on .side { display: none; }
+}
