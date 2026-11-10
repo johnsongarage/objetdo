@@ -60,8 +60,8 @@
     <meta property="og:site_name" content="오브젯도">
     <meta property="og:title" content="오브젯도 - 사진으로 만드는 물건 자리 지도">
     <meta property="og:description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요.">
-    <meta property="og:url" content="https://johnsongarage.github.io/objetdo/">
-    <meta property="og:image" content="https://johnsongarage.github.io/objetdo/og-image.png?v=22">
+    <meta property="og:url" content="https://johnsongarage.co.kr/objetdo/">
+    <meta property="og:image" content="https://johnsongarage.co.kr/objetdo/og-image.png?v=22">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="오브젯도: 사진으로 만드는 물건 자리 지도. 먹색 바탕 위에 모래색 상자가 떠 있고 위에서 흰 핀이 가리키는 앱 아이콘, 아래에 '빨대 → 아래 칸 가운데' 검색 결과">
@@ -2623,7 +2623,7 @@
         </div>
     </section>
 
-    <div id="emptyGuide">등록된 사진이 없습니다. 아래 버튼을 눌러 매장 사진을 추가해 주세요!</div>
+    <div id="emptyGuide">등록된 사진이 없습니다. 아래 버튼을 눌러 매장 사진을 추가해 주세요!<br><small style="opacity:.75">주소가 johnsongarage.co.kr로 바뀌었어요. 예전 주소에서 만든 지도가 있으면 ☰ → 백업 파일로 복구로 옮겨 올 수 있어요.</small></div>
 
     <div id="starterSteps" class="starter" hidden></div>
     <button type="button" id="inboxBar" class="inbox-bar" onclick="openInbox(false)" hidden></button>
@@ -6259,7 +6259,7 @@
     document.querySelectorAll('[data-app-name]').forEach(el => { el.textContent = APP_NAME; }); // 본문에 적힌 서비스 이름도 APP_NAME으로
     document.querySelectorAll('[data-app-name-en]').forEach(el => { el.textContent = APP_NAME_EN; el.hidden = !APP_NAME_EN; });
     // 🔗 앱 알려주기: 카톡·문자 등으로 앱 주소를 보낸다 (공유 창이 없는 PC에서는 주소 복사)
-    const APP_URL = 'https://johnsongarage.github.io/objetdo/';
+    const APP_URL = 'https://johnsongarage.co.kr/objetdo/';
     // 공유 창은 폰(터치)에서만: PC 크롬·엣지도 navigator.share가 있지만 윈도우·맥 공유 창엔 카톡이 없어 보낼 데가 없다 → PC는 복사·파일 받기로
     function canUseShareSheet() { return !!navigator.share && window.matchMedia('(pointer: coarse)').matches; }
     async function shareApp() {
@@ -6273,7 +6273,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.09.31';
+    const APP_VERSION = '베타 2026.11.10.1';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -8012,8 +8012,8 @@
     //   이 매장 지도가 열리는 게 아니라 "이 종이를 만든 앱"이 열린다 (지도는 사장님 폰에만 있음)
     //   무늬는 미리 만들어 넣었다(인터넷 없이도 인쇄되게): 주소를 바꾸면 python3 tools/make_print_qr.py 새주소 → 아래 두 줄 교체
     //   주소가 짧을수록 칸 수가 줄어 같은 크기에서 더 잘 찍힌다 (지금 33×33칸 · objetdo 주소)
-const PRINT_QR_URL = 'https://johnsongarage.github.io/objetdo/qr/';
-    const PRINT_QR = ["1fc39e27f", "1046e9441", "175f9d35d", "175651d5d", "1752ac15d", "105239541", "1fd55557f", "001064d00", "17c4e847c", "16a507a6d", "017f259d6", "0c9843edf", "147524b3b", "172071547", "02c7ca4e2", "130993acc", "14480a7b1", "10b79f26d", "14dcf95f6", "0d3afc1ff", "0c6eb1fbb", "19ac2cbc1", "147a75562", "12be20f4f", "11f8385f1", "001b13915", "1fcc24b54", "105422f1f", "1750849fb", "1755b1e9d", "175ec2a6c", "104057e1c", "1fdc4b7aa"];
+const PRINT_QR_URL = 'https://johnsongarage.co.kr/objetdo/qr/';
+    const PRINT_QR = ["1fc1267f", "104e2041", "17476b5d", "174e445d", "1744ad5d", "10567e41", "1fd5557f", "000e0d00", "12deb4a0", "05831149", "0ee10a0e", "12bbb076", "12dc59cb", "0a1d0380", "19f015bf", "1383be7a", "1859db82", "033c54e9", "15578da3", "0013aa93", "10c155f4", "001b9117", "1fc8c952", "1053851d", "174f79f3", "1755c27e", "174cd01d", "104e4f32", "1fd149ca"];
     let printQrBits = null;
     function drawPrintQr(ctx) { // 오른쪽 아래 구석에 그리고 QR 왼쪽 끝 x를 돌려준다
         if (!printQrBits) printQrBits = PRINT_QR.map(h => h.split('').map(c => parseInt(c, 16).toString(2).padStart(4, '0')).join('').slice(-PRINT_QR.length));

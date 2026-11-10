@@ -516,8 +516,8 @@ function drawPrintFoot(ctx, text) {
 //   이 매장 지도가 열리는 게 아니라 "이 종이를 만든 앱"이 열린다 (지도는 사장님 폰에만 있음)
 //   무늬는 미리 만들어 넣었다(인터넷 없이도 인쇄되게): 주소를 바꾸면 python3 tools/make_print_qr.py 새주소 → 아래 두 줄 교체
 //   주소가 짧을수록 칸 수가 줄어 같은 크기에서 더 잘 찍힌다 (지금 33×33칸 · objetdo 주소)
-const PRINT_QR_URL = 'https://johnsongarage.github.io/objetdo/qr/';
-const PRINT_QR = ["1fc39e27f", "1046e9441", "175f9d35d", "175651d5d", "1752ac15d", "105239541", "1fd55557f", "001064d00", "17c4e847c", "16a507a6d", "017f259d6", "0c9843edf", "147524b3b", "172071547", "02c7ca4e2", "130993acc", "14480a7b1", "10b79f26d", "14dcf95f6", "0d3afc1ff", "0c6eb1fbb", "19ac2cbc1", "147a75562", "12be20f4f", "11f8385f1", "001b13915", "1fcc24b54", "105422f1f", "1750849fb", "1755b1e9d", "175ec2a6c", "104057e1c", "1fdc4b7aa"];
+const PRINT_QR_URL = 'https://johnsongarage.co.kr/objetdo/qr/';
+const PRINT_QR = ["1fc1267f", "104e2041", "17476b5d", "174e445d", "1744ad5d", "10567e41", "1fd5557f", "000e0d00", "12deb4a0", "05831149", "0ee10a0e", "12bbb076", "12dc59cb", "0a1d0380", "19f015bf", "1383be7a", "1859db82", "033c54e9", "15578da3", "0013aa93", "10c155f4", "001b9117", "1fc8c952", "1053851d", "174f79f3", "1755c27e", "174cd01d", "104e4f32", "1fd149ca"];
 let printQrBits = null;
 function drawPrintQr(ctx) { // 오른쪽 아래 구석에 그리고 QR 왼쪽 끝 x를 돌려준다
     if (!printQrBits) printQrBits = PRINT_QR.map(h => h.split('').map(c => parseInt(c, 16).toString(2).padStart(4, '0')).join('').slice(-PRINT_QR.length));
