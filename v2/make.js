@@ -235,7 +235,7 @@ function paintEdit(keepScroll) {
         <div class="ed-bar"><div><b>${empty ? '칸 나누기' : '구역 고치는 중'}</b><small>${ed.draw ? '사진 위를 끌어서 칸을 그려요' : empty ? 'AI로 찾거나 직접 그려요' : '칸을 누르면 물건 창 · 고른 칸은 끌어서 옮기기'}</small></div><button type="button" data-act="edDone">완료</button></div>
         <main class="wrap" style="flex:1">
             <div class="ed-name"><span class="kick">사진 #${vis().indexOf(p) + 1} 이름</span><span class="meta">구역 ${p.zones.length}</span></div>
-            <input class="ed-title" id="edTitle" value="${defTitle ? '' : esc(p.title)}" placeholder="예: ${isHome() ? '거실 수납장, 붙박이장 위' : '창고 A, 냉장고 안'}" aria-label="사진 이름" enterkeyhint="done" autocomplete="off">
+            <input class="ed-title" id="edTitle" type="search" value="${defTitle ? '' : esc(p.title)}" placeholder="예: ${isHome() ? '거실 수납장, 붙박이장 위' : '창고 A, 냉장고 안'}" aria-label="사진 이름" enterkeyhint="done" autocomplete="off">
             <div class="ed-wrap${ed.zoom > 1 ? ' zoomed' : ''}" id="edWrap">
                 <div class="ed-ph${ed.draw ? ' drawing' : ''}" id="edPh" style="--ar:${800 / h800(p)}">
                     ${p.imgData ? `<img src="${esc(p.imgData)}" alt="">` : ''}

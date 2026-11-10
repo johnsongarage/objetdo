@@ -275,9 +275,9 @@ function renderSettings() {
             <section class="st-sec">
                 <h2 class="st-lab">${home ? '인쇄·파일' : '매장'}</h2>
                 <label class="st-field"><span>${home ? '머리글 이름' : '매장 이름'}</span><small>인쇄물 머리글·파일 이름에 들어가요</small>
-                    <input type="text" id="stStoreName" maxlength="20" autocomplete="off" placeholder="${home ? '예: 우리 집' : '예: 다산점 창고'}" value="${esc(storeName())}"></label>
+                    <input type="search" id="stStoreName" enterkeyhint="done" maxlength="20" autocomplete="off" placeholder="${home ? '예: 우리 집' : '예: 다산점 창고'}" value="${esc(storeName())}"></label>
                 <label class="st-field"><span>정리 업체 이름</span><small>정리해 드린 분이 넣으면 인쇄물·백업 PDF 아래에 ‘정리 · 이름’으로 들어가요</small>
-                    <input type="text" id="stOrgName" maxlength="30" autocomplete="off" placeholder="예: 다산정리수납 010-1234-5678" value="${esc(organizerName())}"></label>
+                    <input type="search" id="stOrgName" enterkeyhint="done" maxlength="30" autocomplete="off" placeholder="예: 다산정리수납 010-1234-5678" value="${esc(organizerName())}"></label>
             </section>
             <section class="st-sec">
                 <h2 class="st-lab"><span>백업</span><small class="${due ? 'st-due' : ''}">${due ? '백업할 때가 됐어요' : lastBackupText()}</small></h2>

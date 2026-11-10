@@ -54,7 +54,7 @@ function paintInbox() {
             <p class="ib-lead">새로 산 물건을 일단 넣어 두고, 한가할 때 자리를 정해요.</p>
             <div class="ib-add">
                 <span class="kick">새로 산 물건</span>
-                <div class="field"><input id="ibIn" type="text" enterkeyhint="done" autocomplete="off" placeholder="예: ${esc(exampleNames(1)[0] || '헤이즐넛 시럽')} · 여러 개는 쉼표로"><button type="button" class="icon-btn${ib.listening ? ' on' : ''}" data-act="ibMic" aria-label="말로 넣기">${MIC_SVG}</button></div>
+                <div class="field"><input id="ibIn" type="search" enterkeyhint="done" autocomplete="off" placeholder="예: ${esc(exampleNames(1)[0] || '헤이즐넛 시럽')} · 여러 개는 쉼표로"><button type="button" class="icon-btn${ib.listening ? ' on' : ''}" data-act="ibMic" aria-label="말로 넣기">${MIC_SVG}</button></div>
                 <p class="hint" id="ibHint">엑셀·메모장 목록을 붙여 넣으면 줄마다 하나씩 들어가요</p>
             </div>
             ${a.length ? a.map(x => ibRowHTML(x)).join('') : '<p class="empty" style="margin-top:24px">비어 있어요 · 새로 산 물건 이름을 써 두면 넣을 칸을 추천해 드려요</p>'}

@@ -39,7 +39,7 @@ addCSS(`
 .zz-step { display: flex; align-items: center; gap: 8px; color: var(--ink); }
 .zz-step button { width: 44px; height: 44px; border: 1px solid var(--ink); border-radius: 2px; background: none; font-size: 20px; cursor: pointer; }
 .zz-step input { width: 52px; text-align: center; font-family: var(--serif); font-size: 20px; }
-.zz-card input[type=number], .zz-card input[type=date], .zz-card input[type=text] { border: 0; border-bottom: 1px solid var(--ink); background: transparent; font: inherit; font-size: 16px; color: var(--ink); padding: 6px 0; border-radius: 0; min-width: 0; }
+.zz-card input[type=number], .zz-card input[type=date], .zz-card input[type=search] { border: 0; border-bottom: 1px solid var(--ink); background: transparent; font: inherit; font-size: 16px; color: var(--ink); padding: 6px 0; border-radius: 0; min-width: 0; }
 .zz-card input[type=number] { width: 64px; text-align: center; }
 .zz-card .zz-memo { display: block; padding: 10px 0 4px; border-top: 1px solid var(--line2); }
 .zz-card .zz-memo span { display: block; font-size: 13px; color: var(--sub); }
@@ -107,7 +107,7 @@ function zzExample(z) {
 }
 function zzFieldHTML(z, hint) {
     const ph = zz.mode === 'sheet' ? '물건 이름 · 쉼표로 여러 개' : `쉼표로 여러 개 · 예: ${zzExample(z)}`; // 창은 좁아서 짧게 (예시는 바로 아래 자주 쓰는 물건이 대신)
-    return `<div class="field"><input id="zzIn" type="text" enterkeyhint="done" autocomplete="off" placeholder="${esc(ph)}" aria-label="넣을 물건 이름"><button type="button" class="icon-btn${zz.listening ? ' on' : ''}" data-act="zzMic" aria-label="말로 넣기">${MIC_SVG}</button></div>
+    return `<div class="field"><input id="zzIn" type="search" enterkeyhint="done" autocomplete="off" placeholder="${esc(ph)}" aria-label="넣을 물건 이름"><button type="button" class="icon-btn${zz.listening ? ' on' : ''}" data-act="zzMic" aria-label="말로 넣기">${MIC_SVG}</button></div>
         <p class="hint" id="zzHint">${hint || ''}</p>
         <div class="zz-sug rows" id="zzSug"></div>`;
 }
@@ -136,7 +136,7 @@ function zzItemHTML(it) {
         ${S ? `<div class="zz-f"><span>재고</span><span class="zz-step"><button type="button" data-act="zzQty" data-d="-1" aria-label="하나 빼기">−</button><input type="number" inputmode="numeric" min="0" data-f="qty" value="${isNum(it.qty) ? it.qty : ''}" aria-label="지금 수량"><button type="button" data-act="zzQty" data-d="1" aria-label="하나 더">+</button></span></div>
               <div class="zz-f"><span>최소 수량 <small class="zz-low">${low ? `· ${it.par - it.qty}개 모자라요` : ''}</small></span><span><input type="number" inputmode="numeric" min="0" data-f="par" value="${isNum(it.par) ? it.par : ''}" aria-label="최소 수량" placeholder="없음">개</span></div>` : ''}
         ${E ? `<div class="zz-f"><span>유통기한 ${st ? `<small class="zz-low">· ${esc(expLabel(it))}</small>` : ''}</span><input type="date" data-f="exp" value="${esc(it.exp || '')}" aria-label="유통기한"></div>` : ''}
-        <label class="zz-memo"><span>메모 (어디쯤 있는지)</span><input type="text" data-f="comment" value="${esc(it.comment || '')}" placeholder="예: 맨 앞 줄, 라벨이 보이게" enterkeyhint="done"></label>
+        <label class="zz-memo"><span>메모 (어디쯤 있는지)</span><input type="search" data-f="comment" value="${esc(it.comment || '')}" placeholder="예: 맨 앞 줄, 라벨이 보이게" enterkeyhint="done"></label>
         <div class="zz-card-foot"><button type="button" data-act="zzPin" aria-pressed="${!!it.pin}">${it.pin ? '★ 즐겨찾기' : '☆ 즐겨찾기'}</button><button type="button" class="rm" data-act="zzRemove">이 구역에서 빼기</button></div>
     </div>`;
 }
@@ -190,7 +190,7 @@ function paintZone() {
     el.innerHTML = `
         <header class="top">${backBtn('지도', `#/map/${encodeURIComponent(p.id)}`)}<button type="button" class="tlink" data-act="zzDone">완료</button></header>
         <main class="wrap">
-            <div class="zz-headrow"><input class="zz-title" id="zzName" value="${esc(z.name || '')}" placeholder="${zi + 1}번 구역" aria-label="칸 이름" enterkeyhint="done" autocomplete="off"><span class="meta" id="zzMeta"></span></div>
+            <div class="zz-headrow"><input class="zz-title" id="zzName" type="search" value="${esc(z.name || '')}" placeholder="${zi + 1}번 구역" aria-label="칸 이름" enterkeyhint="done" autocomplete="off"><span class="meta" id="zzMeta"></span></div>
             <p class="zz-sub">${esc(p.title || '사진')} · ${zi + 1}번 칸</p>
             <div class="zz-ph"><button type="button" class="zz-phbtn" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}?zone=${zi}" aria-label="칸 크기·위치 고치기">${photoHTML(p, { hit: zi })}</button></div>
             <div class="zz-add">
@@ -301,7 +301,7 @@ function paintZoneSheet() {
     el.innerHTML = `
         <div class="zs-head">
             <span class="zs-n" aria-hidden="true">${zi + 1}</span>
-            <div class="zs-tt"><input class="zs-name" id="zzName" value="${esc(z.name || '')}" placeholder="${zi + 1}번 구역" aria-label="칸 이름 (눌러서 바꾸기)" enterkeyhint="done" autocomplete="off"><small id="zzMeta"></small></div>
+            <div class="zs-tt"><input class="zs-name" id="zzName" type="search" value="${esc(z.name || '')}" placeholder="${zi + 1}번 구역" aria-label="칸 이름 (눌러서 바꾸기)" enterkeyhint="done" autocomplete="off"><small id="zzMeta"></small></div>
             <button type="button" class="zs-x" data-act="zsX" aria-label="물건 창 닫기">×</button>
         </div>
         <div class="zs-body" id="zsBody">
@@ -335,7 +335,7 @@ document.addEventListener('change', (e) => {
     let sm = row.querySelector('small'); if (!v) { if (sm) sm.remove(); return; }
     if (!sm) { sm = document.createElement('small'); row.appendChild(sm); } sm.textContent = v;
 });
-document.addEventListener('keydown', (e) => { const f = e.target.closest && e.target.closest('.zz-card input[type=text]'); if (f && f.closest('#s-zone, #zsheet') && e.key === 'Enter' && !e.isComposing) f.blur(); });
+document.addEventListener('keydown', (e) => { const f = e.target.closest && e.target.closest('.zz-card input[type=search]'); if (f && f.closest('#s-zone, #zsheet') && e.key === 'Enter' && !e.isComposing) f.blur(); });
 
 function zzSuggest(q) { // 칠 때: 새로 넣기 + 다른 칸에 있는 같은 물건 + 자주 쓰는 물건 중 맞는 것 (v1 renderZmSuggest와 같다)
     const box = zzQ('#zzSug'); if (!box) return;
