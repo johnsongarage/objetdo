@@ -25,7 +25,7 @@ addCSS(`
 .ck-line .need { flex: none; color: var(--accent); font-size: 14px; }
 .ck-line .need b { font-family: var(--serif); font-size: 21px; font-weight: 400; margin-left: 4px; }
 .ck-line .ok { flex: none; min-height: 40px; padding: 0 12px; border: 1px solid var(--ink); border-radius: 2px; background: none; font-size: 14px; cursor: pointer; }
-.ck-foot { margin-top: auto; padding-top: 24px; }
+.ck-foot { margin-top: auto; }
 .ck-foot p { margin: 0 0 10px; font-size: 13px; color: var(--sub); }
 .tabs button b { margin-left: 4px; color: var(--accent); font-weight: 500; }
 `);
@@ -86,7 +86,8 @@ function paintCheck() {
                     <input type="number" inputmode="numeric" min="0" class="ck-par" data-f="par" value="${isNum(it.par) ? it.par : ''}" placeholder="–" aria-label="${esc(it.name)} 최소 수량"></div>`); });
             }));
             body = `<p class="ck-intro">지금 개수를 세어 넣어 주세요. 최소 수량보다 적으면 발주 목록에 들어가요.</p><div class="ck-head"><span>물건</span><span>지금</span><span>최소</span></div>${rows.join('') || '<p class="empty">칸에 넣은 물건이 아직 없어요.</p>'}`;
-            foot = `${stale.length ? `<p>30일 넘게 확인 안 한 구역 ${stale.length}곳 · ${stale.slice(0, 4).map(x => ckCode(x.pi, x.zi, multi) + '번').join(', ')}${stale.length > 4 ? ' …' : ''}</p>` : ''}<button type="button" class="btn btn-p" data-act="ckTab" data-t="order">발주 목록 보기 (${lines.length})</button>`;
+            if (stale.length) body += `<p class="hint" style="margin-top:16px">30일 넘게 확인 안 한 구역 ${stale.length}곳 · ${stale.slice(0, 4).map(x => ckCode(x.pi, x.zi, multi) + '번').join(', ')}${stale.length > 4 ? ' …' : ''} · <button type="button" class="tlink" style="padding:0;min-height:0;font-size:13px;color:var(--accent)" data-act="ckTab" data-t="stale">모아 보기</button></p>`;
+            foot = `<button type="button" class="btn btn-p" data-act="ckTab" data-t="order">발주 목록 보기 (${lines.length})</button>`;
         }
     } else if (tab === 'order') {
         right = lines.length ? '<button type="button" class="tlink" data-act="ckShare">목록 복사</button>' : '';
@@ -110,7 +111,7 @@ function paintCheck() {
             <h1 class="h1" style="margin-top:20px">점검</h1>
             <div class="tabs" role="tablist" style="margin-top:14px">${tabBtn('count', '세기')}${tabBtn('order', '발주 목록', lines.length)}${feat('exp') ? tabBtn('exp', '유통기한', expItems().filter(x => expState(x.it)).length) : ''}${tabBtn('stale', '오래된 칸', stale.length)}</div>
             ${body}
-            ${foot ? `<div class="ck-foot">${foot}</div>` : ''}
+            ${foot ? `<div class="dock ck-foot">${foot}</div>` : ''}
         </main>`;
 }
 function ckItemAt(row) { const [pi, zi, ii] = row.dataset.at.split('.').map(Number), p = ckPhotos()[pi], z = p && p.zones[zi]; return z ? { p, z, it: z.items[ii] } : null; }
@@ -130,7 +131,7 @@ function ckRepaintRow(row) { // 다시 그리지 않고 그 줄만 (쓰던 칸�
     if (sm) sm.innerHTML = `${esc(sm.textContent.replace(/ · 부족$/, ''))}${low ? ' · <em>부족</em>' : ''}`;
     const { lines } = ckOrderLines(), ob = document.querySelector('#s-check [data-act=ckTab][data-t=order]');
     if (ob) ob.innerHTML = `발주 목록${lines.length ? `<b>${lines.length}</b>` : ''}`;
-    const fb = document.querySelector('#s-check .ck-foot [data-act=ckTab][data-t=order]'); if (fb) fb.textContent = `발주 목록 보기 (${lines.length})`;
+    const fb = document.querySelector('#s-check .ck-foot[data-act=ckTab][data-t=order], #s-check .ck-foot [data-act=ckTab][data-t=order]'); if (fb) fb.textContent = `발주 목록 보기 (${lines.length})`;
 }
 async function ckShare() {
     const text = ckOrderText();

@@ -49,7 +49,7 @@ addCSS(`
 .pr-acts .btn-s { min-height: 54px; font-size: 15px; }
 .pr-more { display: flex; justify-content: center; flex-wrap: wrap; gap: 0 22px; }
 .pr-more .tlink { padding: 0 4px; font-size: 14px; }
-.pr-more .tlink:disabled, .pr-acts .btn[aria-busy="true"] { cursor: progress; }
+.pr-more .tlink:disabled, .pr-acts .btn[aria-busy="true"], .pr-dock .btn[aria-busy="true"] { cursor: progress; }
 .pr-more .tlink:disabled { opacity: .4; }
 /* 이름 고치기 (아래 창) */
 .pr-field { display: block; margin: 0 0 18px; }
@@ -874,10 +874,9 @@ function buildPrintShell() {
             </div>
             <div class="pr-opts" id="prOpts"></div>
             <div class="pr-acts">
-                <button type="button" class="btn btn-p" data-act="prPdf" id="prPdf">PDF 받기</button>
-                <button type="button" class="btn btn-s" data-act="prShare" id="prShare">단톡방에 보내기</button>
                 <div class="pr-more"><button type="button" class="tlink" data-act="prImg" id="prImg">그림으로 받기</button><button type="button" class="tlink" data-act="prPrint" id="prPrint">바로 인쇄</button></div>
             </div>
+            <div class="dock pr-dock"><button type="button" class="btn btn-p" data-act="prPdf" id="prPdf">PDF 받기</button><button type="button" class="btn btn-s" data-act="prShare" id="prShare">단톡방에 보내기</button></div>
         </main>
         <div class="pr-viewer" id="prViewer" role="dialog" aria-modal="true" aria-label="인쇄물 크게 보기" hidden>
             <div class="pr-vbar"><span id="prVPage"></span><button type="button" data-act="prVZoom" id="prVZoom">더 크게</button><button type="button" data-act="prVClose" id="prVClose">닫기</button></div>

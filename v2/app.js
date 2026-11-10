@@ -295,9 +295,12 @@ function toast(msg, undo) {
     const t = $('#toast');
     t.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button type="button" data-act="undo">되돌리기</button>' : ''}`;
     t.hidden = false; toastUndo = undo || null;
+    t.classList.toggle('lift', !!document.querySelector('.screen.on .dock')); // 아래 버튼 줄을 가리지 않게
     clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, undo ? 6500 : 2600);
 }
 function hideToast() { $('#toast').hidden = true; toastUndo = null; }
+const syncScrolled = () => document.documentElement.classList.toggle('scrolled', window.scrollY > 4);
+window.addEventListener('scroll', syncScrolled, { passive: true });
 
 // 이 폰에서 찾은 기록 (v1과 같은 곳: 자주 찾는 물건·최근 검색어·날짜별 횟수). 예시를 보는 동안엔 메모리에만
 function recordPick(query, name) {
@@ -370,7 +373,7 @@ function route(force) {
     if (SCREENS[name](r) === false) return; // 다른 화면으로 넘겼다
     show(name);
     const y = popped ? scrollMem.get(key) : 0; popped = false;
-    window.scrollTo(0, y || 0);
+    window.scrollTo(0, y || 0); syncScrolled();
 }
 function show(name) {
     $('#boot').hidden = true;
