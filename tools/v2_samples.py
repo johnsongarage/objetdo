@@ -4,6 +4,9 @@
 #   - 집 예시: 거실 수납장 → 거실 서랍 → 안방 붙박이장 맨 위
 #   - 배치도 그림: tools/sample-plans/*.svg → 가로 1600 JPEG(*.jpg)로 그려 둔 것을 넣는다 (SVG를 고치면 JPEG도 다시 그릴 것)
 #   v1 예시는 그대로 둔다 (v1은 공간 사진을 모른다)
+#   - 11/10: 매장 예시의 카운터 하부장·창고 냉동고는 그림 → 실제 같은 사진 (가르시아가 AI로 만들어 옴, tools/sample-photos/*.jpg:
+#     냉동고는 왼쪽 벗겨진 벽·바닥과 아래 Gemini 표시를, 하부장은 아래 표시 띠를 잘라내고 상품권 묶음 위 엉터리 글자를 흐리게, 가로 1200).
+#     칸 이름·물건은 그대로, 칸 위치만 새 사진에 맞춘다 (가로 800 기준 좌표)
 import base64, json, pathlib, re
 
 root = pathlib.Path(__file__).resolve().parent.parent
@@ -16,6 +19,9 @@ for line in src.split('\n'):
 
 def plan(name):
     return 'data:image/jpeg;base64,' + base64.b64encode((root / 'tools' / 'sample-plans' / f'{name}.jpg').read_bytes()).decode()
+
+def jpg(name):
+    return 'data:image/jpeg;base64,' + base64.b64encode((root / 'tools' / 'sample-photos' / f'{name}.jpg').read_bytes()).decode()
 
 def pick(data, order):  # [(사진 id, 새 이름 또는 None)] 순서대로
     by_id = {str(p['id']): p for p in data['savedSystemData']}
@@ -39,6 +45,17 @@ store_photos = pick(found['SAMPLE_DEMO_DATA'], [
     ('1790000000201', '창고 선반'),      # 카페 창고 선반
     ('1790000000203', '창고 냉동고'),    # 냉동고
 ])
+# 그림이던 두 장을 사진으로: 사진 id → (사진 파일, 칸 위치 [(x, y, w, h)] — 지금 칸 순서와 같게)
+NEW_STORE_PHOTOS = {
+    '1790000000204': ('store-counter', [(10, 114, 384, 137), (406, 114, 384, 137), (82, 252, 312, 225), (406, 252, 274, 225)]),  # 왼쪽 서랍 · 오른쪽 서랍 · 왼쪽 칸 · 오른쪽 칸
+    '1790000000203': ('store-freezer', [(76, 157, 167, 190), (243, 157, 152, 190), (395, 157, 170, 190), (71, 361, 172, 196), (243, 361, 152, 196), (395, 361, 171, 196)]),  # 위 1~3번 통 · 아래 1~3번 통
+}
+for p in store_photos:
+    if p['id'] in NEW_STORE_PHOTOS:
+        img, boxes = NEW_STORE_PHOTOS[p['id']]
+        assert len(boxes) == len(p['zones']), p['title']
+        p['imgData'] = jpg(img)
+        p['zones'] = [dict(z, x=x, y=y, w=w, h=h) for z, (x, y, w, h) in zip(p['zones'], boxes)]
 STORE_PLAN_ZONES = [
     (466, 296, 64, 208, '1790000000204'),
     (714, 266, 64, 218, '1790000000001'),
