@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- 카톡·SNS 미리보기 그림 (og-image.png, 1200×630) 원본 — 11/10 '칸 마크'로 새로 만듦.
+     고치면: node tools/make_og_image.js  → 저장소 루트의 og-image.png를 다시 뽑는다.
+     그다음 index.html · v2/index.html · v1.html · start/ · price/ 의 og-image.png?v= 숫자를 올린다 (카톡은 예전 그림을 오래 기억한다) -->
+<html lang="ko">
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Noto+Sans+KR:wght@500;700&display=swap">
+<style>
+    :root { --bg: #F5F1EA; --sheet: #FBF8F3; --ink: #3A3530; --sub: #6E665C; --mute: #8C8378; --line: #E3DBCE; --accent: #9E3B2A; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body { position: relative; background: var(--bg); color: var(--ink); font-family: 'Noto Sans KR', sans-serif; word-break: keep-all; }
+    .left { position: absolute; left: 84px; top: 70px; width: 640px; }
+    .pill { display: inline-flex; align-items: center; gap: 12px; padding: 8px 20px 8px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--sheet); font-size: 22px; font-weight: 700; }
+    .pill svg { display: block; }
+    .word { display: flex; align-items: baseline; gap: 18px; margin-top: 30px; }
+    .word h1 { margin: 0; font-family: 'Gowun Batang', serif; font-size: 136px; font-weight: 700; line-height: 1.02; letter-spacing: -.01em; }
+    .word span { font-size: 19px; font-weight: 500; letter-spacing: .24em; color: var(--mute); }
+    .sub { margin: 20px 0 0; font-size: 41px; font-weight: 700; letter-spacing: -.01em; }
+    .desc { margin: 20px 0 0; font-size: 27px; font-weight: 500; line-height: 1.5; color: var(--sub); }
+    .acts { display: flex; gap: 12px; margin-top: 30px; }
+    .acts b { padding: 9px 24px 11px; border-radius: 999px; background: var(--ink); color: var(--sheet); font-size: 23px; font-weight: 700; }
+    .right { position: absolute; left: 776px; top: 78px; width: 380px; display: flex; flex-direction: column; align-items: center; }
+    .tile { width: 360px; height: 360px; border-radius: 80px; box-shadow: 0 26px 60px rgba(58, 53, 48, .16), 0 0 0 1px var(--line); overflow: hidden; }
+    .tile svg { display: block; }
+    .ask { display: flex; align-items: center; gap: 14px; margin-top: -26px; padding: 16px 30px; border-radius: 999px; background: #fff; box-shadow: 0 12px 30px rgba(58, 53, 48, .14); font-size: 25px; font-weight: 700; white-space: nowrap; }
+    .ask .ar { color: var(--mute); font-weight: 500; }
+    .ask .hit { color: var(--accent); }
+</style>
+<body>
+<div class="left">
+    <div class="pill">
+        <svg viewBox="0 0 32 32" width="34" height="34"><rect width="32" height="32" rx="8" fill="#F5F1EA"/><rect x="16" y="16" width="10.5" height="10.5" fill="#9E3B2A"/><rect x="5" y="5" width="22" height="22" rx="1.5" fill="none" stroke="#3A3530" stroke-width="3"/><path d="M16 5V27M5 16H27" stroke="#3A3530" stroke-width="3"/></svg>
+        무료 베타 · 가입 없이 바로
+    </div>
+    <div class="word"><h1>오브젯도</h1><span>OBJETDO</span></div>
+    <p class="sub">사진으로 만드는 물건 자리 지도</p>
+    <p class="desc">사진 한 장에 칸을 나누고 물건을 적으면<br>쓰거나 말만 해도 어느 칸인지 알려 줘요</p>
+    <div class="acts"><b>찍기</b><b>말로 넣기</b><b>찾기</b></div>
+</div>
+<div class="right">
+    <!-- 앱 아이콘과 같은 칸 마크 (바탕만 미리보기 바탕보다 밝게) -->
+    <div class="tile"><svg viewBox="0 0 512 512" width="360" height="360"><rect width="512" height="512" fill="#FBF8F3"/><rect x="266" y="266" width="130" height="130" fill="#9E3B2A"/><rect x="108" y="108" width="296" height="296" rx="12" fill="none" stroke="#3A3530" stroke-width="30"/><path d="M256 108V404M108 256H404" stroke="#3A3530" stroke-width="30"/></svg></div>
+    <div class="ask">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#3A3530" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+        건전지 <span class="ar">→</span> <span class="hit">여깃도! 팬트리 7번</span>
+    </div>
+</div>
+</body>
+</html>
