@@ -30,7 +30,7 @@ addCSS(`
 .tabs button b { margin-left: 4px; color: var(--accent); font-weight: 500; }
 `);
 
-function ckPhotos() { return vis(); }
+function ckPhotos() { return itemPhotos(); } // 공간 사진(가구 칸)은 점검·세기에서 뺀다
 function ckCode(pi, zi, multi) { return multi ? `${pi < 26 ? String.fromCharCode(65 + pi) : `P${pi + 1}`}-${zi + 1}` : String(zi + 1); } // v1 stockCode와 같다
 function ckOrderLines() { // v1 stockOrderLines와 같다
     const photos = ckPhotos(), multi = photos.length > 1, map = new Map(); let uncounted = 0;

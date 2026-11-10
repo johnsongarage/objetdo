@@ -25,17 +25,17 @@ addCSS(`
 
 let ib = { key: null, listening: false };
 function inboxAgo(at) { if (!at) return ''; const t = agoText(at); return t === '오늘' ? '오늘 넣음' : t === '어제' ? '어제 넣음' : t; }
-function zoneLabelShort(p, i) { return (vis().length > 1 ? `${p.title || '사진'} ` : '') + `${i + 1}번 구역`; }
+function zoneLabelShort(p, i) { return (itemPhotos().length > 1 ? `${p.title || '사진'} ` : '') + `${i + 1}번 구역`; }
 function suggestPlace(name) {
     const s = suggestZone(name);
     if (s) return { data: s.data, index: s.index, why: s.sc === 9 ? '같은 물건이 있는 칸' : `${s.kind} 종류가 있는 칸` };
     const words = String(name).split(/\s+/).filter(w => w.length >= 2).reverse(); // 끝 낱말이 보통 물건 종류 (헤이즐넛 '시럽')
-    for (const w of words) for (const d of vis()) for (let i = 0; i < d.zones.length; i++) {
+    for (const w of words) for (const d of itemPhotos()) for (let i = 0; i < d.zones.length; i++) {
         const hit = d.zones[i].items.find(it => it.name !== name && String(it.name).split(/\s+/).some(t => normalizeForSearch(t) === normalizeForSearch(w)));
         if (hit) return { data: d, index: i, why: `${josa(w, '이', '가')} 있는 칸` };
     }
     const syn = synonymsOf(name);
-    if (syn.length) for (const d of vis()) for (let i = 0; i < d.zones.length; i++) {
+    if (syn.length) for (const d of itemPhotos()) for (let i = 0; i < d.zones.length; i++) {
         const hit = d.zones[i].items.find(it => syn.some(t => includesText(t, it.name)));
         if (hit) return { data: d, index: i, why: `${josa(hit.name, '이', '가')} 있는 칸 (같은 말)` };
     }
@@ -104,7 +104,7 @@ function ibPlace(name, pid, zi) {
 }
 function ibOpenPicker(name) { // 칸 고르기: 사진마다 칸 목록
     openSheet(`<h2>${esc(josa(name, '은', '는'))} 어디에 둘까요?</h2><p>넣을 칸을 눌러 주세요</p>
-        <div class="pk-list">${vis().map(p => `${vis().length > 1 ? `<h3>${esc(p.title || '사진')}</h3>` : ''}${p.zones.map((z, i) => `<button type="button" class="zrow" data-act="ibPickZone" data-p="${esc(p.id)}" data-z="${i}" data-n="${esc(name)}"><span class="n">${i + 1}</span><span class="t">${esc(z.name || `${i + 1}번 구역`)}<small>${esc(zoneSummary(z))}</small></span></button>`).join('') || '<p class="empty">칸이 없어요</p>'}`).join('')}</div>
+        <div class="pk-list">${itemPhotos().map(p => `${itemPhotos().length > 1 ? `<h3>${esc(p.title || '사진')}</h3>` : ''}${p.zones.map((z, i) => `<button type="button" class="zrow" data-act="ibPickZone" data-p="${esc(p.id)}" data-z="${i}" data-n="${esc(name)}"><span class="n">${i + 1}</span><span class="t">${esc(z.name || `${i + 1}번 구역`)}<small>${esc(zoneSummary(z))}</small></span></button>`).join('') || '<p class="empty">칸이 없어요</p>'}`).join('')}</div>
         <div class="stack"><button type="button" class="btn btn-s" data-act="sheetClose">닫기</button></div>`);
 }
 function ibPresets() { // 업종별 자주 쓰는 물건 (v1 STARTER_PRESETS와 같은 목록)

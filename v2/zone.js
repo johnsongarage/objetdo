@@ -132,7 +132,7 @@ function zzItemHTML(it) {
     const open = zz.open === it.name, S = stockOn(), E = feat('exp'), low = itemLow(it), st = expState(it);
     const head = `<button type="button" class="zz-it${open ? ' open' : ''}" data-act="zzOpen" data-n="${esc(it.name)}" aria-expanded="${open}"><span class="nm">${it.pin ? '<span class="pin">★</span>' : ''}${esc(it.name)}${it.comment ? `<small>${esc(it.comment)}</small>` : ''}</span><span>${itemMarks(it)}</span></button>`;
     if (!open) return head;
-    return head + `<div class="zz-card" data-n="${esc(it.name)}">
+    return head + `<div class="zz-card" data-n="${esc(it.name)}" data-pz="${esc(zz.pid)}:${zz.zi}">
         ${S ? `<div class="zz-f"><span>재고</span><span class="zz-step"><button type="button" data-act="zzQty" data-d="-1" aria-label="하나 빼기">−</button><input type="number" inputmode="numeric" min="0" data-f="qty" value="${isNum(it.qty) ? it.qty : ''}" aria-label="지금 수량"><button type="button" data-act="zzQty" data-d="1" aria-label="하나 더">+</button></span></div>
               <div class="zz-f"><span>최소 수량 <small class="zz-low">${low ? `· ${it.par - it.qty}개 모자라요` : ''}</small></span><span><input type="number" inputmode="numeric" min="0" data-f="par" value="${isNum(it.par) ? it.par : ''}" aria-label="최소 수량" placeholder="없음">개</span></div>` : ''}
         ${E ? `<div class="zz-f"><span>유통기한 ${st ? `<small class="zz-low">· ${esc(expLabel(it))}</small>` : ''}</span><input type="date" data-f="exp" value="${esc(it.exp || '')}" aria-label="유통기한"></div>` : ''}
@@ -295,9 +295,39 @@ function zsReveal() { // 그 칸이 창에 가리지 않게 화면을 살짝 올
     const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollBy({ top: dy, behavior: reduce ? 'auto' : 'smooth' });
 }
+// 아래 줄 (이전 · 완료 · 다음 또는 새 칸 그리기) — 물건 창·가구 고르기 같이
+function zsFootHTML(zi, n, inEdit) {
+    const last = zi >= n - 1;
+    return `<div class="zs-foot">
+            <button type="button" class="btn btn-s" data-act="zsStep" data-d="-1"${zi > 0 ? '' : ' disabled'} aria-label="이전 칸">‹ 이전</button>
+            <button type="button" class="btn btn-p" data-act="zsDone">완료</button>
+            ${inEdit && last ? `<button type="button" class="btn btn-s" data-act="zsDrawNext">새 칸 그리기</button>` : `<button type="button" class="btn btn-s" data-act="zsStep" data-d="1"${last ? ' disabled' : ''} aria-label="다음 칸">다음 ›</button>`}
+        </div>`;
+}
+// 공간 사진의 네모 = 가구: 물건 넣기 대신 '어느 가구 사진인지' 고른다 (한 가구는 한 네모에만). 없으면 바로 찍어 넣기
+let pendingSpaceLink = null; // { pid, zi } — '새로 넣기'로 고른 사진을 이 네모에 잇는다 (make.js onPhotoPicked)
+function paintSpaceSheet() {
+    const c = zzCur(); if (!c) return;
+    const { p, z, zi } = c, el = zsEl(), q = linkedPhoto(z), items = itemPhotos();
+    const taken = new Map(); p.zones.forEach((oz, oi) => { if (oi !== zi && oz.link != null) taken.set(String(oz.link), oi); });
+    el.innerHTML = `
+        <div class="zs-head">
+            <span class="zs-n" aria-hidden="true">${esc(q ? letterOf(q) || '·' : '?')}</span>
+            <div class="zs-tt"><b class="zs-static">${q ? esc(q.title || '사진') : '어느 가구예요?'}</b><small>${esc(p.title || '공간 사진')} · ${zi + 1}번 네모</small></div>
+            <button type="button" class="zs-x" data-act="zsX" aria-label="창 닫기">×</button>
+        </div>
+        <div class="zs-body">
+            <p class="zz-chips-lab">${q ? '다른 가구로 바꾸려면 눌러요' : '이 네모가 어느 가구(사진)인지 골라요'}</p>
+            ${items.length ? `<div class="sp-pick">${items.map(ph => { const on = q === ph, at = taken.get(String(ph.id)); return `<button type="button" class="sp-opt${on ? ' on' : ''}" data-act="spLink" data-p="${esc(ph.id)}" aria-pressed="${on}"><span class="th">${thumbImg(ph)}<em>${esc(letterOf(ph))}</em></span><span class="tt">${esc(ph.title || '사진')}${at != null ? `<small>${at + 1}번 네모에 있음</small>` : ''}</span></button>`; }).join('')}</div>` : '<p class="empty">아직 가구 사진이 없어요 · 아래에서 찍어 넣어요</p>'}
+            <button type="button" class="sp-new" data-act="spNew">+ 이 가구 사진 새로 넣기</button>
+            <div class="zs-more">${q ? `<button type="button" data-act="spOpen">${esc(q.title || '사진')} 보기 →</button>` : ''}<button type="button" class="danger" data-act="zzDelete">이 네모 지우기</button></div>
+        </div>
+        ${zsFootHTML(zi, p.zones.length, cur === 'edit')}`;
+}
 function paintZoneSheet() {
     const c = zzCur(); if (!c) return;
-    const { p, z, zi } = c, el = zsEl(), n = p.zones.length, inEdit = cur === 'edit', last = zi >= n - 1;
+    if (isSpace(c.p)) { paintSpaceSheet(); return; }
+    const { p, z, zi } = c, el = zsEl(), n = p.zones.length, inEdit = cur === 'edit';
     el.innerHTML = `
         <div class="zs-head">
             <span class="zs-n" aria-hidden="true">${zi + 1}</span>
@@ -312,11 +342,7 @@ function paintZoneSheet() {
             <div id="zzItems"></div>
             <div class="zs-more"><button type="button" data-act="zsFull">크게 보기 · 자세히</button>${inEdit ? '' : `<button type="button" data-act="zsEdit">칸 크기·위치</button>`}<button type="button" class="danger" data-act="zzDelete">이 칸 지우기</button></div>
         </div>
-        <div class="zs-foot">
-            <button type="button" class="btn btn-s" data-act="zsStep" data-d="-1"${zi > 0 ? '' : ' disabled'} aria-label="이전 칸">‹ 이전</button>
-            <button type="button" class="btn btn-p" data-act="zsDone">완료</button>
-            ${inEdit && last ? `<button type="button" class="btn btn-s" data-act="zsDrawNext">새 칸 그리기</button>` : `<button type="button" class="btn btn-s" data-act="zsStep" data-d="1"${last ? ' disabled' : ''} aria-label="다음 칸">다음 ›</button>`}
-        </div>`;
+        ${zsFootHTML(zi, n, inEdit)}`;
     zzBind(); zzParts();
 }
 
@@ -324,13 +350,15 @@ function paintZoneSheet() {
 // 물건 카드 칸에 적으면 바로 저장 (메모는 다시 그리지 않고 → 쓰던 칸에서 손이 안 끊긴다)
 document.addEventListener('change', (e) => {
     const f = e.target.closest && e.target.closest('.zz-card [data-f]'); if (!f || !f.closest('#s-zone, #zsheet')) return;
-    const c = zzCur(), name = f.closest('.zz-card').dataset.n, it = c && c.z.items.find(x => x.name === name); if (!it) return;
-    const k = f.dataset.f, v = f.value.trim();
+    const card = f.closest('.zz-card'), name = card.dataset.n, [cp, cz] = String(card.dataset.pz || '').split(':'), cph = photoById(cp), cZone = cph && cph.zones[+cz];
+    const it = cZone && cZone.items.find(x => x.name === name); if (!it) return; // 카드가 그려진 그 칸의 물건에만 (창이 다른 칸으로 바뀐 뒤 늦게 와도)
+    const c = { z: cZone }, k = f.dataset.f, v = f.value.trim();
     if (k === 'qty' || k === 'par') { const n = v === '' ? NaN : Math.max(0, Math.floor(Number(v))); if (isFinite(n)) it[k] = n; else delete it[k]; }
     else if (k === 'exp') { if (/^\d{4}-\d{2}-\d{2}$/.test(v)) it.exp = v; else delete it.exp; }
     else if (k === 'comment') it.comment = v;
     markChecked(c.z); saveAll();
     if (k !== 'comment') { zzRepaint(); return; }
+    if (!zz || zz.pid !== cp || zz.zi !== +cz) return; // 지금 보이는 칸이 아니면 목록 글자는 그대로 (다시 열 때 새로 그린다)
     const row = zzQ(`.zz-it[data-n="${CSS.escape(name)}"] .nm`); if (!row) return;
     let sm = row.querySelector('small'); if (!v) { if (sm) sm.remove(); return; }
     if (!sm) { sm = document.createElement('small'); row.appendChild(sm); } sm.textContent = v;
@@ -451,7 +479,18 @@ Object.assign(ACT, {
     zzDeleteOk: () => zzDeleteOk(),
     // 물건 창
     zsX: () => zsClose(),
-    zsDone: () => { const c = zzCur(), inMap = cur === 'map'; if (c) { zzSaveName(); markChecked(c.z); saveAll(); } zsClose(); if (c && inMap) toast(`${c.zi + 1}번 칸 · 오늘 확인으로 적었어요`); },
+    zsDone: () => { const c = zzCur(), inMap = cur === 'map', sp = c && isSpace(c.p); if (c && !sp) { zzSaveName(); markChecked(c.z); saveAll(); } zsClose(); if (c && inMap && !sp) toast(`${c.zi + 1}번 칸 · 오늘 확인으로 적었어요`); },
+    spLink: (el) => { // 이 네모 = 이 가구 사진 (다른 네모에 있던 거면 옮겨 온다)
+        const c = zzCur(), q = photoById(el.dataset.p); if (!c || !q) return;
+        const was = c.p.zones.find((oz, oi) => oi !== c.zi && oz.link != null && String(oz.link) === String(q.id));
+        if (was) { delete was.link; was.name = ''; }
+        if (!c.p.space) c.p.space = true;
+        c.z.link = String(q.id); c.z.name = q.title || ''; saveAll();
+        paintSpaceSheet(); syncZsH(); if (cur === 'edit' && typeof paintEdit === 'function') paintEdit(true);
+        toast(was ? `${q.title || '사진'} · 다른 네모에서 옮겨 왔어요` : `${letterOf(q)} ${q.title || '사진'}${josa(q.title || '사진', '과', '와').slice((q.title || '사진').length)} 이었어요`);
+    },
+    spNew: () => { const c = zzCur(); if (c && typeof pickPhoto === 'function') pickPhoto({ link: { pid: String(c.p.id), zi: c.zi } }); },
+    spOpen: () => { const c = zzCur(), q = c && linkedPhoto(c.z); if (q) nav(`#/map/${encodeURIComponent(q.id)}?v=flow`); },
     zsStep: (el) => { const c = zzCur(); if (!c) return; const ni = c.zi + Number(el.dataset.d); if (c.p.zones[ni]) zsGo(c.p.id, ni); },
     zsDrawNext: () => { if (typeof edArmDraw === 'function') edArmDraw(); },
     zsFull: () => { const c = zzCur(); if (c) { zzSaveName(); nav(zoneHash(c.p.id, c.zi)); } },
