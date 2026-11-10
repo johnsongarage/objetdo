@@ -55,6 +55,10 @@ addCSS(`
 .ed-tools button.on { background: var(--ink); color: #fff; }
 .ed-tools button.danger { color: var(--accent); }
 .ed-tools button:disabled { opacity: .35; }
+.ed-order { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 12px 14px; border: 1px solid var(--accent); background: var(--accent-soft); font-size: 14px; }
+.ed-order span { flex: 1 1 180px; }
+.ed-order .btn { width: auto; min-height: 44px; padding: 0 14px; font-size: 15px; background: var(--bg); }
+.ed-sort { min-height: 32px; padding: 0; border: 0; background: none; color: var(--accent); font-size: 13px; letter-spacing: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .ed-help { margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line); background: var(--sheet); font-size: 14px; }
 .ed-help b { display: block; font-weight: 500; margin-bottom: 6px; }
 .ed-help ol { margin: 0; padding: 0; list-style: none; counter-reset: h; }
@@ -239,6 +243,7 @@ function paintEdit(keepScroll) {
     const el = screenEl('edit'), empty = !p.zones.length, defTitle = /^#\d+$/.test(p.title || ''), sp = isSpace(p), Z = sp ? '가구' : '구역';
     const sub = ed.draw ? (sp ? '가구 하나를 끌어서 네모로 그려요' : '사진 위를 끌어서 칸을 그려요') : empty ? (sp ? '가구마다 네모를 그려요' : 'AI로 찾거나 직접 그려요') : (sp ? '네모를 누르면 어느 가구인지 골라요' : '칸을 누르면 물건 창 · 고른 칸은 끌어서 옮기기');
     const L = sp ? '' : (itemPhotos().length > 1 ? letterOf(p) : '');
+    const mixed = !sp && p.zones.length > 1 && readingOrder(p.zones).some((z, i) => z !== p.zones[i]); // 번호가 사진 순서(왼쪽 위부터)와 다르다
     el.innerHTML = `
         <div class="ed-bar"><div><b>${sp ? (empty ? '공간 사진 · 가구 그리기' : '가구 고치는 중') : empty ? '칸 나누기' : '구역 고치는 중'}</b><small>${sub}</small></div><button type="button" data-act="edDone">완료</button></div>
         <main class="wrap" style="flex:1">
@@ -253,10 +258,11 @@ function paintEdit(keepScroll) {
                     ${ed.busy ? '<div class="ed-busy">칸 찾는 중…</div>' : ''}
                 </div>
             </div>
+            ${mixed && !ed.draw ? `<div class="ed-order"><span>번호가 사진 순서와 달라요 · 나중에 그린 칸이 뒤 번호예요</span><button type="button" class="btn btn-s" data-act="edSort">왼쪽 위부터 다시 매기기</button></div>` : ''}
             ${ed.draw ? `<p class="hint">${sp ? '가구 모서리에서 반대 모서리까지 끌어요 · 다 그리면 어느 가구인지 고르는 창이 열려요' : '손가락으로 칸 모서리에서 반대 모서리까지 끌어요 · 다 그리면 바로 물건 창이 열려요'}</p>` : ''}
             ${!empty && sp ? `<div class="ed-help"><b>공간 사진, 이렇게 해요</b><ol><li>가구 그리기 · [가구 그리기]를 누르고 가구 위를 끌어요</li><li>잇기 · 네모를 누르고 어느 가구 사진인지 골라요 (없으면 바로 찍어 넣기)</li><li>찾을 때 · 찾은 결과의 ‘가는 길’에 이 사진이 나와 그 가구가 빛나요</li></ol></div>` : ''}
             ${!empty && !sp ? `<div class="ed-help"><b>구역 고치기, 이렇게 해요</b><ol><li>구역 만들기 · [구역 그리기]를 누르고 사진 위를 끌어요</li><li>물건 넣기 · 구역을 누르면 물건 창이 열려요</li><li>옮기기·크기 · 고른 구역을 끌거나, 모서리를 당겨요</li>${p.zones.some(z => AI_LOW.has(z)) ? '<li>점선 ‘확인’ · AI가 덜 확실한 칸이에요. 맞으면 그대로, 아니면 지우세요</li>' : ''}</ol></div>` : ''}
-            <div class="sec-head"><span>${Z} 목록</span><span>${p.zones.length}</span></div>
+            <div class="sec-head"><span>${Z} 목록 ${p.zones.length}</span>${!sp && p.zones.length > 1 ? '<button type="button" class="ed-sort" data-act="edSort">번호 다시 매기기</button>' : '<span></span>'}</div>
             ${p.zones.length ? p.zones.map((z, i) => { if (sp) { const q = linkedPhoto(z);
                     return `<button type="button" class="zrow" data-act="edPickRow" data-i="${i}"><span class="n">${esc(q ? letterOf(q) || '·' : '?')}</span><span class="t">${q ? esc(q.title || '사진') : '어느 가구인지 고르기'}<small>${q ? '이어짐 · 눌러서 바꾸기' : `${i + 1}번 네모 · 눌러서 고르기`}</small></span><span class="d">${ed.sel === i ? '고름' : ''}</span></button>`; }
                     return `<button type="button" class="zrow" data-act="edPickRow" data-i="${i}"><span class="n">${i + 1}</span><span class="t">${esc(z.name || `${i + 1}번 구역`)}<small>${z.items.length ? esc(zoneSummary(z)) : '비어 있음 · 눌러서 물건 넣기'}</small></span><span class="d">${AI_LOW.has(z) ? '<span style="color:var(--accent)">확인</span>' : ed.sel === i ? '고름' : ''}</span></button>`; }).join('')
@@ -435,6 +441,20 @@ Object.assign(ACT, {
     edDelOk: () => { const f = ed && ed.pendingDel; closeSheet(); if (f) { ed.pendingDel = null; f(); } },
     edUndo: () => { const p = edPhoto(); if (!p || !ed.undo.length) return; if (zsOpen()) zsHide(false); p.zones = JSON.parse(ed.undo.pop()); ed.sel = null; saveAll(); if (cur === 'edit') { if (parseRoute().q.has('sz')) zsClose(); paintEdit(true); } toast('되돌렸어요'); },
     edZoom: () => { ed.zoom = ed.zoom > 1 ? 1 : 2; paintEdit(true); },
+    // 번호 다시 매기기 (11/10): 칸 번호를 사진에서 왼쪽→오른쪽, 위→아래 순서로 (AI 칸과 같은 규칙). 물건은 칸을 따라간다
+    //   '1구역·A구역'처럼 자동으로 붙은 이름은 새 번호로, 직접 지은 이름(1단 왼쪽 등)은 그대로
+    edSort: () => {
+        const p = edPhoto(); if (!p || p.zones.length < 2 || isSpace(p)) return;
+        const sorted = readingOrder(p.zones);
+        if (sorted.every((z, i) => z === p.zones[i]) && sorted.every((z, i) => !z.name || !autoZoneName(z.name) || z.name === `${i + 1}구역`)) { toast('이미 왼쪽 위부터 순서대로예요'); return; }
+        if (zsOpen()) zsHide(false); // 열린 물건 창부터 닫는다 (번호가 바뀌기 전에 이름 저장)
+        if (parseRoute().q.has('sz')) zsClose();
+        edPush();
+        p.zones = sorted;
+        p.zones.forEach((z, i) => { if (z.name && autoZoneName(z.name)) z.name = `${i + 1}구역`; });
+        ed.sel = null; saveAll(); paintEdit(true);
+        toast(`번호를 왼쪽 위부터 다시 매겼어요${p.zones.some(z => z.items.length) ? ' · 붙여 둔 종이는 다시 뽑아 주세요' : ''}`, () => ACT.edUndo());
+    },
     edPickRow: (el) => zsGo(ed.pid, +el.dataset.i), // 목록에서 눌러도 그 칸 물건 창 (사진은 그 칸이 보이게)
     edAI: () => edAI(),
     edAIGo: () => edAIGo(),
