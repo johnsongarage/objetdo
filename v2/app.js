@@ -592,6 +592,13 @@ document.addEventListener('click', (e) => {
     e.preventDefault(); f(el, e);
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
+// 숫자칸 (재고·최소 수량): type=number면 삼성 키보드에 열쇠(자동 채우기) 줄이 떠서 글자칸처럼 search + 숫자 자판 (11/10)
+//   → 숫자 말고는 바로 지우고, 엔터(완료)는 칸 닫기 = 저장 (change)
+const NUM_IN = 'type="search" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" data-num';
+function numOnly(f) { if (!f || !f.matches || !f.matches('input[data-num]')) return; const v = f.value.replace(/[^0-9]/g, ''); if (v !== f.value) f.value = v; }
+document.addEventListener('input', (e) => { if (!e.isComposing) numOnly(e.target); });
+document.addEventListener('compositionend', (e) => numOnly(e.target));
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing && e.target.matches && e.target.matches('input[data-num]')) { e.preventDefault(); e.target.blur(); } });
 $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') closeSheet(); });
 
 async function boot() {

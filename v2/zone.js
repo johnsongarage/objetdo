@@ -39,8 +39,8 @@ addCSS(`
 .zz-step { display: flex; align-items: center; gap: 8px; color: var(--ink); }
 .zz-step button { width: 44px; height: 44px; border: 1px solid var(--ink); border-radius: 2px; background: none; font-size: 20px; cursor: pointer; }
 .zz-step input { width: 52px; text-align: center; font-family: var(--serif); font-size: 20px; }
-.zz-card input[type=number], .zz-card input[type=date], .zz-card input[type=search] { border: 0; border-bottom: 1px solid var(--ink); background: transparent; font: inherit; font-size: 16px; color: var(--ink); padding: 6px 0; border-radius: 0; min-width: 0; }
-.zz-card input[type=number] { width: 64px; text-align: center; }
+.zz-card input[type=date], .zz-card input[type=search] { border: 0; border-bottom: 1px solid var(--ink); background: transparent; font: inherit; font-size: 16px; color: var(--ink); padding: 6px 0; border-radius: 0; min-width: 0; }
+.zz-card input[data-num] { width: 64px; text-align: center; }
 .zz-card .zz-memo { display: block; padding: 10px 0 4px; border-top: 1px solid var(--line2); }
 .zz-card .zz-memo span { display: block; font-size: 13px; color: var(--sub); }
 .zz-card .zz-memo input { width: 100%; }
@@ -153,8 +153,8 @@ function zzItemHTML(it) {
     const head = `<button type="button" class="zz-it${open ? ' open' : ''}" data-act="zzOpen" data-n="${esc(it.name)}" aria-expanded="${open}"><span class="nm">${it.pin ? '<span class="pin">★</span>' : ''}${esc(it.name)}${it.comment ? `<small>${esc(it.comment)}</small>` : ''}</span><span>${itemMarks(it)}</span></button>`;
     if (!open) return head;
     return head + `<div class="zz-card" data-n="${esc(it.name)}" data-pz="${esc(zz.pid)}:${zz.zi}">
-        ${S ? `<div class="zz-f"><span>재고</span><span class="zz-step"><button type="button" data-act="zzQty" data-d="-1" aria-label="하나 빼기">−</button><input type="number" inputmode="numeric" min="0" data-f="qty" value="${isNum(it.qty) ? it.qty : ''}" aria-label="지금 수량"><button type="button" data-act="zzQty" data-d="1" aria-label="하나 더">+</button></span></div>
-              <div class="zz-f"><span>최소 수량 <small class="zz-low">${low ? `· ${it.par - it.qty}개 모자라요` : ''}</small></span><span><input type="number" inputmode="numeric" min="0" data-f="par" value="${isNum(it.par) ? it.par : ''}" aria-label="최소 수량" placeholder="없음">개</span></div>` : ''}
+        ${S ? `<div class="zz-f"><span>재고</span><span class="zz-step"><button type="button" data-act="zzQty" data-d="-1" aria-label="하나 빼기">−</button><input ${NUM_IN} data-f="qty" value="${isNum(it.qty) ? it.qty : ''}" aria-label="지금 수량"><button type="button" data-act="zzQty" data-d="1" aria-label="하나 더">+</button></span></div>
+              <div class="zz-f"><span>최소 수량 <small class="zz-low">${low ? `· ${it.par - it.qty}개 모자라요` : ''}</small></span><span><input ${NUM_IN} data-f="par" value="${isNum(it.par) ? it.par : ''}" aria-label="최소 수량" placeholder="없음">개</span></div>` : ''}
         ${E ? `<div class="zz-f"><span>유통기한 ${st ? `<small class="zz-low">· ${esc(expLabel(it))}</small>` : ''}</span><input type="date" data-f="exp" value="${esc(it.exp || '')}" aria-label="유통기한"></div>` : ''}
         <label class="zz-memo"><span>메모 (어디쯤 있는지)</span><input type="search" data-f="comment" value="${esc(it.comment || '')}" placeholder="예: 맨 앞 줄, 라벨이 보이게" enterkeyhint="done"></label>
         <div class="zz-card-foot"><button type="button" data-act="zzPin" aria-pressed="${!!it.pin}">${it.pin ? '★ 즐겨찾기' : '☆ 즐겨찾기'}</button><button type="button" class="rm" data-act="zzRemove">이 구역에서 빼기</button></div>
