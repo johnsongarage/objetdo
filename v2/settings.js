@@ -99,7 +99,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.10.14'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.10.15'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -989,25 +989,25 @@ function renderIphone() {
 }
 
 // ────────────────────────────────────────────────────────────
-// #/guide/1~4 사용법 (v1 GUIDE_STEPS · 짧은 영상 그대로)
+// #/guide/1~4 사용법 — 11/10 새 화면으로 다시 찍은 짧은 영상 (매장 guide/v2-* · 집 guide/v2-home-* · tools/make_guide_videos.js)
 // ────────────────────────────────────────────────────────────
-const GUIDE_STEPS = [
-    { k: 'ai', title: '사진 한 장 → 칸 나누기', text: '선반·수납장 사진을 한 장 올리고 <b>[AI로 구역 찾기]</b>를 누르면 칸이 생겨요. 손가락으로 직접 그려도 돼요.' },
-    { k: 'put', title: '칸을 누르고 말로 넣기', text: '마이크에 <b>"가위, 테이프, 줄자"</b>처럼 한 번에 말하면 알아들은 걸 보여 줘요. 넣을 것만 체크하고 <b>[넣기]</b>.' },
-    { k: 'find', title: '말하면 그 칸이 보여요', text: '첫 화면 마이크를 누르고 <b>"건전지 어디 있어"</b>. 글로 칠 땐 앞 글자만 쳐도 돼요 (ㄱㅈㅈ).' },
-    { k: 'list', title: '뭐가 어디 있는지 한눈에', text: '<b>메뉴 → 물건 전체 목록</b>에서 훑어보고, 번호 스티커·지도를 인쇄해 붙여 두면 폰 없이도 찾아요.' }
+const guideSteps = () => [ // 글은 영상과 같은 순서 · 물건 예시는 매장/집에 맞게
+    { k: 'ai', title: '사진 한 장 → 칸 나누기', text: '선반·수납장을 정면에서 한 장 찍어 넣고 <b>[✧ AI로 구역 찾기]</b>를 누르면 칸이 생겨요. 사진 위를 끌어서 직접 그려도 돼요.' },
+    { k: 'put', title: '칸을 누르고 물건 넣기', text: `칸을 누르면 <b>물건 창</b>이 열려요. <b>"${isHome() ? '가위, 테이프, 줄자' : '종이컵, 컵 뚜껑, 빨대'}"</b>처럼 쉼표로 한 번에 쓰거나 마이크로 말하고, 자주 쓰는 물건은 누르면 바로 들어가요. 다 넣었으면 <b>[완료]</b>.` },
+    { k: 'find', title: '치거나 말하면 그 칸이 보여요', text: '첫 화면에 <b>"건전지"</b>처럼 치면 사진 속 그 칸이 빨갛게 보여요. 앞 글자만 쳐도 되고(ㄱㅈㅈ), 마이크를 눌러 말해도 돼요.' },
+    { k: 'list', title: '수납 지도 · 인쇄해 붙이기', text: '<b>수납 지도</b>에서 사진마다 칸과 물건을 한눈에 보고, <b>인쇄</b>로 A4 지도·칸 라벨을 뽑아 붙여 두면 앱을 안 열어도 찾아요.' }
 ];
 function renderGuide(r) {
-    const i = Math.max(0, Math.min(GUIDE_STEPS.length - 1, (parseInt(r.a, 10) || 1) - 1)), st = GUIDE_STEPS[i], last = i === GUIDE_STEPS.length - 1;
+    const S = guideSteps(), i = Math.max(0, Math.min(S.length - 1, (parseInt(r.a, 10) || 1) - 1)), st = S[i], last = i === S.length - 1, vb = `../guide/${isHome() ? 'v2-home-' : 'v2-'}${st.k}`;
     const el = screen('guide', '사용법'), [, fb] = backOf('guide', ['메뉴', '#/menu']);
     el.innerHTML = `
-        <header class="top"><span class="st-gtop">사용법 <b>${i + 1}</b> / ${GUIDE_STEPS.length}</span><button type="button" class="tlink" data-act="back" data-fb="${esc(fb)}">닫기</button></header>
+        <header class="top"><span class="st-gtop">사용법 <b>${i + 1}</b> / ${S.length}</span><button type="button" class="tlink" data-act="back" data-fb="${esc(fb)}">닫기</button></header>
         <main class="wrap st-main">
-            <div class="st-stage"><video muted playsinline loop autoplay preload="metadata" poster="../guide/${st.k}.jpg" aria-label="${esc(st.title)} 영상"><source src="../guide/${st.k}.mp4" type="video/mp4"><source src="../guide/${st.k}.webm" type="video/webm"></video></div>
-            <p class="st-gnote">영상 속 사진은 예시 그림이에요</p>
+            <div class="st-stage"><video muted playsinline loop autoplay preload="metadata" poster="${vb}.jpg" aria-label="${esc(st.title)} 영상"><source src="${vb}.mp4" type="video/mp4"><source src="${vb}.webm" type="video/webm"></video></div>
+            <p class="st-gnote">영상 속 사진은 예시예요</p>
             <h1 class="h1 st-title">${st.title}</h1>
             <p class="st-gtext">${st.text}</p>
-            <div class="st-dots" role="group" aria-label="단계">${GUIDE_STEPS.map((x, n) => `<button type="button" data-act="stGuide" data-i="${n}" aria-label="${n + 1}단계 · ${esc(x.title)}"${n === i ? ' aria-current="step"' : ''}></button>`).join('')}</div>
+            <div class="st-dots" role="group" aria-label="단계">${S.map((x, n) => `<button type="button" data-act="stGuide" data-i="${n}" aria-label="${n + 1}단계 · ${esc(x.title)}"${n === i ? ' aria-current="step"' : ''}></button>`).join('')}</div>
             <div class="st-gnav dock">
                 <button type="button" class="btn btn-s" data-act="stGuide" data-i="${i - 1}"${i === 0 ? ' disabled' : ''}>이전</button>
                 ${last ? `<button type="button" class="btn btn-p" data-act="stGuideEnd">시작하기</button>` : `<button type="button" class="btn btn-p" data-act="stGuide" data-i="${i + 1}">다음</button>`}
