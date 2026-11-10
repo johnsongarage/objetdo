@@ -28,6 +28,7 @@ button { font: inherit; color: inherit; }
 .back svg { width: 20px; height: 20px; }
 .meta { font-size: 13px; color: var(--sub); text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 12px; }
 .wrap { padding: 0 var(--gut); }
+.strip:empty { display: none; }
 .strip { margin: 6px var(--gut) 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--sub); }
 .strip a, .strip button { display: inline-flex; align-items: center; min-height: 40px; border: 0; background: none; padding: 0; color: var(--accent); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
 .kick { font-size: 13px; letter-spacing: .08em; color: var(--sub); }

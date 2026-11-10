@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""인쇄물 오른쪽 아래 QR 무늬를 만든다 (index.html의 PRINT_QR_URL · PRINT_QR 두 줄에 붙여 넣기)
+"""인쇄물 오른쪽 아래 QR 무늬를 만든다 (v1.html · v2/print.js의 PRINT_QR_URL · PRINT_QR 두 줄에 붙여 넣기)
 
     pip install segno
     python3 tools/make_print_qr.py https://johnsongarage.co.kr/objetdo/qr/

@@ -1,5 +1,5 @@
 # v2(새 화면)용 예시 데이터를 만든다:  python3 tools/v2_samples.py
-#   v1 index.html의 SAMPLE_DEMO_DATA·SAMPLE_ORGANIZER_DATA에서 사진을 골라 오고, 맨 앞에 '공간 사진'(배치도)을 붙인다 (11/10).
+#   v1(예전 화면 v1.html)의 SAMPLE_DEMO_DATA·SAMPLE_ORGANIZER_DATA에서 사진을 골라 오고, 맨 앞에 '공간 사진'(배치도)을 붙인다 (11/10).
 #   - 매장 예시: 업종 7개를 섞던 것 → '카페 한 곳' 4장, 입구에서 걸어 들어가는 순서 (카운터 하부장 → 바 상부장 → 창고 선반 → 창고 냉동고)
 #   - 집 예시: 거실 수납장 → 거실 서랍 → 안방 붙박이장 맨 위
 #   - 배치도 그림: tools/sample-plans/*.svg → 가로 1600 JPEG(*.jpg)로 그려 둔 것을 넣는다 (SVG를 고치면 JPEG도 다시 그릴 것)
@@ -7,7 +7,7 @@
 import base64, json, pathlib, re
 
 root = pathlib.Path(__file__).resolve().parent.parent
-src = (root / 'index.html').read_text(encoding='utf-8')
+src = (root / 'v1.html').read_text(encoding='utf-8')  # 11/10부터 v1은 v1.html (index.html은 새 화면으로 넘기는 얇은 페이지)
 found = {}
 for line in src.split('\n'):
     m = re.match(r'\s*const (SAMPLE_DEMO_DATA|SAMPLE_ORGANIZER_DATA) = (.*);\s*$', line)

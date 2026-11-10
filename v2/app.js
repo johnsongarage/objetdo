@@ -55,7 +55,7 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 let SAMPLE = null; try { SAMPLE = sessionStorage.getItem('samplePreview'); } catch (e) {}
 //   설정 같은 '취향'(PREF_KEYS, feat_*)은 예시 중에도 진짜로 저장한다 (v1 safeStorage와 같은 규칙)
 //   물건·기록 같은 '데이터'는 예시 중엔 메모리에만, 그중 MEM_ONLY는 진짜 값을 읽지도 않는다 (예시에 내 자리 미정이 섞이지 않게)
-const PREF_KEYS = new Set(['zmSuggestOpen', 'voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint', 'v2FontScale', 'v2MapView', 'photoTipSeen']);
+const PREF_KEYS = new Set(['zmSuggestOpen', 'voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint', 'v2FontScale', 'v2MapView', 'photoTipSeen', 'v2MovedSeen']);
 const MEM_ONLY = new Set(['inboxItems', 'searchPickCounts', 'searchHistory', 'findLog', 'baseItems', 'isSampleData', 'usageStats', 'statsQueue', 'dataChangedAt', 'stockLog', 'stockCountedAt', 'starterDone']);
 const isPref = (k) => PREF_KEYS.has(k) || String(k).startsWith('feat_');
 const memKV = {};
@@ -329,8 +329,8 @@ const ICON = {
     mic: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>'
 };
 const backBtn = (label, fb) => `<button type="button" class="back" data-act="back" data-fb="${esc(fb)}">${ICON.back}${esc(label)}</button>`;
-const V1 = (go, extra) => '../' + (go ? `#go=${go}${extra ? '&' + extra : ''}` : ''); // 아직 v2에 없는 화면은 v1(이전 화면)에서 연다
-const EXT = '<span class="ext" aria-hidden="true">↗</span><span class="sr">(이전 화면에서 열려요)</span>';
+const V1 = (go, extra) => '../v1.html' + (go ? `#go=${go}${extra ? '&' + extra : ''}` : ''); // 예전 화면(v1) — 11/10부터 기본 주소는 새 화면, v1은 ../v1.html
+const EXT = '<span class="ext" aria-hidden="true">↗</span><span class="sr">(예전 화면에서 열려요)</span>';
 
 let toastTimer = 0, toastUndo = null;
 function toast(msg, undo) {
@@ -601,8 +601,10 @@ document.addEventListener('compositionend', (e) => numOnly(e.target));
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing && e.target.matches && e.target.matches('input[data-num]')) { e.preventDefault(); e.target.blur(); } });
 $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') closeSheet(); });
 
+// 끊겨도 열리게 (v1과 같은 ../sw.js · 범위는 /objetdo/ 전체): 기본 주소가 새 화면이 되며 v2에서도 등록한다 (11/10)
+if ('serviceWorker' in navigator && location.protocol !== 'file:') window.addEventListener('load', () => navigator.serviceWorker.register('../sw.js').catch(() => {}));
 async function boot() {
     try { history.scrollRestoration = 'manual'; history.replaceState(history.state && history.state.v2 != null ? history.state : { v2: 0 }, '', location.hash || '#/'); } catch (e) {}
     try { await loadAll(); ready = true; route(true); AFTER_BOOT.forEach(f => { try { f(); } catch (e) { console.error(e); } }); }
-    catch (e) { console.error(e); $('#boot').innerHTML = `불러오지 못했어요 · <a href="../">이전 화면으로</a>`; }
+    catch (e) { console.error(e); $('#boot').innerHTML = `불러오지 못했어요 · <a href="../v1.html">예전 화면으로</a>`; }
 }

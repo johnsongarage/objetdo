@@ -38,7 +38,10 @@ function renderHome() {
     const hasReal = ls('hasSavedPhotos') === '1';
     $('#homeStrip').innerHTML = SAMPLE
         ? `<span>예시 · ${SAMPLE === 'organizer' ? '정리수납 예시 집' : '매장 예시'}</span><button type="button" data-act="sampleExit">${hasReal ? '내 지도로' : '예시 닫기'}</button>`
-        : `<span>${storedSample ? '예시 데이터를 보고 있어요' : '새 화면 미리보기 · 베타'}</span><a href="${V1()}" data-v1>이전 화면으로 ${EXT}</a>`;
+        : storedSample ? '<span>예시 데이터를 보고 있어요</span>'
+        // 예전 화면(v1)을 쓰던 폰: 한 번만 알려 준다 (11/10 새 화면이 기본 주소로)
+        : hasReal && ls('lookMig2') === '1' && !ls('v2MovedSeen') ? `<span>새 화면으로 바뀌었어요 · 예전 화면은 메뉴 맨 아래</span><button type="button" data-act="movedOk">알겠어요</button>`
+        : '';
     const zs = itemPhotos().flatMap(p => p.zones.map((z, i) => ({ p, z, i }))), nItems = zs.reduce((n, x) => n + x.z.items.length, 0), stale = zs.filter(x => isStale(x.z));
     const first = vis()[0], staleP = stale[0] ? stale[0].p : first;
     $('#stats').innerHTML = `<button type="button" class="stat" data-act="go" data-to="#/map/${encodeURIComponent(first.id)}"><span>구역</span><b>${zs.length}</b></button>`
@@ -592,7 +595,7 @@ function renderMenu() {
                     : `<button type="button" class="mi" data-act="go" data-to="${href}">${inner}</button>`}</li>`;
             }).join('')}</ul>
         </main>
-        <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 폰에만 저장돼요 · <a href="${V1()}" data-v1>이전 화면(v1)으로 ${EXT}</a></span></footer>`;
+        <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 폰에만 저장돼요 · <a href="${V1()}" data-v1>예전 화면으로 ${EXT}</a></span></footer>`;
 }
 function renderIntro() {
     const home = isHome();
@@ -658,5 +661,6 @@ Object.assign(ACT, {
     mvLost: () => openLostSheet(),
     lostYes: () => doLost(),
     sample: () => enterSample(),
-    sampleExit: () => exitSample()
+    sampleExit: () => exitSample(),
+    movedOk: () => { lsSet('v2MovedSeen', '1'); const s = $('#homeStrip'); if (s) s.innerHTML = ''; }
 });

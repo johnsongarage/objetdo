@@ -43,7 +43,7 @@
 1. [dash.cloudflare.com](https://dash.cloudflare.com) 가입(무료) → 왼쪽 **Web Analytics** (또는 Analytics & Logs > Web Analytics)
 2. **Add a site** → 주소에 `johnsongarage.github.io` → 완료
 3. 나오는 코드에서 `"token": "..."` 따옴표 안의 값을 복사
-4. `index.html`에서 `const CF_ANALYTICS_TOKEN = '';` 따옴표 안에 붙여 넣고 배포
+4. `v1.html`·`v2/domain.js`에서 `const CF_ANALYTICS_TOKEN = '';` 따옴표 안에 붙여 넣고 배포
    (Claude에게 "Cloudflare 토큰 넣어줘: ○○○" 하면 돼요)
 5. 하루쯤 지나면 대시보드에 방문자 수가 보여요
 

@@ -110,6 +110,17 @@ function setStatsOff(off) {
     else { try { localStorage.removeItem(STATS_OFF_KEY); } catch (e) {} markUsedToday(); sendDailyStats(); }
 }
 AFTER_BOOT.push(() => { recordUsageDay(); markUsedToday(); setTimeout(sendDailyStats, 3000); });
+// 🌐 방문자 통계 (Cloudflare Web Analytics, 쿠키 없음): v1 loadVisitStats와 같은 토큰·같은 규칙 — 사용 통계를 끈 폰은 안 부른다, 예시만 보는 사람도 센다
+//   (11/10 새 화면이 기본 주소가 되며 옮김 · 랜딩 실험 '방문 수'가 끊기지 않게)
+const CF_ANALYTICS_TOKEN = '273e5309e3764e809f02aab7f9942c5c';
+function loadVisitStats() {
+    if (!CF_ANALYTICS_TOKEN || statsOff() || document.getElementById('cfBeacon')) return;
+    const sc = document.createElement('script');
+    sc.id = 'cfBeacon'; sc.defer = true; sc.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    sc.setAttribute('data-cf-beacon', JSON.stringify({ token: CF_ANALYTICS_TOKEN }));
+    document.head.appendChild(sc);
+}
+AFTER_BOOT.push(loadVisitStats);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && ready) { markUsedToday(); sendDailyStats(); } });
 window.addEventListener('online', () => { if (ready) sendDailyStats(); });
 
