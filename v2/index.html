@@ -3,11 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex">
 <meta name="theme-color" content="#F5F1EA">
-<title>오브젯도 · 새 화면 미리보기</title>
-<link rel="icon" href="../icon-192.png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<title>오브젯도 - 사진으로 만드는 물건 자리 지도</title>
+<!-- 11/10부터 기본 화면 (기본 주소 /objetdo/ 가 여기로 넘긴다 · 예전 화면은 ../v1.html). 설치(manifest)·오프라인(../sw.js)은 v1과 같은 것을 쓴다 -->
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png?v=14">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png?v=14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="오브젯도">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요. A4로 뽑아 벽에 붙일 수도 있어요.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="오브젯도">
+<meta property="og:title" content="오브젯도 - 사진으로 만드는 물건 자리 지도">
+<meta property="og:description" content="선반 사진을 구역으로 나누고 물건을 적으면, 검색 한 번으로 위치를 찾아요.">
+<meta property="og:url" content="https://johnsongarage.co.kr/objetdo/">
+<meta property="og:image" content="https://johnsongarage.co.kr/objetdo/og-image.png?v=22">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="오브젯도: 사진으로 만드는 물건 자리 지도. 먹색 바탕 위에 모래색 상자가 떠 있고 위에서 흰 핀이 가리키는 앱 아이콘, 아래에 '빨대 → 아래 칸 가운데' 검색 결과">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
@@ -27,7 +44,7 @@
         } catch (e) { document.documentElement.dataset.mode = 'store'; }
     })();
 </script>
-<link rel="stylesheet" href="app.css?v=2026.11.10.8">
+<link rel="stylesheet" href="app.css?v=2026.11.10.9">
 </head>
 <body>
 <div class="app">
@@ -46,15 +63,15 @@
 
 
 <!-- 화면 파일: 고치면 ?v= 를 함께 올린다 (배포 직후 옛 파일과 섞이지 않게) -->
-<script src="app.js?v=2026.11.10.8"></script>
-<script src="domain.js?v=2026.11.10.8"></script>
-<script src="find.js?v=2026.11.10.8"></script>
-<script src="zone.js?v=2026.11.10.8"></script>
-<script src="make.js?v=2026.11.10.8"></script>
-<script src="inbox.js?v=2026.11.10.8"></script>
-<script src="check.js?v=2026.11.10.8"></script>
-<script src="print.js?v=2026.11.10.8"></script>
-<script src="settings.js?v=2026.11.10.8"></script>
+<script src="app.js?v=2026.11.10.9"></script>
+<script src="domain.js?v=2026.11.10.9"></script>
+<script src="find.js?v=2026.11.10.9"></script>
+<script src="zone.js?v=2026.11.10.9"></script>
+<script src="make.js?v=2026.11.10.9"></script>
+<script src="inbox.js?v=2026.11.10.9"></script>
+<script src="check.js?v=2026.11.10.9"></script>
+<script src="print.js?v=2026.11.10.9"></script>
+<script src="settings.js?v=2026.11.10.9"></script>
 <script>boot();</script>
 </body>
 </html>
