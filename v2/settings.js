@@ -58,6 +58,15 @@ addCSS(`
 .st-facts small { display: block; font-size: 13px; color: var(--sub); }
 .st-warn { margin-top: 22px; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); font-size: 15px; line-height: 1.65; }
 .st-warn b { color: var(--accent); font-weight: 500; }
+.get-ext { margin-top: 22px; }
+.get-fine { margin-top: 18px; }
+.get-url { margin-top: 8px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); background: var(--sheet); }
+.get-url span { flex: 1; min-width: 0; font-size: 13px; color: var(--sub); overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; }
+.get-url .btn { width: auto; min-height: 44px; flex: none; padding: 0 14px; font-size: 14px; }
+.get-send { margin-bottom: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--sheet); display: flex; flex-direction: column; gap: 6px; }
+.get-send b { font-size: 15px; font-weight: 500; }
+.get-send span { font-size: 13px; line-height: 1.6; color: var(--sub); }
+.get-send .btn { margin-top: 6px; min-height: 48px; font-size: 15px; }
 .st-warn button { display: inline-flex; align-items: center; min-height: 40px; margin-top: 2px; padding: 0; border: 0; background: none; color: var(--ink); font-size: 14px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 .st-cta { margin-top: auto; padding-top: 30px; display: flex; flex-direction: column; gap: 10px; }
 .st-cta .tlink { align-self: center; }
@@ -99,7 +108,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.11.5'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.11.6'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -176,9 +185,7 @@ async function installApp() {
 function changeMode(m) {
     if (m !== 'home' && m !== 'store') return;
     if (useMode() === m) return;
-    setUseMode(m);
-    ['exp', 'brief', 'chips', 'fx', 'notes'].forEach(k => lsDel('feat_' + k)); lsDel('stockMode');
-    lsSet('uiTheme', m === 'home' ? 'calm' : 'shop'); // v1 화면 테마 (v1에서 쓰는 곳을 바꿀 때와 같게)
+    applyUseMode(m);
     toast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요');
     if (SAMPLE) { // 예시는 쓰는 곳마다 다르다 (집 → 팬트리·옷장, 매장 → 카페 창고)
         try { sessionStorage.setItem('samplePreview', m === 'home' ? 'organizer' : '1'); } catch (e) {}
@@ -186,6 +193,11 @@ function changeMode(m) {
     }
     if (ls('isSampleData') === '1') { swapStoredSample(m); return; } // v1처럼 저장해 둔 예시도 그 쓰는 곳의 예시로
     paintSettings('[data-act="stMode"][data-v="' + m + '"]');
+}
+function applyUseMode(m) { // 쓰는 곳 + 기능 켜기를 그 쓰는 곳의 기본값으로 (설정에서 바꿀 때 · 다른 쓰는 곳의 백업을 복구할 때)
+    setUseMode(m);
+    ['exp', 'brief', 'chips', 'fx', 'notes'].forEach(k => lsDel('feat_' + k)); lsDel('stockMode');
+    lsSet('uiTheme', m === 'home' ? 'calm' : 'shop'); // v1 화면 테마 (v1에서 쓰는 곳을 바꿀 때와 같게)
 }
 async function swapStoredSample(m) {
     try {
@@ -332,7 +344,7 @@ function backupJson() { // v1 backupJson과 같은 모양·같은 순서 (app �
     if (!SAMPLE) try { saved = JSON.parse((store.db ? store.cache : ls(PHOTO_DATA_KEY)) || '[]'); } catch (e) {}
     if (!Array.isArray(saved)) saved = JSON.parse(JSON.stringify(photos)); // 저장본을 못 읽으면 지금 화면의 데이터로
     let baseItems; try { baseItems = JSON.parse(kvGet('baseItems') || '[]'); } catch (e) { baseItems = []; }
-    return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: '백업', savedSystemData: saved, baseItems, stockLog: readArr('stockLog'), organizerName: organizerName(), inboxItems: readArr('inboxItems').filter(x => x && x.name) });
+    return JSON.stringify({ app: 'changgojigi', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), note: '백업', savedSystemData: saved, baseItems, stockLog: readArr('stockLog'), organizerName: organizerName(), useMode: useMode(), inboxItems: readArr('inboxItems').filter(x => x && x.name) }); // useMode: 받은 쪽이 만든 쪽과 같은 쓰는 곳으로 열리게 (11/11 · 예전 백업엔 없음)
 }
 function markBackedUp() {
     if (!SAMPLE) lsSet('lastBackupAt', String(Date.now()));
@@ -804,16 +816,21 @@ function restoreFail(msg) {
     openSheet(`<span class="kick st-red">복구하지 못했어요</span><h2>이 파일로는 복구할 수 없어요</h2><p>${esc(msg)}</p>
         <div class="stack"><button type="button" class="btn btn-p" data-act="stRestore">다른 파일 고르기</button><button type="button" class="btn btn-s" data-act="sheetClose">닫기</button></div>`);
 }
+function backupMode(imported) { return imported && (imported.useMode === 'home' || imported.useMode === 'store') ? imported.useMode : null; }
+let restoreFromGet = false; // '받은 지도 넣기'(#/get)에서 고른 파일이면 확인 창 말과 끝난 뒤 안내가 다르다
 function askRestore(imported) {
     pendingRestore = imported;
+    restoreFromGet = cur === 'get';
+    if (restoreFromGet) { askGetRestore(imported); return; }
     const ps = imported.savedSystemData.filter(p => p && p.id !== 'dummy_root' && Array.isArray(p.zones));
     const items = ps.reduce((n, p) => n + p.zones.reduce((m, z) => m + (Array.isArray(z && z.items) ? z.items.length : 0), 0), 0);
     const t = imported.exportedAt ? new Date(imported.exportedAt) : null;
     const when = t && !isNaN(t) ? ` · ${t.getFullYear()}.${p2(t.getMonth() + 1)}.${p2(t.getDate())} ${p2(t.getHours())}:${p2(t.getMinutes())} 백업` : '';
+    const bm = backupMode(imported), modeNote = bm && bm !== useMode() ? `<small>다른 쓰는 곳에서 만든 백업이라, 복구하면 쓰는 곳이 ${bm === 'home' ? '‘집 · 정리수납’으로' : '‘매장 · 창고’로'} 바뀌어요</small>` : '';
     openSheet(`<span class="kick">백업 파일로 복구</span>
         <h2>백업 파일로 복구할까요?</h2>
         <p>지금 이 ${DEV}에 있는 사진·구역·물건이 모두 백업 파일 내용으로 바뀌어요.</p>
-        <p class="st-sum">백업 파일: 사진 ${ps.length}장 · 물건 ${items}개${when}${ps.length ? '' : '<small class="st-red">사진이 없는 백업이에요 · 복구하면 지도가 비어요</small>'}${vis().length && !SAMPLE ? `<small>지금 이 ${DEV}: 사진 ${vis().length}장 · 물건 ${counts().items}개</small>` : ''}</p>
+        <p class="st-sum">백업 파일: 사진 ${ps.length}장 · 물건 ${items}개${when}${ps.length ? '' : '<small class="st-red">사진이 없는 백업이에요 · 복구하면 지도가 비어요</small>'}${vis().length && !SAMPLE ? `<small>지금 이 ${DEV}: 사진 ${vis().length}장 · 물건 ${counts().items}개</small>` : ''}${modeNote}</p>
         <div class="stack"><button type="button" class="btn btn-p" data-act="stRestoreGo">복구하기</button><button type="button" class="btn btn-s" data-act="sheetClose">취소</button></div>`, () => { if (!restoring) pendingRestore = null; });
 }
 function writePhotoData(json) { // v1 safeStorage.setItem('savedSystemData', …)와 같은 곳 (IndexedDB, 없으면 localStorage)
@@ -834,12 +851,97 @@ async function doRestore(btn) {
     lsSet('baseItems', JSON.stringify(imported.baseItems));
     if (Array.isArray(imported.stockLog)) lsSet('stockLog', JSON.stringify(imported.stockLog)); else lsDel('stockLog'); // 예전 백업엔 없음
     if (typeof imported.organizerName === 'string' && imported.organizerName.trim()) setOrganizerName(imported.organizerName); // 업체가 넘겨준 백업이면 업체 이름도 남게
+    const bm = backupMode(imported); if (bm && bm !== useMode()) applyUseMode(bm); // 만든 쪽의 쓰는 곳 그대로 (아이폰 홈 화면 앱은 사파리와 저장이 따로라 링크의 ?mode=home이 안 넘어온다)
     if (useMode() === 'home' && ls('simpleView') === null) lsSet('simpleView', '1'); // v1: 집 모드에서 받은 지도는 찾기만 화면으로 (직접 바꾼 적이 있으면 그대로)
     if (Array.isArray(imported.inboxItems)) lsSet('inboxItems', JSON.stringify(imported.inboxItems)); else lsDel('inboxItems');
     lsDel('isSampleData'); // 예시를 불러온 적 있는 폰에서 복구한 데이터가 예시로 취급되지 않게
     lsSet('lastBackupAt', String(Date.now())); lsSet('dataChangedAt', '0');
+    if (restoreFromGet) { try { sessionStorage.setItem('gotMap', '1'); } catch (e) {} }
     reloadHome();
 }
+
+// ────────────────────────────────────────────────────────────
+// #/get 받은 지도 넣기 (11/11, 가르시아 "받아서 백업 복구를 해야 하잖아 · 절차 간소화"):
+//   대신 만들어 보낸 지도(백업 PDF)를 받는 사람이 링크 하나로 넣게. 복구 엔진은 위와 같다(지금 지도는 받은 지도로 바뀜).
+//   카톡·인스타 안 → 그 앱 안에만 저장되니 브라우저로 열기 · 아이폰 사파리 → 홈 화면 앱 먼저(오래 남게) · 그 밖 → 파일 고르기 → 넣기
+//   주소: /objetdo/get/ (→ v2/#/get, ?mode=home 그대로). 아이폰 홈 화면 앱은 첫 소개의 '받은 지도 파일이 있어요'로 다시 온다
+// ────────────────────────────────────────────────────────────
+function getLink() { return new URL('../get/' + (isHome() ? '?mode=home' : ''), location.href.split('#')[0]).href; }
+function extOpenLink(url) { // 카톡은 바깥 브라우저로 여는 주소가 있고, 안드로이드는 크롬으로 넘기는 주소가 있다 (아이폰 인스타 등은 안내만)
+    const ua = navigator.userAgent;
+    if (/KAKAOTALK/i.test(ua)) return 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+    if (/Android/i.test(ua)) { const u = new URL(url); return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=https;package=com.android.chrome;end`; }
+    return '';
+}
+function getFileTip() {
+    if (DEV === '컴퓨터') return '받은 파일을 이 컴퓨터에 내려받아 두세요 (보통 ‘다운로드’ 폴더).';
+    if (isIOS()) return '카톡으로 받았으면: 파일을 열고 공유 → ‘파일에 저장’. 고를 때 ‘최근 항목’에 있어요.';
+    return '카톡으로 받았으면: 파일을 눌러 받아 두세요. 고를 때 ‘다운로드’(또는 ‘최근’)에 있어요.';
+}
+function renderGet(r) {
+    const el = screen('get', '받은 지도 넣기'), [lab, fb] = backOf('get', ['처음', '#/']);
+    const inApp = isInAppUA(), ios = isIOS(), inst = isInstalled(), safari = !!(r && r.q && r.q.get('safari') === '1');
+    const has = vis().length > 0 && !SAMPLE, link = getLink();
+    let body;
+    if (inApp) {
+        const ext = extOpenLink(link), kakao = /KAKAOTALK/i.test(navigator.userAgent);
+        body = `<span class="kick st-kick">받은 지도 넣기</span>
+            <h1 class="h1 st-title">먼저 브라우저로<br>열어 주세요</h1>
+            <p class="st-lead">카톡·인스타 안에서 넣으면 그 앱 안에만 저장돼서, 다음에 열 때 지도가 안 보여요.</p>
+            ${ext ? `<div class="get-ext"><a class="btn btn-p" href="${esc(ext)}">${kakao ? '브라우저로 열기' : '크롬으로 열기'}</a></div>` : ''}
+            <ol class="st-steps">
+                <li><span class="st-n">1</span><div><b>${ext ? '버튼이 안 되면 ' : ''}오른쪽 위 메뉴 (⋮ 또는 ···)</b><small>${ios ? '‘Safari로 열기’ 또는 ‘외부 브라우저로 열기’' : '‘다른 브라우저로 열기’ 또는 ‘Chrome으로 열기’'}를 눌러요.</small></div></li>
+                <li><span class="st-n">2</span><div><b>열린 브라우저에서 이 화면이 다시 나와요</b><small>거기서 받은 지도 파일을 골라요.</small></div></li>
+            </ol>
+            <p class="st-fine get-fine">그래도 안 되면 이 주소를 복사해 ${ios ? '사파리' : '크롬'} 주소창에 붙여 넣어 주세요.</p>
+            <div class="get-url"><span>${esc(link)}</span><button type="button" class="btn btn-s" data-act="getCopy">주소 복사</button></div>`;
+    } else if (ios && !inst && !safari) {
+        body = `<span class="kick st-kick">받은 지도 넣기 · 아이폰</span>
+            <h1 class="h1 st-title">아이폰은 홈 화면에<br>먼저 추가해 주세요</h1>
+            <p class="st-lead">홈 화면 앱에 넣어야 지도가 오래 남아요. 사파리에 넣으면 홈 화면 앱에는 안 보이고, 오래 안 열면 지워질 수 있어요.</p>
+            <ol class="st-steps">
+                <li><span class="st-n">1</span><div><b>사파리 아래쪽 공유 버튼${SHARE_SVG}</b><small>네모에 화살표가 있는 버튼이에요.</small></div></li>
+                <li><span class="st-n">2</span><div><b>‘홈 화면에 추가’ → [추가]</b><small>안 보이면 메뉴를 위로 밀어 보세요.</small></div></li>
+                <li><span class="st-n">3</span><div><b>홈 화면의 오브젯도 아이콘으로 열기</b><small>첫 화면의 [받은 지도 파일이 있어요] → 받은 파일을 골라요. 이미 쓰던 지도가 있으면 메뉴 → 설정 → 백업 파일로 복구.</small></div></li>
+            </ol>
+            <div class="st-cta"><button type="button" class="tlink" data-act="go" data-to="#/get?safari=1">그냥 사파리에서 넣기</button></div>`;
+    } else {
+        body = `<span class="kick st-kick">받은 지도 넣기</span>
+            <h1 class="h1 st-title">받은 지도 파일을<br>골라 주세요</h1>
+            <p class="st-lead">대신 만들어 받은 <b>‘${APP_NAME}_…백업….pdf’</b> 파일 하나면 돼요. 넣은 지도는 ${DEV_HERE}에만 저장돼요.</p>
+            ${has ? `<div class="st-warn" role="note"><b>지금 이 ${DEV}에 쓰던 지도가 있어요.</b> 넣으면 받은 지도로 바뀌어요.<br><button type="button" data-act="go" data-to="#/backup">지금 지도 먼저 백업하기</button></div>` : ''}
+            <ol class="st-steps">
+                <li><span class="st-n">1</span><div><b>받은 파일을 ${DEV === '컴퓨터' ? '컴퓨터' : '폰'}에 저장해 두기</b><small>${getFileTip()}</small></div></li>
+                <li><span class="st-n">2</span><div><b>아래 [받은 지도 파일 고르기]</b><small>그 PDF 파일을 골라요.</small></div></li>
+                <li><span class="st-n">3</span><div><b>[넣기]를 누르면 끝</b><small>바로 이름으로 찾아볼 수 있어요.</small></div></li>
+            </ol>
+            <div class="dock"><button type="button" class="btn btn-p" data-act="getPick">받은 지도 파일 고르기</button></div>`;
+    }
+    el.innerHTML = `<header class="top">${backBtn(lab, fb)}</header><main class="wrap st-main">${body}</main>`;
+}
+function askGetRestore(imported) {
+    const ps = imported.savedSystemData.filter(p => p && p.id !== 'dummy_root' && Array.isArray(p.zones));
+    const items = ps.reduce((n, p) => n + p.zones.reduce((m, z) => m + (Array.isArray(z && z.items) ? z.items.length : 0), 0), 0);
+    const from = typeof imported.organizerName === 'string' && imported.organizerName.trim() ? ` · ${esc(imported.organizerName.trim().slice(0, 30))}에서 보냄` : '';
+    const has = vis().length > 0 && !SAMPLE;
+    openSheet(`<span class="kick">받은 지도 넣기</span>
+        <h2>받은 지도를 넣을까요?</h2>
+        <p>${has ? `지금 이 ${DEV}에 있는 지도는 받은 지도로 바뀌어요.` : `이 ${DEV}에 받은 지도를 넣어요.`}</p>
+        <p class="st-sum">받은 지도: 사진 ${ps.length}장 · 물건 ${items}개${from}${ps.length ? '' : '<small class="st-red">사진이 없는 파일이에요 · 넣으면 지도가 비어요</small>'}</p>
+        <div class="stack"><button type="button" class="btn btn-p" data-act="stRestoreGo">넣기</button><button type="button" class="btn btn-s" data-act="sheetClose">취소</button></div>`, () => { if (!restoring) pendingRestore = null; });
+}
+async function copyGetText(text, done) {
+    try { await navigator.clipboard.writeText(text); toast(done); return; } catch (e) {}
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.remove(); toast(ok ? done : '복사가 안 돼요 · 길게 눌러 직접 복사해 주세요');
+}
+// 만든 사람이 파일과 같이 보낼 안내 글 (백업 화면) — 받는 사람은 링크만 열면 된다
+function getGuideText() {
+    return `${APP_NAME} 지도 받는 법\n1) 이 링크를 열어 주세요 (카톡 안이면 오른쪽 위 메뉴에서 ‘다른 브라우저로 열기’)\n${getLink()}\n2) [받은 지도 파일 고르기] → 같이 보내 드린 PDF 파일을 골라요\n3) [넣기]를 누르면 끝이에요 (아이폰은 화면 안내대로 홈 화면에 먼저 추가해 주세요)`;
+}
+AFTER_BOOT.push(() => { let got = null; try { got = sessionStorage.getItem('gotMap'); sessionStorage.removeItem('gotMap'); } catch (e) {} if (got) setTimeout(() => toast('받은 지도를 넣었어요 · 이름으로 찾아보세요'), 500); });
 
 // ────────────────────────────────────────────────────────────
 // 모든 데이터 지우기 (v1 resetAll·wipeAllData): 사진·구역·물건과 딸린 기록만 지운다 (쓰는 곳·기능·글자 크기·업체 이름 같은 설정은 남김)
@@ -895,6 +997,7 @@ function renderBackup() {
             ${iphoneWarn()}
             <div class="st-cta">
                 ${SAMPLE ? `<p class="st-fine">지금은 예시를 보고 있어요. 예시는 백업하지 않아요 · 예시를 닫으면 내 지도를 백업할 수 있어요.</p>` : ''}
+                ${!SAMPLE && n.photos ? `<div class="get-send"><b>대신 만들어 보낼 때</b><span>백업 파일과 같이 이 안내를 보내면, 받는 분은 링크만 열고 파일을 고르면 돼요.</span><button type="button" class="btn btn-s" data-act="getGuide">받는 분께 보낼 안내 복사</button></div>` : ''}
                 <p class="st-fine">백업 파일은 PDF예요. 열면 복구하는 법과 물건 찾아보기가 보여요. 카톡 ‘나와의 채팅’에 보내 두면 ${DEV_OBJ} 바꿀 때 편해요.<br>복구하면 지금 이 ${DEV}의 사진·구역·물건이 백업 내용으로 바뀌어요.</p>
             </div>
             <div class="dock">${SAMPLE ? `<button type="button" class="btn btn-p" data-act="sampleExit">예시 닫기</button>` : `<button type="button" class="btn btn-p" data-act="stBackup"${n.photos ? '' : ' disabled'}>백업 파일 받기</button>`}<button type="button" class="btn btn-s" data-act="stRestore">파일로 복구</button></div>
@@ -1050,8 +1153,8 @@ function renderService() {
 }
 
 // ────────────────────────────────────────────────────────────
-Object.assign(SCREENS, { settings: renderSettings, backup: renderBackup, data: renderData, reset: renderReset, iphone: renderIphone, guide: renderGuide, service: renderService });
-['settings', 'backup', 'data', 'reset', 'iphone', 'guide', 'service'].forEach(n => NODATA.add(n));
+Object.assign(SCREENS, { settings: renderSettings, backup: renderBackup, data: renderData, reset: renderReset, iphone: renderIphone, guide: renderGuide, service: renderService, get: renderGet });
+['settings', 'backup', 'data', 'reset', 'iphone', 'guide', 'service', 'get'].forEach(n => NODATA.add(n));
 Object.assign(ACT, {
     stMode: (el) => changeMode(el.dataset.v),
     stInd: (el) => pickIndustry(el.dataset.v),
@@ -1068,7 +1171,10 @@ Object.assign(ACT, {
     stWipe: (el) => wipeAllData(el),
     stGuide: (el) => nav(`#/guide/${Math.max(0, +el.dataset.i) + 1}`, true),
     stGuideEnd: () => goHome(),
-    stIosSkip: () => { lsSet('iosInstallSkip', '1'); goBack('#/'); }
+    stIosSkip: () => { lsSet('iosInstallSkip', '1'); goBack('#/'); },
+    getPick: () => pickRestore(),
+    getCopy: () => copyGetText(getLink(), '주소를 복사했어요 · 브라우저 주소창에 붙여 넣으세요'),
+    getGuide: () => copyGetText(getGuideText(), '안내를 복사했어요 · 백업 파일과 같이 보내 주세요')
 });
 // v1 photoStore.init처럼: 지도가 있으면 브라우저에 '지우지 말아 달라'고 한 번 부탁한다 (조용히 거절될 수도 있다)
 AFTER_BOOT.push(() => { try { if (!SAMPLE && store.db && store.cache && store.cache !== '[]' && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {} });
