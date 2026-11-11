@@ -81,6 +81,9 @@ addCSS(`
 /* 움직임 (11/10): 칸이 생기면 하나씩 톡톡(AI는 번호 순서) · 그리기를 켜면 빨간 테두리가 바깥에서 조여 오고 안내 줄이 펼쳐짐 */
 .ed-z.pop { animation: edPop .34s cubic-bezier(.2, .9, .3, 1.3) var(--d, 0ms) both; }
 @keyframes edPop { from { opacity: 0; transform: scale(.82); } }
+.ed-z.undo-glow-z { animation: edBack 1.5s ease-out; }   /* 되돌리기로 살아난·제자리로 돌아온 칸 (11/11) */
+@keyframes edBack { 0%, 25% { box-shadow: 0 0 0 3px var(--accent), 0 0 0 5px #fff; } }   /* 끝은 칸 원래 그림자로 */
+@media (prefers-reduced-motion: reduce) { .ed-z.undo-glow-z { animation: none; } }
 .ed-ph.drawing.fx { animation: edDrawOn .5s ease-out; }
 @keyframes edDrawOn { from { outline-color: transparent; outline-offset: 14px; } }
 .hint.ed-hint-in { overflow: hidden; animation: edHintIn .32s ease-out; }
@@ -409,7 +412,7 @@ function edSyncZoneEl(p, i) { const el = document.querySelector(`#edPh .ed-z[dat
 function edDeleteZone() {
     const p = edPhoto(); if (!p || ed.sel == null) return;
     const i = ed.sel, z = p.zones[i]; if (!z) return;
-    const doIt = () => { edPush(); p.zones.splice(i, 1); ed.sel = null; saveAll(); paintEdit(true); toast(`${i + 1}번 구역을 지웠어요`, () => { ACT.edUndo(); }); };
+    const doIt = () => { const gone = zoneEls(p.id, i).map(e => goneSnap(e)); edPush(); p.zones.splice(i, 1); ed.sel = null; saveAll(); paintEdit(true); goneOut(...gone); toast(`${i + 1}번 구역을 지웠어요`, () => { ACT.edUndo(); }); }; // 지운 칸은 작아지며·줄은 접히며 (11/11)
     if (!z.items.length) { doIt(); return; }
     openSheet(`<h2>${i + 1}번 구역을 지울까요?</h2><p>칸 안의 물건 ${z.items.length}개(${esc(zoneSummary(z))})도 지도에서 빠져요. [되돌리기]로 살릴 수 있어요.</p>
         <div class="stack"><button type="button" class="btn btn-p" data-act="edDelOk">구역 지우기</button><button type="button" class="btn btn-s" data-act="sheetClose">그대로 두기</button></div>`);
@@ -492,7 +495,14 @@ Object.assign(ACT, {
     edDraw: () => { ed.draw = !ed.draw; if (ed.draw) { ed.sel = null; ed.drawFx = true; } paintEdit(true); if (ed.draw) toast(isSpace(edPhoto()) ? '사진 위를 끌어서 가구를 그려요' : '사진 위를 끌어서 칸을 그려요'); },
     edDel: () => edDeleteZone(),
     edDelOk: () => { const f = ed && ed.pendingDel; closeSheet(); if (f) { ed.pendingDel = null; f(); } },
-    edUndo: () => { const p = edPhoto(); if (!p || !ed.undo.length) return; if (zsOpen()) zsHide(false); p.zones = JSON.parse(ed.undo.pop()); ed.sel = null; saveAll(); if (cur === 'edit') { if (parseRoute().q.has('sz')) zsClose(); paintEdit(true); } toast('되돌렸어요'); },
+    edUndo: () => { // 되돌리면 없어지는 칸은 작아지며 사라지고, 돌아온(되살아난·제자리로 간) 칸은 빛난다 (11/11). 번호만 바뀐 건 그대로
+        const p = edPhoto(); if (!p || !ed.undo.length) return; if (zsOpen()) zsHide(false);
+        const prev = JSON.parse(ed.undo.pop()), key = (z) => [z.x, z.y, z.w, z.h].map(v => Math.round(v)).join(','), nowK = new Set(p.zones.map(key)), prevK = new Set(prev.map(key));
+        const gone = cur === 'edit' ? p.zones.flatMap((z, i) => prevK.has(key(z)) ? [] : [...document.querySelectorAll(`#s-edit .ed-z[data-i="${i}"]`)]).map(e => goneSnap(e)) : [];
+        p.zones = prev; ed.sel = null; saveAll();
+        if (cur === 'edit') { if (parseRoute().q.has('sz')) zsClose(); paintEdit(true); goneOut(...gone); glowBack(prev.flatMap((z, i) => nowK.has(key(z)) ? [] : zoneEls(p.id, i))); }
+        toast('되돌렸어요');
+    },
     edZoom: () => { ed.zoom = ed.zoom > 1 ? 1 : 2; paintEdit(true); },
     // 번호 다시 매기기 (11/10): 칸 번호를 사진에서 왼쪽→오른쪽, 위→아래 순서로 (AI 칸과 같은 규칙). 물건은 칸을 따라간다
     //   '1구역·A구역'처럼 자동으로 붙은 이름은 새 번호로, 직접 지은 이름(1단 왼쪽 등)은 그대로

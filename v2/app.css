@@ -236,6 +236,21 @@ button.zn { cursor: pointer; }
 @keyframes shUp { from { transform: translateY(40px); opacity: .4; } }
 @keyframes shPop { from { transform: scale(.96); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .toast.in, .toast.out, .sheet.in, .sheet.out, .sheet.in .sheet-card, .sheet.out .sheet-card { animation: none; } }
+/* 움직임 2순위 (11/11): 새 화면은 짧게 서서히 (투명도만 — 사진 자리는 그대로) · 빠지는 줄은 접히며 (app.js goneOut) · 탭 밑줄·고른 칸은 옆으로 미끄러져 (tabSlide) · 되돌린 것은 잠깐 빛남 (glowBack) */
+.screen.scr-in { animation: scrIn .18s ease-out; }
+@keyframes scrIn { from { opacity: 0; } }
+.gone { overflow: hidden; pointer-events: none; }
+.tab-moving { position: relative; }
+.tab-moving > button { position: relative; z-index: 1; }
+.tab-ind { position: absolute; z-index: 0; pointer-events: none; background: var(--ink); }
+.tabs.tab-moving > .tab-wait { border-bottom-color: transparent; }
+.ptabs.tab-moving > .tab-wait { border-bottom-color: var(--line); }
+.vsw.tab-moving > .tab-wait[aria-selected] { border-color: var(--line); background: none; color: var(--sub); }
+.pr-segs.tab-moving > .tab-wait[aria-pressed] { background: transparent; color: var(--ink); }
+.pr-segs.tab-moving > .tab-wait[aria-pressed] b { color: var(--accent); }
+.undo-glow { animation: undoGlow 1.6s ease-out; }
+@keyframes undoGlow { 0% { background-color: transparent; } 25% { background-color: var(--accent-soft); } 100% { background-color: transparent; } }
+@media (prefers-reduced-motion: reduce) { .screen.scr-in, .undo-glow { animation: none; } }
 
 @media (prefers-reduced-motion: reduce) {
     .ph-in { transition: none; }

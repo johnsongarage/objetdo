@@ -88,18 +88,19 @@ function ibAdd(names) {
     setTimeout(() => { const i2 = $('#ibIn'); if (i2) i2.focus(); }, 30);
 }
 function paintInboxKeep() { const y = window.scrollY; paintInbox(); window.scrollTo(0, y); }
+const ibRowEl = (n) => [...document.querySelectorAll('#s-inbox .ib-row')].find(r => r.dataset.n === n) || null;
 // 칸에 넣기 → 자리 미정에서 빠진다. 되돌리기는 둘 다 원래대로
 function ibPlace(name, pid, zi) {
     const p = photoById(pid), z = p && p.zones[zi]; if (!z) return;
-    const before = kvGet('inboxItems'), had = z.items.some(i => i.name === name), checkedBefore = z.checkedAt;
+    const before = kvGet('inboxItems'), had = z.items.some(i => i.name === name), checkedBefore = z.checkedAt, gone = cur === 'inbox' ? goneSnap(ibRowEl(name)) : null; // 넣은 줄은 접히며 (11/11)
     if (!had) z.items.push({ name, comment: '' });
     addBaseItems([name]); markChecked(z); saveAll(); cleanInbox();
     if (inboxItems().some(x => x.name === name)) saveInbox(inboxItems().filter(x => x.name !== name)); // 이름이 조금 달라 cleanInbox가 못 뺀 경우
-    if (cur === 'inbox') paintInboxKeep();
+    if (cur === 'inbox') { paintInboxKeep(); goneOut(gone); }
     toast(`${josa(name, '을', '를')} ${zoneLabelShort(p, zi)}에 넣었어요`, () => {
         if (!had) z.items = z.items.filter(i => i.name !== name);
         if (checkedBefore == null) delete z.checkedAt; else z.checkedAt = checkedBefore;
-        kvSet('inboxItems', before == null ? '[]' : before); saveAll(); if (cur === 'inbox') paintInboxKeep(); toast('되돌렸어요');
+        kvSet('inboxItems', before == null ? '[]' : before); saveAll(); if (cur === 'inbox') { paintInboxKeep(); glowBack(ibRowEl(name)); } toast('되돌렸어요');
     });
 }
 function ibOpenPicker(name) { // 칸 고르기: 사진마다 칸 목록
@@ -139,7 +140,7 @@ Object.assign(ACT, {
     ibPlace: (el) => { const row = el.closest('.ib-row'); if (row) ibPlace(row.dataset.n, el.dataset.p, +el.dataset.z); },
     ibPick: (el) => { const row = el.closest('.ib-row'); if (row) ibOpenPicker(row.dataset.n); },
     ibPickZone: (el) => { closeSheet(); ibPlace(el.dataset.n, el.dataset.p, +el.dataset.z); },
-    ibRemove: (el) => { const row = el.closest('.ib-row'); if (!row) return; const n = row.dataset.n, before = kvGet('inboxItems'); saveInbox(inboxItems().filter(x => x.name !== n)); paintInboxKeep(); toast(`${josa(n, '을', '를')} 뺐어요`, () => { kvSet('inboxItems', before == null ? '[]' : before); if (cur === 'inbox') paintInboxKeep(); toast('되돌렸어요'); }); },
+    ibRemove: (el) => { const row = el.closest('.ib-row'); if (!row) return; const n = row.dataset.n, before = kvGet('inboxItems'), gone = goneSnap(row); saveInbox(inboxItems().filter(x => x.name !== n)); paintInboxKeep(); goneOut(gone); toast(`${josa(n, '을', '를')} 뺐어요`, () => { kvSet('inboxItems', before == null ? '[]' : before); if (cur === 'inbox') { paintInboxKeep(); glowBack(ibRowEl(n)); } toast('되돌렸어요'); }); },
     ibMic: () => ibMic(),
     ibPresets: () => ibPresets(),
     ibPreset: (el) => ibPresetPick(el.dataset.k),
