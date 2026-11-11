@@ -467,6 +467,16 @@ function edArmDraw() {
 
 SCREENS.tips = renderTips; SCREENS.edit = renderEdit;
 NODATA.add('tips');
+// 새 사진 '완료' → 지도에 도착하면 그 사진이 서서히 나타난다 (움직임 3순위 11/11 · 새 사진 화면에선 이미 사진이 쓱 — new-in)
+let freshMapFx = null;
+AFTER_ROUTE.push((name) => {
+    if (!freshMapFx || name === 'edit') return;
+    const id = freshMapFx; freshMapFx = null;
+    if (name !== 'map' || RM()) return;
+    const sec = [...document.querySelectorAll('#s-map .mf-sec, #s-map .mg-c')].find(e => e.dataset.p === id);
+    const t = sec && (sec.querySelector('.ph') || sec.querySelector('.mg-ph') || sec);
+    if (t) t.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 560, easing: 'ease-out' });
+});
 Object.assign(ACT, {
     tpPick: () => { lsSet('photoTipSeen', '1'); pickKind = null; pendingSpaceLink = null; const f = $('#tpFile'); if (f) f.click(); },
     addPhoto: () => pickPhoto(),
@@ -487,6 +497,7 @@ Object.assign(ACT, {
         // 물건 창이 열린 채 누르면 창만 닫히고 고치기는 그대로였다(두 번 눌러야 나감, 11/10 고침) → 창을 연 기록까지 한 번에 걷고 나간다
         const sheetUp = parseRoute().q.has('sz') && history.state && history.state.zs;
         if (parseRoute().q.get('new') === '1') { // 방금 넣은 사진: 지도에서 이 사진 자리로 (11/11 — 전엔 '뒤로'라서 고치던 다른 사진이 다시 보였다)
+            if (p) freshMapFx = String(p.id); // 지도에 도착하면 새 사진이 서서히 (움직임 3순위)
             const k = Math.min(sheetUp ? 2 : 1, depth()); if (k > 0) { wantHash = to; history.go(-k); } else nav(to, true); return;
         }
         if (sheetUp) { if (depth() > 1) history.go(-2); else backThen(to); return; }

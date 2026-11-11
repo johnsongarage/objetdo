@@ -670,7 +670,11 @@ Object.assign(ACT, {
     moveStart: () => { if (rc && rc.it) nav(`#/move/${encodeURIComponent(rc.p.id)}/${rc.zi}?` + new URLSearchParams({ item: rc.it.name, ...(rc.q ? { q: rc.q } : {}) })); },
     zoom: () => toggleZoom(),
     zone: (el) => zsGo(el.dataset.p, +el.dataset.z), // 칸 → 그 자리에서 물건 창 (11/10)
-    mapMore: (el) => { mapOpen.add(el.dataset.p); const y = window.scrollY; renderMap(parseRoute()); window.scrollTo(0, y); if (typeof zsMark === 'function') zsMark(); },
+    mapMore: (el) => { // 숨은 칸 줄이 하나씩 펼쳐진다 (11/11)
+        const pid = el.dataset.p, rowsOf = () => [...document.querySelectorAll('#s-map .zrow')].filter(r => r.dataset.p === pid), n0 = rowsOf().length;
+        mapOpen.add(pid); const y = window.scrollY; renderMap(parseRoute()); window.scrollTo(0, y); if (typeof zsMark === 'function') zsMark();
+        staggerIn(rowsOf().slice(n0));
+    },
     mapView: (el) => { const v = el.dataset.v; if (v === mapNow) return; lsSet('v2MapView', v); const pid = (mapNow === 'flow' && mfLast) || parseRoute().a; mfLast = null; mapSwap(`#/map/${encodeURIComponent(pid)}`); },
     mapOne: (el) => nav(`#/map/${encodeURIComponent(el.dataset.p)}?v=flow`), // 모아 보기·목록 → 이어 보기로 그 사진
     mfJump: (el) => mfJump(el.dataset.p),

@@ -624,13 +624,16 @@ Object.assign(ACT, {
     },
     zzQty: (el) => {
         const c = zzCur(), card = el.closest('.zz-card'), it = c && card && c.z.items.find(x => x.name === card.dataset.n); if (!it) return;
+        const was = itemLow(it);
         it.qty = Math.max(0, (isNum(it.qty) ? it.qty : 0) + Number(el.dataset.d)); markChecked(c.z); saveAll(); zzRepaint();
+        replay(zzQ('#zzItems .zz-card [data-f=qty]'), 'qty-bump'); // 숫자가 톡 · 모자라게 되면 '몇 개 모자라요'가 스르륵 (11/11)
+        if (itemLow(it) && !was) replay(zzQ('#zzItems .zz-card .zz-f .zz-low'), 'low-in');
     },
     zzPin: (el) => { const c = zzCur(), card = el.closest('.zz-card'), it = c && card && c.z.items.find(x => x.name === card.dataset.n); if (!it) return; if (it.pin) delete it.pin; else it.pin = true; saveAll(); zzRepaint(); },
     zzRemove: (el) => { const card = el.closest('.zz-card'); if (card) zzRemove(card.dataset.n); },
     zzPut: (el) => { zzFlyFrom = { r: el.getBoundingClientRect(), chip: true }; zzAdd([el.dataset.n], el.closest('#zzSug') ? 'typed' : 'chip'); },
     zzAddTyped: () => { const inp = zzQ('#zzIn'); if (inp && inp.value.trim()) zzAdd(parseTypedItems(inp.value)); },
-    zzMore: () => { zz.more = true; zzRepaint(); },
+    zzMore: () => { const chips = () => { const b = zzQ('#zzChips'); return b ? [...b.querySelectorAll('.chip')] : []; }, n0 = chips().length; zz.more = true; zzRepaint(); staggerIn(chips().slice(n0)); }, // 자주 쓰는 물건: 숨어 있던 것들이 하나씩 (11/11)
     zzMic: () => zzMic(),
     zzReviewOk: () => { const picked = [...document.querySelectorAll('#sheet .check-list input:checked')].map(i => i.value); closeSheet(); if (picked.length) zzAdd(picked, 'review'); },
     zzIndustry: (el) => { if (el.dataset.k) { setIndustry(el.dataset.k); toast('자주 쓰는 물건을 맞췄어요'); } else kvSet('industryAsked', '1'); zzRepaint(); },

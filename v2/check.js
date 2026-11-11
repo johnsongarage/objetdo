@@ -19,6 +19,8 @@ addCSS(`
 .ck-step button { width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 2px; background: none; font-size: 19px; cursor: pointer; color: var(--ink); }
 .ck-step input { width: 56px; height: 42px; border: 0; background: transparent; text-align: center; font-family: var(--serif); font-size: 19px; color: var(--ink); }
 .ck-step input.low { color: var(--accent); }
+.ck-step input { transition: color .35s ease; }   /* 모자라게 되면 숫자가 빨강으로 스르륵 (11/11) */
+@media (prefers-reduced-motion: reduce) { .ck-step input { transition: none; } }
 .ck-par { width: 46px; height: 42px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: right; font-size: 15px; color: var(--sub); border-radius: 0; }
 .ck-zone { margin: 18px 0 0; font-size: 13px; color: var(--sub); }
 .ck-line { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
@@ -127,12 +129,13 @@ document.addEventListener('change', (e) => {
 });
 function ckRepaintRow(row) { // 다시 그리지 않고 그 줄만 (쓰던 칸에서 손이 안 끊기게)
     const x = ckItemAt(row); if (!x) return;
-    const low = itemLow(x.it), q = row.querySelector('[data-f=qty]'), sm = row.querySelector('.nm small');
+    const low = itemLow(x.it), q = row.querySelector('[data-f=qty]'), sm = row.querySelector('.nm small'), wasLow = !!(q && q.classList.contains('low'));
     if (q && document.activeElement !== q) q.value = isNum(x.it.qty) ? x.it.qty : '';
     if (q) q.classList.toggle('low', low);
     if (sm) sm.innerHTML = `${esc(sm.textContent.replace(/ · 부족$/, ''))}${low ? ' · <em>부족</em>' : ''}`;
-    const { lines } = ckOrderLines(), ob = document.querySelector('#s-check [data-act=ckTab][data-t=order]');
-    if (ob) ob.innerHTML = `발주 목록${lines.length ? `<b>${lines.length}</b>` : ''}`;
+    if (sm && low && !wasLow) replay(sm.querySelector('em'), 'low-in'); // '부족'은 스르륵 (11/11)
+    const { lines } = ckOrderLines(), ob = document.querySelector('#s-check .tabs [data-act=ckTab][data-t=order]');
+    if (ob) { const n0 = ob.querySelector('b') ? +ob.querySelector('b').textContent : 0; ob.innerHTML = `발주 목록${lines.length ? `<b>${lines.length}</b>` : ''}`; if (lines.length && lines.length !== n0) replay(ob.querySelector('b'), 'qty-bump'); } // 발주 목록 숫자도 톡
     const fb = document.querySelector('#s-check .ck-foot[data-act=ckTab][data-t=order], #s-check .ck-foot [data-act=ckTab][data-t=order]'); if (fb) fb.textContent = `발주 목록 보기 (${lines.length})`;
 }
 async function ckShare() {
@@ -149,6 +152,7 @@ Object.assign(ACT, {
     ckQty: (el) => {
         const row = el.closest('.ck-row'), x = row && ckItemAt(row); if (!x || !x.it) return;
         x.it.qty = Math.max(0, (isNum(x.it.qty) ? x.it.qty : 0) + Number(el.dataset.d)); markChecked(x.z); ck.counted = true; saveSoon(); ckRepaintRow(row);
+        replay(row.querySelector('[data-f=qty]'), 'qty-bump'); // 숫자가 톡 (11/11)
     },
     ckStockOn: () => { setStockOn(true); paintCheck(); toast('재고 세기를 켰어요'); },
     ckShare: () => ckShare(),

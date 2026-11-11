@@ -392,6 +392,11 @@ function glowBack(...els) {
         replay(el, cls); setTimeout(() => el.classList.remove(cls), 1700); // 끝나면 뗀다 (숨겼다 다시 보일 때 또 빛나지 않게)
     });
 }
+// 펼쳐지는 줄 ('N개 더 보기' · 움직임 3순위 11/11): 숨어 있던 줄이 하나씩 차례로 위에서 살짝 내려오며 나타난다
+function staggerIn(els) {
+    if (RM()) return;
+    [...els].forEach((el, k) => el.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: Math.min(k, 12) * 40, easing: 'ease-out', fill: 'backwards' }));
+}
 // 탭·고르기 줄 (점검 탭·목록 정렬·지도 보기 방식·인쇄 양식 등): 밑줄·고른 칸이 옆으로 미끄러져 가고, 탭 아래 내용은 서서히
 //   누르기 전에 고른 것의 자리를 적어 두고(tabSnap) → 화면을 다시 그린 뒤 같은 줄의 새로 고른 것까지 움직인다(tabSlide)
 const TAB_BOX = '.tabs, .ptabs, .vsw, .pr-segs', TAB_ON = ':scope > [aria-selected="true"], :scope > [aria-pressed="true"]';

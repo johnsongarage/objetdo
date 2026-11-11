@@ -6,7 +6,7 @@
     --gut: 24px;
 }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); scrollbar-gutter: stable; }   /* 스크롤 막대 자리는 늘 비워 둔다 — 윈도 PC에서 긴 탭(세기)·짧은 탭(발주 목록)을 오갈 때 화면이 옆으로 7~8px 밀리지 않게 (11/11). 폰·맥은 막대가 떠 있어 영향 없음 */
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-tap-highlight-color: transparent; word-break: keep-all; overflow-wrap: anywhere; }
 a { color: inherit; }
 button { font: inherit; color: inherit; }
@@ -251,6 +251,12 @@ button.zn { cursor: pointer; }
 .undo-glow { animation: undoGlow 1.6s ease-out; }
 @keyframes undoGlow { 0% { background-color: transparent; } 25% { background-color: var(--accent-soft); } 100% { background-color: transparent; } }
 @media (prefers-reduced-motion: reduce) { .screen.scr-in, .undo-glow { animation: none; } }
+/* 움직임 3순위 (11/11): 세기 −/+ 숫자가 톡 (발주 목록 숫자도) · '부족'은 스르륵 나타나고 숫자는 빨강으로 스르륵 (check.js transition) */
+.qty-bump { display: inline-block; animation: qtyBump .34s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes qtyBump { 40% { transform: scale(1.25); } }
+.low-in { animation: lowIn .4s ease-out; }
+@keyframes lowIn { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .qty-bump, .low-in { animation: none; } }
 
 @media (prefers-reduced-motion: reduce) {
     .ph-in { transition: none; }
