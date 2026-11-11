@@ -222,6 +222,8 @@ button.zn { cursor: pointer; }
 .sheet-card h2 { margin: 0; font-family: var(--serif); font-size: 22px; }
 .sheet-card p { margin: 10px 0 22px; font-size: 15px; color: var(--sub); }
 /* 움직임 (11/10): 알림은 아래에서 쓱 올라오고 내려가며 사라짐 · 확인 창은 바탕이 서서히 + 창이 올라옴 · 닫힐 땐 거꾸로 (app.js ghostOut: 상태는 바로 닫히고 모습만 사라진다) */
+.r-memo { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--sub); text-align: left; cursor: pointer; }
+.r-memo b { margin-left: 4px; font-weight: 500; color: var(--accent); white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; }
 .toast.in { animation: toastIn .24s cubic-bezier(.2, .8, .2, 1); }
 .toast.out { animation: toastOut .17s ease-in forwards; pointer-events: none; }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 18px); } }
@@ -495,7 +497,10 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
     body.side-on .pr-main > * { grid-column: 2; min-width: 0; }
     body.side-on .pr-main > .title-row { grid-column: 1 / -1; }
     body.side-on .pr-main > .pr-pv { grid-column: 1; grid-row: 2 / span 10; align-self: start; }
-    body.side-on .pr-strip { flex-wrap: wrap; overflow-x: visible; max-width: none; }
+    body.side-on .pr-pv { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; }
+    body.side-on .pr-side { order: -1; position: sticky; top: var(--toph, 60px); z-index: 5; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 0 0 6px; background: var(--bg); }   /* 장수·크기·크게 보기는 미리보기 위 한 줄 (내려도 따라온다) — 옆에 두면 쪽이 많을 때 맨 아래로 밀려 안 보인다 (11/11) */
+    body.side-on .pr-info { flex: 1 0 auto; }
+    body.side-on .pr-strip { flex: none; flex-wrap: wrap; overflow-x: visible; max-width: none; }
     body.side-on .pr-opts { margin-top: 0; }
     body.side-on .pr-dock { position: static; margin: 22px 0 0; padding: 0; border: 0; background: none; box-shadow: none; }
 }

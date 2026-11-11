@@ -894,6 +894,7 @@ function printFileBase() {
 const printUI = {
     job: 0, key: '', done: false, pages: [], count: 0, cache: new Map(), // 미리보기 (열려 있는 동안 고른 조합은 기억 — 최근 4개)
     px: 4, zoom: 1, view: -1, vz: 1, sharp: [], sharpTimer: 0,           // 미리보기 해상도 · 크기 · 크게 보기
+    tw: 0, thumbRaf: 0,                                                  // 미리보기 칸 그림 폭 (기기 점)
     busy: '', printKey: '', urls: []                                     // 받기·인쇄 중 · 인쇄용 그림
 };
 // 다른 화면에서 인쇄 열기: openPrint() 전체 · openPrint(사진 id) 그 사진 · openPrint(id 또는 null, 'check') 양식까지 (map·list·check·label)
@@ -1039,7 +1040,7 @@ async function fillPrintPreview(key, label) {
         b.type = 'button'; b.className = 'pr-pg'; b.dataset.act = 'prView'; b.dataset.i = String(n);
         b.setAttribute('aria-label', `${label} 인쇄물 ${n + 1}쪽 · 크게 보기`);
         cv.setAttribute('aria-hidden', 'true');
-        b.appendChild(cv); strip.insertBefore(b, wait);
+        b.appendChild(printThumb(cv, printUI.tw)); strip.insertBefore(b, wait); // 칸에는 곱게 줄인 작은 그림 · 큰 그림은 크게 보기에서
         printUI.pages.push(cv); printUI.count = printUI.pages.length; syncPrintCount();
     };
     let pages = printUI.cache.get(key);
@@ -1061,7 +1062,7 @@ async function fillPrintPreview(key, label) {
         const total = () => [...printUI.cache.values()].reduce((n, a) => n + a.length, 0);
         while (printUI.cache.size > 1 && (printUI.cache.size > 4 || total() > 40)) printUI.cache.delete(printUI.cache.keys().next().value);
     } else { printUI.cache.delete(key); printUI.cache.set(key, pages); pages.forEach(add); } // 다시 고른 조합은 맨 뒤로 (가장 최근)
-    wait.remove();
+    wait.remove(); printThumbFree();
     printUI.done = true; syncPrintCount();
     if (printUI.view >= 0) openPrintViewerNow(printUI.view);
 }
@@ -1073,18 +1074,54 @@ function syncPrintCount() {
     pv.style.setProperty('--pn', String(Math.max(1, n + (done ? 0 : 1))));
     if (!printUI.busy) $('#prPdf').textContent = `PDF 받기${done && n ? ` (${n}쪽)` : ''}`;
 }
-// 미리보기 크기 [−] 100% [+]: 25%씩. 100% = 쪽 폭 128px, 가장 크게 = 화면 폭에 맞춤 (가운데 숫자를 누르면 처음 크기)
+// 미리보기 크기 [−] 100% [+]: 25%씩. 100% = 쪽 폭 128px (PC는 한 줄에 세 쪽이 꽉 차게), 가장 크게 = 화면 폭에 맞춤 (가운데 숫자를 누르면 처음 크기)
 function setPrintZoom(z) {
     const pv = $('#prPv'); if (!pv) return;
-    const max = Math.min(3, Math.max(1, (pv.clientWidth || 342) / 128));
+    const W = pv.clientWidth || 342, pc = !!(window.matchMedia && matchMedia('(min-width: 1024px)').matches);
+    const base = pc ? Math.max(150, Math.min(220, Math.floor((W - 20) / 3))) : 128; // PC: 크기 줄이 위로 가서 쪽 그림이 칸 폭을 다 쓴다 (11/11)
+    const max = Math.min(3, Math.max(1, W / base));
     z = Math.min(max, Math.max(0.5, Math.round(z * 100) / 100));
     printUI.zoom = z;
-    pv.style.setProperty('--pw', `${Math.round((window.matchMedia && matchMedia('(min-width: 1024px)').matches ? 200 : 128) * z)}px`); // PC는 미리보기를 크게 (넓은 화면 · 11/10)
-    pv.classList.toggle('pr-wide', Math.round(128 * z) + 18 + 136 > (pv.clientWidth || 342)); // 옆 칸(크기 단추 136px)이 못 들어가면 아래 한 줄로
+    const pw = Math.floor(base * z);
+    pv.style.setProperty('--pw', `${pw}px`);
+    pv.classList.toggle('pr-wide', !pc && pw + 18 + 136 > W); // 폰: 옆 칸(크기 단추 136px)이 못 들어가면 아래 한 줄로 (PC는 늘 위 한 줄)
     const pct = `${Math.round(z * 100)}%`, zv = $('#prZv');
     zv.textContent = pct; zv.setAttribute('aria-label', `미리보기 ${pct} · 누르면 처음 크기로`);
     $('#prZOut').disabled = z <= 0.5; $('#prZIn').disabled = z >= max - 0.001;
+    const tw = Math.max(40, Math.round((Math.min(pw, W) - 2) * (window.devicePixelRatio || 1))); // 칸 그림 폭 = 보이는 폭(테두리 빼고) × 기기 배율
+    if (tw !== printUI.tw) { printUI.tw = tw; printRethumb(); }
 }
+// 미리보기 칸 그림: 쪽 그림(크게 보기용, 종이 1mm에 4~8점 · 폭 840~1680점)을 칸 크기로 반씩 나눠 곱게 줄인 작은 그림.
+// 큰 그림을 그대로 넣고 화면에서 네 배쯤 한 번에 줄이면 글씨·가는 선이 끊겨 깨져 보인다 (PC 11/11)
+const printThumbTmp = []; // 반씩 줄일 때 번갈아 쓰는 임시 그림 두 장 (쪽마다 새로 만들면 메모리가 많이 든다)
+function printThumb(cv, w) {
+    w = Math.max(1, Math.min(cv.width, Math.round(w || 400)));
+    const h = Math.max(1, Math.round(cv.height * w / cv.width));
+    let src = cv, sw = cv.width, sh = cv.height, k = 0;
+    while (sw >= w * 2) {
+        const t = printThumbTmp[k] || (printThumbTmp[k] = document.createElement('canvas'));
+        const nw = Math.ceil(sw / 2), nh = Math.ceil(sh / 2);
+        if (t.width < nw || t.height < nh) { t.width = Math.max(t.width, nw); t.height = Math.max(t.height, nh); }
+        const g = t.getContext('2d');
+        g.clearRect(0, 0, t.width, t.height); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        g.drawImage(src, 0, 0, sw, sh, 0, 0, nw, nh);
+        src = t; sw = nw; sh = nh; k = 1 - k;
+    }
+    const out = document.createElement('canvas'); out.width = w; out.height = h;
+    const g = out.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(src, 0, 0, sw, sh, 0, 0, w, h);
+    out.setAttribute('aria-hidden', 'true');
+    return out;
+}
+function printRethumb() { // 크기를 바꾸면 칸 그림을 새 폭으로 (창 크기를 끌어 바꾸는 동안은 멈춘 뒤 한 번에)
+    clearTimeout(printUI.thumbRaf);
+    printUI.thumbRaf = setTimeout(() => {
+        const btns = document.querySelectorAll('#prStrip button.pr-pg');
+        printUI.pages.forEach((cv, k) => { const old = btns[k] && btns[k].querySelector('canvas'); if (old) old.replaceWith(printThumb(cv, printUI.tw)); });
+        printThumbFree();
+    }, 90);
+}
+function printThumbFree() { for (const t of printThumbTmp) { t.width = 1; t.height = 1; } } // 다 줄였으면 임시 그림은 비워 둔다
 function stripPage() { // 미리보기 줄에서 지금 보이는 쪽
     const s = $('#prStrip'), first = s && s.querySelector('button.pr-pg');
     if (!first) return 0;
@@ -1101,7 +1138,7 @@ function openPrintViewer(i) {
 function openPrintViewerNow(at) {
     const v = $('#prViewer'), body = $('#prVBody'), cs = printUI.pages;
     if (!v || !cs.length || !v.hidden) return; // 이미 열려 있으면 그대로
-    setViewerZoom(1); body.append(...cs); v.hidden = false;
+    setViewerZoom(1); body.replaceChildren(...cs); v.hidden = false; // 큰 그림 (미리보기 칸엔 작은 그림이 따로 있다)
     const k = Math.min(at, cs.length - 1);
     body.scrollTop = k > 0 ? cs[k].offsetTop - body.offsetTop : 0; // 누른 쪽부터
     syncViewerPage();
@@ -1111,8 +1148,7 @@ function closePrintViewer() {
     const v = $('#prViewer'); if (!v || v.hidden) return false;
     const btns = $('#prStrip').querySelectorAll('button.pr-pg'), had = v.contains(document.activeElement);
     const at = $('#prVPage').textContent ? Math.max(0, parseInt($('#prVPage').textContent, 10) - 1) : 0;
-    printUI.pages.forEach((cv, k) => { if (btns[k]) btns[k].appendChild(cv); });
-    v.hidden = true;
+    $('#prVBody').replaceChildren(); v.hidden = true; // 큰 그림은 빼 두기만 (printUI.pages에 그대로)
     if (had && btns[at]) btns[at].focus({ preventScroll: true }); // 보던 쪽 단추로 돌아온다
     return true;
 }
