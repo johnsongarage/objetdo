@@ -641,6 +641,7 @@ function renderIntro() {
             <div class="cta">
                 <button type="button" class="btn btn-p split" data-act="sample">예시로 먼저 둘러보기<span aria-hidden="true">→</span></button>
                 <button type="button" class="btn btn-s split" data-act="addPhoto">${home ? '내 수납장 사진으로 시작' : '내 창고 사진으로 시작'}<span aria-hidden="true">→</span></button>
+                <button type="button" class="tlink intro-get" data-act="go" data-to="#/get">대신 만들어 받은 지도 파일이 있어요 →</button>
                 <p class="fine">가입 없이 이 ${DEV}에만 저장돼요.<br>지도 대신 만들기 · 원격 3곳 ₩19,000부터 · <a href="#/service" data-act="go" data-to="#/service">문의</a></p>
             </div>
         </main>`;
