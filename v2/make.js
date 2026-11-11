@@ -67,6 +67,17 @@ addCSS(`
 .ed-z.low { border-style: dashed; border-color: #FBF8F3; box-shadow: 0 0 0 1px rgba(158, 59, 42, .9); }
 /* AI '확인' 딱지 — '.ed-z i' 처럼 i 전체에 걸면 모서리 손잡이(<i class=ed-h>)까지 못 누른다 (11/10 고침) */
 .ed-z .ed-tag { position: absolute; right: 3px; top: 3px; padding: 1px 5px; font-style: normal; font-size: 11px; line-height: 1.4; background: var(--accent); color: #fff; white-space: nowrap; pointer-events: none; }
+/* 사진 넣는 중 (11/11): 고르는 순간 하던 화면을 덮는다 — 금방 끝나면 안 보이게 0.12초 뒤 서서히 · 새 사진은 쓱 나타난다 */
+.ph-busy { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; background: rgba(245, 241, 234, .94); animation: phBusyIn .2s ease-out .12s both; }
+.ph-busy.done { animation: phBusyOut .18s ease-in forwards; }
+.ph-busy > div { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.ph-busy b { font-family: var(--serif); font-size: 20px; } .ph-busy small { font-size: 13px; color: var(--sub); }
+.ph-busy i { position: relative; width: 140px; height: 2px; margin-top: 10px; overflow: hidden; background: var(--line); }
+.ph-busy i::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; background: var(--accent); animation: phBusyBar 1s ease-in-out infinite; }
+@keyframes phBusyIn { from { opacity: 0; } } @keyframes phBusyOut { to { opacity: 0; } } @keyframes phBusyBar { from { left: -40%; } to { left: 100%; } }
+.ed-wrap.new-in { animation: edNewIn .42s cubic-bezier(.2, .8, .2, 1); }
+@keyframes edNewIn { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+@media (prefers-reduced-motion: reduce) { .ph-busy, .ph-busy.done, .ph-busy i::after, .ed-wrap.new-in { animation: none; } }
 /* 움직임 (11/10): 칸이 생기면 하나씩 톡톡(AI는 번호 순서) · 그리기를 켜면 빨간 테두리가 바깥에서 조여 오고 안내 줄이 펼쳐짐 */
 .ed-z.pop { animation: edPop .34s cubic-bezier(.2, .9, .3, 1.3) var(--d, 0ms) both; }
 @keyframes edPop { from { opacity: 0; transform: scale(.82); } }
@@ -211,7 +222,7 @@ async function onPhotoPicked(e, fromTips) {
     const f = e.target.files && e.target.files[0]; e.target.value = '';
     if (!f) return;
     const btn = document.querySelector('#s-tips [data-act=tpPick]'); if (btn) { btn.disabled = true; btn.textContent = '사진 줄이는 중…'; }
-    if (!fromTips) toast('사진 줄이는 중…');
+    photoBusy(true); // 고르는 순간 하던 화면을 덮는다 — 사진이 준비되면 바로 새 사진 화면 (11/11: 하던 화면이 그대로 남아 넣은 사진이 안 보이는 것 같았다)
     try {
         const { dataUrl } = await readPhotoFile(f);
         photos = photos.filter(p => p.id !== 'dummy_root');
@@ -221,11 +232,30 @@ async function onPhotoPicked(e, fromTips) {
         if (link) { const sp = photoById(link.pid), z = sp && sp.zones[link.zi]; if (z) { z.link = String(p.id); z.name = p.title; sp.space = true; } } // 그 가구 네모에 바로 잇기
         await measurePhoto(p);
         saveAll(); hideToast();
-        nav(`#/edit/${encodeURIComponent(p.id)}?new=1`, fromTips); // 찍는 법 화면에서 왔으면 그 자리를, 지도에서 왔으면 새로 (뒤로 → 지도)
+        // 찍는 법 화면에서 왔거나 다른 사진을 고치던 중이면 그 자리를 바꾼다 (고치던 사진으로 '뒤로' 돌아가지 않게) · 지도에서 왔으면 새로 (뒤로 → 지도)
+        nav(`#/edit/${encodeURIComponent(p.id)}?new=1`, fromTips || cur === 'edit');
+        toast(kind === 'space' ? '공간 사진을 넣었어요 · 가구를 네모로 그려요' : '새 사진을 넣었어요 · 칸을 나눠 주세요');
+        // 포커스도 새 사진으로 (11/11 — 누른 '사진 더 넣기' 버튼 자리에 그대로 남아 있었다): 버튼은 놓고, 새 사진 화면의 첫 할 일(AI로 찾기·가구 그리기)에
+        const a = document.activeElement; if (a && a !== document.body && a.blur) a.blur();
+        requestAnimationFrame(() => { window.scrollTo(0, 0); const t = document.querySelector('#s-edit .ed-start .btn-p'); if (t) t.focus({ preventScroll: true }); });
     } catch (err) {
-        toast('사진을 읽지 못했어요 · 다른 사진으로 해 주세요');
+        photoFail(f);
         if (btn) { btn.disabled = false; btn.textContent = '사진 고르기'; }
-    }
+    } finally { photoBusy(false); }
+}
+// 사진 넣는 중: 하던 화면을 덮는 판 (금방 끝나면 깜빡이지 않게 0.12초 뒤에 서서히)
+function photoBusy(on) {
+    let el = document.getElementById('phBusy');
+    if (!on) { if (el) { el.classList.add('done'); setTimeout(() => el.remove(), RM() ? 0 : 200); el.id = ''; } return; }
+    if (el) return;
+    el = document.createElement('div'); el.id = 'phBusy'; el.className = 'ph-busy'; el.setAttribute('role', 'status');
+    el.innerHTML = '<div><b>사진 넣는 중…</b><small>사진을 알맞은 크기로 줄이고 있어요</small><i aria-hidden="true"></i></div>';
+    document.body.appendChild(el);
+}
+// 사진을 못 읽었을 때: 짧은 알림 대신 이유와 할 일을 창으로 (아이폰 HEIC 사진은 PC 크롬에서 열리지 않을 수 있다)
+function photoFail(f) {
+    const heic = /hei[cf]/i.test((f && (f.type + ' ' + f.name)) || '');
+    openSheet(`<h2>이 사진은 열 수 없어요</h2><p>${heic ? (DEV === '컴퓨터' ? '아이폰에서 옮긴 사진(HEIC)은 컴퓨터 크롬에서 열리지 않을 수 있어요. 폰에서 바로 넣거나, 사진을 JPG로 저장해서 다시 골라 주세요.' : '이 사진 형식(HEIC)은 이 브라우저에서 열리지 않아요. 다른 사진으로 골라 주세요.') : '사진 파일이 깨졌거나 이 브라우저에서 열 수 없는 형식이에요. 다른 사진으로 골라 주세요.'}</p><div class="stack"><button type="button" class="btn btn-p" data-act="phRetry">다른 사진 고르기</button><button type="button" class="btn btn-s" data-act="sheetClose">닫기</button></div>`);
 }
 
 // ── #/edit/사진 칸 나누기·고치기 ──
@@ -242,7 +272,7 @@ function renderEdit(r) {
     if (!p) { nav('#/', true); return false; }
     if (!ed || ed.key !== zsFree(location.hash)) {
         const z = parseInt(r.q.get('zone'), 10);
-        ed = { key: zsFree(location.hash), pid: String(p.id), sel: isFinite(z) && p.zones[z] ? z : null, draw: r.q.get('draw') === '1', zoom: 1, undo: [], busy: false };
+        ed = { key: zsFree(location.hash), pid: String(p.id), sel: isFinite(z) && p.zones[z] ? z : null, draw: r.q.get('draw') === '1', zoom: 1, undo: [], busy: false, newFx: r.q.get('new') === '1' };
     }
     paintEdit();
 }
@@ -250,15 +280,16 @@ function paintEdit(keepScroll) {
     const p = edPhoto(); if (!p) return;
     const y = window.scrollY, wrapX = $('#edWrap') ? $('#edWrap').scrollLeft : 0;
     const el = screenEl('edit'), empty = !p.zones.length, defTitle = /^#\d+$/.test(p.title || ''), sp = isSpace(p), Z = sp ? '가구' : '구역';
+    const fresh = parseRoute().q.get('new') === '1'; // 방금 넣은 사진 (11/11)
     const sub = ed.draw ? (sp ? '가구 하나를 끌어서 네모로 그려요' : '사진 위를 끌어서 칸을 그려요') : empty ? (sp ? '가구마다 네모를 그려요' : 'AI로 찾거나 직접 그려요') : (sp ? '네모를 누르면 어느 가구인지 골라요' : '칸을 누르면 물건 창 · 고른 칸은 끌어서 옮기기');
     const L = sp ? '' : (itemPhotos().length > 1 ? letterOf(p) : '');
     const mixed = !sp && p.zones.length > 1 && readingOrder(p.zones).some((z, i) => z !== p.zones[i]); // 번호가 사진 순서(왼쪽 위부터)와 다르다
     el.innerHTML = `
-        <div class="ed-bar"><div><b>${sp ? (empty ? '공간 사진 · 가구 그리기' : '가구 고치는 중') : empty ? '칸 나누기' : '구역 고치는 중'}</b><small>${sub}</small></div><button type="button" data-act="edDone">완료</button></div>
+        <div class="ed-bar"><div><b>${sp ? (empty ? '공간 사진 · 가구 그리기' : '가구 고치는 중') : empty ? (fresh ? '새 사진 · 칸 나누기' : '칸 나누기') : '구역 고치는 중'}</b><small>${sub}</small></div><button type="button" data-act="edDone">완료</button></div>
         <main class="wrap" style="flex:1">
             <div class="ed-name"><span class="kick">${sp ? '공간 사진' : L ? `${L} 사진` : `사진 #${vis().indexOf(p) + 1}`} 이름</span><span class="meta">${Z} ${p.zones.length}</span></div>
             <input class="ed-title" id="edTitle" type="search" value="${defTitle ? '' : esc(p.title)}" placeholder="예: ${sp ? (isHome() ? '우리 집 전체, 거실' : '매장 전체, 1층 창고') : isHome() ? '거실 수납장, 붙박이장 위' : '창고 A, 냉장고 안'}" aria-label="사진 이름" enterkeyhint="done" autocomplete="off">
-            <div class="ed-wrap${ed.zoom > 1 ? ' zoomed' : ''}" id="edWrap">
+            <div class="ed-wrap${ed.zoom > 1 ? ' zoomed' : ''}${ed.newFx ? ' new-in' : ''}" id="edWrap">
                 <div class="ed-ph${ed.draw ? ' drawing' : ''}${ed.draw && ed.drawFx ? ' fx' : ''}" id="edPh" style="--ar:${800 / h800(p)}">
                     ${p.imgData ? `<img src="${esc(p.imgData)}" alt="">` : ''}
                     ${p.zones.map((z, i) => edZoneHTML(p, z, i)).join('')}
@@ -289,7 +320,7 @@ function paintEdit(keepScroll) {
     const tPid = String(p.id); // 이 칸이 가리키는 사진 (늦게 오는 change도 이 사진에만)
     t.addEventListener('change', () => { const pp = photoById(tPid); if (!pp) return; const v = t.value.trim(); pp.title = v || pp.title || '#' + (vis().indexOf(pp) + 1); syncSpaceNames(); saveAll(); });
     bindEditPointer();
-    if (ed.drawFx || ed.pop != null) { const e0 = ed; setTimeout(() => { e0.drawFx = false; e0.pop = null; }, 0); } // 그 순간에만 움직이게 (같은 틱에 한 번 더 그려도 마지막 그림이 움직인다)
+    if (ed.drawFx || ed.pop != null || ed.newFx) { const e0 = ed; setTimeout(() => { e0.drawFx = false; e0.pop = null; e0.newFx = false; }, 0); } // 그 순간에만 움직이게 (같은 틱에 한 번 더 그려도 마지막 그림이 움직인다)
     if (keepScroll) { window.scrollTo(0, y); const w = $('#edWrap'); if (w) w.scrollLeft = wrapX; }
 }
 // AI가 덜 확실하게 찾은 칸 (점선 '확인'): 저장하지 않고 이 화면에서만. 옮기거나 크기를 맞추거나 물건 창을 열면 없어진다
@@ -446,11 +477,16 @@ Object.assign(ACT, {
         if (zsOpen()) zsHide(false);
         delete p.space; p.zones.forEach(z => { delete z.link; }); ed.sel = null; saveAll(); paintEdit(true);
         toast('보통 사진으로 바꿨어요', () => { if (was) p.space = true; p.zones = JSON.parse(before); saveAll(); if (cur === 'edit') paintEdit(true); toast('되돌렸어요'); }); },
+    phRetry: () => { closeSheet(); pickPhoto(); }, // 사진을 못 읽었을 때 창에서 다시 고르기
     edDone: () => {
         const p = edPhoto(); const t = $('#edTitle'); if (p && t && t.value.trim() && t.value.trim() !== p.title) { p.title = t.value.trim(); saveAll(); }
         const to = p ? `#/map/${encodeURIComponent(p.id)}` : '#/';
         // 물건 창이 열린 채 누르면 창만 닫히고 고치기는 그대로였다(두 번 눌러야 나감, 11/10 고침) → 창을 연 기록까지 한 번에 걷고 나간다
-        if (parseRoute().q.has('sz') && history.state && history.state.zs) { if (depth() > 1) history.go(-2); else backThen(to); return; }
+        const sheetUp = parseRoute().q.has('sz') && history.state && history.state.zs;
+        if (parseRoute().q.get('new') === '1') { // 방금 넣은 사진: 지도에서 이 사진 자리로 (11/11 — 전엔 '뒤로'라서 고치던 다른 사진이 다시 보였다)
+            const k = Math.min(sheetUp ? 2 : 1, depth()); if (k > 0) { wantHash = to; history.go(-k); } else nav(to, true); return;
+        }
+        if (sheetUp) { if (depth() > 1) history.go(-2); else backThen(to); return; }
         goBack(to);
     },
     edDraw: () => { ed.draw = !ed.draw; if (ed.draw) { ed.sel = null; ed.drawFx = true; } paintEdit(true); if (ed.draw) toast(isSpace(edPhoto()) ? '사진 위를 끌어서 가구를 그려요' : '사진 위를 끌어서 칸을 그려요'); },

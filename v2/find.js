@@ -625,7 +625,7 @@ function paintSide(name) {
         <nav class="side-nav" aria-label="화면">${row(['찾기', '물건 이름으로 찾기 · 말로 찾기', null, 0, 'home'], 'home')}${main.join('')}</nav>
         <button type="button" class="btn btn-s side-add" data-act="addPhoto">+ 사진 더 넣기</button>
         <nav class="side-nav side-more" aria-label="더 보기">${more.join('')}</nav>
-        <p class="side-foot">${SAMPLE ? '예시는 저장되지 않아요' : '가입 없이 이 기기에만 저장돼요'}<br><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">의견 보내기 (1분)</a> · <a href="${V1()}" data-v1>예전 화면 ${EXT}</a></p>`;
+        <p class="side-foot">${SAMPLE ? '예시는 저장되지 않아요' : `가입 없이 이 ${DEV}에만 저장돼요`}<br><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">의견 보내기 (1분)</a> · <a href="${V1()}" data-v1>예전 화면 ${EXT}</a></p>`;
 }
 AFTER_ROUTE.push((name) => paintSide(name));
 function renderIntro() {
