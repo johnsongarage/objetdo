@@ -350,6 +350,79 @@ function ghostOut(el, cls, ms) {
     g.setAttribute('aria-hidden', 'true'); g.style.pointerEvents = 'none'; g.classList.remove('in', 'up'); g.classList.add(cls);
     el.after(g); setTimeout(() => g.remove(), ms);
 }
+// ── 움직임 2순위 (11/11) ──
+// 빠지는 것 (물건 빼기·칸 지우기·자리 미정 옮기기·오래된 칸 확인): 상태는 바로 바꾸고(다시 그림), 빠진 것의 모습만 복사해 그 자리에서 사라지게
+//   목록 줄 → 접히며 (아래 줄이 스르륵 올라온다) · 사진 위 칸(절대 위치) → 작아지며 흐려진다
+//   쓰는 법: const s = goneSnap(줄들) → 데이터 바꾸고 다시 그리기 → goneOut(s)  (다시 그린 뒤 같은 자리를 id 붙은 조상에서 같은 길로 찾는다)
+function goneSnap(els) {
+    els = [].concat(els).filter(Boolean);
+    if (RM() || !els.length) return null;
+    const first = els[0], parent = first.parentElement, root = parent && parent.closest('[id]'); if (!root) return null;
+    const path = []; for (let e = parent; e !== root; e = e.parentElement) path.unshift([...e.parentElement.children].indexOf(e));
+    const cs = (e) => getComputedStyle(e), abs = cs(first).position === 'absolute';
+    const top = Math.min(...els.map(e => e.getBoundingClientRect().top - (parseFloat(cs(e).marginTop) || 0)));
+    const bot = Math.max(...els.map(e => e.getBoundingClientRect().bottom + (parseFloat(cs(e).marginBottom) || 0)));
+    const clones = els.map(e => { const c = e.cloneNode(true); [c, ...c.querySelectorAll('*')].forEach(x => [...x.attributes].forEach(a => { if (a.name === 'id' || a.name.startsWith('data-')) x.removeAttribute(a.name); })); c.classList.remove('pop', 'was', 'cur', 'zz-new', 'undo-glow', 'undo-glow-z'); return c; }); // id·data-*는 떼어 다른 코드가 복사본을 칸으로 잡지 않게 · 고른 칸 표시(sel)는 그대로 — 보이던 모습 그대로 사라진다
+    return { root, rootId: root.id, path, tag: parent.tagName, cls: parent.classList[0] || '', idx: [...parent.children].indexOf(first), h: Math.max(0, bot - top), abs, clones };
+}
+function goneOut(...snaps) {
+    snaps.forEach(s => {
+        if (!s) return;
+        let p = s.root.isConnected ? s.root : document.getElementById(s.rootId);
+        for (const i of s.path) p = p && p.children[i];
+        if (!p || p.tagName !== s.tag || (p.classList[0] || '') !== s.cls) return; // 화면 모양이 바뀌었으면 그냥 둔다 (엉뚱한 곳에 그리지 않게)
+        if (s.abs) {
+            s.clones.forEach(c => {
+                c.setAttribute('aria-hidden', 'true'); c.inert = true; c.style.pointerEvents = 'none'; c.style.zIndex = '3'; p.appendChild(c);
+                c.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.8)' }], { duration: 260, easing: 'ease-in' }).onfinish = () => c.remove();
+            });
+            return;
+        }
+        if (s.h < 2) return;
+        const g = document.createElement('div'); g.className = 'gone'; g.setAttribute('aria-hidden', 'true'); g.inert = true; g.style.height = s.h + 'px';
+        g.append(...s.clones); p.insertBefore(g, p.children[s.idx] || null);
+        g.animate([{ height: s.h + 'px', opacity: 1 }, { opacity: 0, offset: .55 }, { height: '0px', opacity: 0 }], { duration: 280, easing: 'cubic-bezier(.4, 0, .2, 1)' }).onfinish = () => g.remove();
+    });
+}
+// 되돌리기로 되살아난 것: 잠깐 빛나서 어디가 돌아왔는지 보이게 (사진 위 칸은 빨간 테두리, 줄은 바탕)
+function glowBack(...els) {
+    els.flat().forEach(el => {
+        if (!el || RM()) return;
+        const cls = el.matches('.zn, .ed-z') ? 'undo-glow-z' : 'undo-glow'; // ('back'은 머리 줄 뒤로 단추 이름이라 쓰지 않는다)
+        replay(el, cls); setTimeout(() => el.classList.remove(cls), 1700); // 끝나면 뗀다 (숨겼다 다시 보일 때 또 빛나지 않게)
+    });
+}
+// 탭·고르기 줄 (점검 탭·목록 정렬·지도 보기 방식·인쇄 양식 등): 밑줄·고른 칸이 옆으로 미끄러져 가고, 탭 아래 내용은 서서히
+//   누르기 전에 고른 것의 자리를 적어 두고(tabSnap) → 화면을 다시 그린 뒤 같은 줄의 새로 고른 것까지 움직인다(tabSlide)
+const TAB_BOX = '.tabs, .ptabs, .vsw, .pr-segs', TAB_ON = ':scope > [aria-selected="true"], :scope > [aria-pressed="true"]';
+function tabGeo(box, on) { const b = box.getBoundingClientRect(), r = on.getBoundingClientRect(); return { l: r.left - b.left - box.clientLeft + box.scrollLeft, t: r.top - b.top - box.clientTop + box.scrollTop, w: r.width, h: r.height }; }
+function tabSnap(el) {
+    if (RM()) return null;
+    let box = el.parentElement;
+    if (!box || !box.matches(TAB_BOX)) { // 탭 밖 단추로 탭을 바꿀 때도 (점검 아래 '발주 목록 보기' → 위 '발주 목록' 탭)
+        const scr = el.closest('.screen'), sig = (x) => JSON.stringify(Object.entries(x.dataset).sort());
+        const twin = scr && [...scr.querySelectorAll('.tabs > [data-act], .ptabs > [data-act], .vsw > [data-act], .pr-segs > [data-act]')].find(t => t !== el && sig(t) === sig(el));
+        if (!twin) return null;
+        el = twin; box = twin.parentElement;
+    }
+    const on = box.querySelector(TAB_ON); if (!on || on === el) return null;
+    const root = box.closest('.screen') || document.body;
+    return { root, k: [...root.querySelectorAll(TAB_BOX)].indexOf(box), cls: box.classList[0], g: tabGeo(box, on) };
+}
+function tabSlide(s) {
+    if (!s || !s.root.isConnected) return;
+    const box = [...s.root.querySelectorAll(TAB_BOX)][s.k]; if (!box || box.classList[0] !== s.cls) return;
+    const on = box.querySelector(TAB_ON); if (!on) return;
+    const to = tabGeo(box, on); if (Math.abs(to.l - s.g.l) < 1 && Math.abs(to.t - s.g.t) < 1) return;
+    const line = box.matches('.tabs, .ptabs');
+    const css = (g) => line ? { left: g.l + 'px', top: g.t + g.h - 2 + 'px', width: g.w + 'px', height: '2px' } : { left: g.l + 'px', top: g.t + 'px', width: g.w + 'px', height: g.h + 'px' };
+    const ind = document.createElement('span'); ind.className = 'tab-ind'; ind.setAttribute('aria-hidden', 'true');
+    if (!line) ind.style.borderRadius = getComputedStyle(on).borderRadius;
+    box.classList.add('tab-moving'); on.classList.add('tab-wait'); box.appendChild(ind);
+    const end = () => { ind.remove(); on.classList.remove('tab-wait'); box.classList.remove('tab-moving'); };
+    const a = ind.animate([css(s.g), css(to)], { duration: 260, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'forwards' }); a.onfinish = end; a.oncancel = end;
+    if (box.matches('.tabs, .vsw')) for (let n = box.nextElementSibling; n; n = n.nextElementSibling) n.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });
+}
 
 let toastTimer = 0, toastOutT = 0, toastUndo = null;
 function toast(msg, undo) {
@@ -468,8 +541,9 @@ function syncVV() {
 if (window.visualViewport) { visualViewport.addEventListener('resize', syncVV); visualViewport.addEventListener('scroll', syncVV); syncVV(); }
 function show(name) {
     $('#boot').hidden = true;
-    screenEl(name);
+    const el = screenEl(name);
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
+    if (cur && cur !== name) replay(el, 'scr-in'); // 다른 화면으로: 짧게 서서히 (투명도만 — 사진 자리는 움직이지 않는다 · 11/11)
     cur = name;
 }
 function screenEl(name) { // 화면마다 <section id="s-이름"> 하나 (없으면 만든다)
@@ -621,7 +695,8 @@ document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-act]');
     if (!el || el.disabled) return;
     const f = ACT[el.dataset.act]; if (!f) return;
-    e.preventDefault(); f(el, e);
+    e.preventDefault();
+    const ts = tabSnap(el); f(el, e); tabSlide(ts); // 탭을 바꿨으면 밑줄·고른 칸이 미끄러져 간다
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
 // 숫자칸 (재고·최소 수량): type=number면 삼성 키보드에 열쇠(자동 채우기) 줄이 떠서 글자칸처럼 search + 숫자 자판 (11/10)

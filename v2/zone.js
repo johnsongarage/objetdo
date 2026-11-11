@@ -129,6 +129,9 @@ body.zs-on .toast { bottom: calc(var(--zsh, 50vh) + var(--kb, 0px) + 10px); }
 .zn.was b { animation: znWasB 1.2s ease-out; }
 @keyframes znWas { from { border: calc(3px * var(--k)) solid var(--accent); box-shadow: 0 0 0 calc(2px * var(--k)) #fff; } }
 @keyframes znWasB { from { background: var(--accent); color: #fff; } }
+.zn.undo-glow-z { z-index: 4; animation: znWas 1.5s ease-out; }   /* 되돌리기로 살아난 칸 (11/11) */
+.zn.undo-glow-z b { animation: znWasB 1.5s ease-out; }
+@media (prefers-reduced-motion: reduce) { .zn.undo-glow-z, .zn.undo-glow-z b { animation: none; } }
 @media (prefers-reduced-motion: reduce) { .zs.up, .zn.was, .zn.was b, .zs.zs-out, .zz-it.zz-new, #zzCount em.bump { animation: none; } .app { transition: none; } }
 `);
 
@@ -572,12 +575,20 @@ function zzMic() {
     });
     if (!ok) { if (hint) hint.textContent = DICTATE_HELP.broken; if (inp) inp.focus(); }
 }
+function zzRowEl(name) { const box = zzQ('#zzItems'); return box ? [...box.querySelectorAll('.zz-it')].find(b => b.dataset.n === name) || null : null; }
 function zzRemove(name) {
     const c = zzCur(); if (!c) return;
     const idx = c.z.items.findIndex(i => i.name === name); if (idx < 0) return;
+    const row = zzRowEl(name), card = row && row.nextElementSibling && row.nextElementSibling.classList.contains('zz-card') ? row.nextElementSibling : null;
+    const gone = goneSnap([row, card]); // 뺀 줄(+ 열려 있던 카드)은 접히며 사라진다 (11/11)
     const it = c.z.items.splice(idx, 1)[0];
-    markChecked(c.z); saveAll(); zz.open = null; zzRepaint();
-    toast(`${josa(name, '을', '를')} 뺐어요`, () => { if (!c.z.items.some(i => i.name === name)) c.z.items.splice(Math.min(idx, c.z.items.length), 0, it); saveAll(); zzRepaint(); toast('되돌렸어요'); });
+    markChecked(c.z); saveAll(); zz.open = null; zzRepaint(); goneOut(gone);
+    toast(`${josa(name, '을', '를')} 뺐어요`, () => { if (!c.z.items.some(i => i.name === name)) c.z.items.splice(Math.min(idx, c.z.items.length), 0, it); saveAll(); zzRepaint(); glowBack(zzRowEl(name)); toast('되돌렸어요'); });
+}
+// 사진 위 칸과 그 아래 칸 줄 (지도 · 구역 고치기) — 칸을 지우면 작아지며·접히며, 되돌리면 빛나게
+function zoneEls(pid, i) {
+    if (cur === 'edit') return [...document.querySelectorAll(`#s-edit .ed-z[data-i="${i}"], #s-edit .zrow[data-i="${i}"]`)];
+    return [...document.querySelectorAll(`.screen.on [data-p="${CSS.escape(String(pid))}"][data-z="${i}"]`)];
 }
 function zzDelete() {
     const c = zzCur(); if (!c) return;
@@ -588,15 +599,15 @@ function zzDelete() {
 function zzDeleteOk() {
     const c = zzCur(); closeSheet(); if (!c) return;
     const idx = c.p.zones.indexOf(c.z); if (idx < 0) return;
-    const inSheet = zz.mode === 'sheet';
+    const inSheet = zz.mode === 'sheet', gone = inSheet ? zoneEls(c.p.id, idx).map(e => goneSnap(e)) : [];
     if (inSheet) { // 창을 먼저 닫는다 (칸 번호가 당겨져 옆 칸 이름을 덮어쓰지 않게)
         zsHide(false);
         if (cur === 'edit' && typeof edPush === 'function') { edPush(); if (ed) ed.sel = null; }
     }
     const z = c.p.zones.splice(idx, 1)[0];
     saveAll();
-    if (inSheet) { zsRefreshUnder(); zsClose(); } else nav(`#/map/${encodeURIComponent(c.p.id)}`, true);
-    toast(`${idx + 1}번 칸을 지웠어요`, () => { c.p.zones.splice(Math.min(idx, c.p.zones.length), 0, z); saveAll(); route(true); toast('되돌렸어요'); });
+    if (inSheet) { zsRefreshUnder(); goneOut(...gone); zsClose(); } else nav(`#/map/${encodeURIComponent(c.p.id)}`, true);
+    toast(`${idx + 1}번 칸을 지웠어요`, () => { c.p.zones.splice(Math.min(idx, c.p.zones.length), 0, z); saveAll(); route(true); glowBack(zoneEls(c.p.id, Math.min(idx, c.p.zones.length - 1))); toast('되돌렸어요'); });
 }
 
 SCREENS.zone = renderZone;

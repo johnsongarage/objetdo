@@ -152,7 +152,11 @@ Object.assign(ACT, {
     },
     ckStockOn: () => { setStockOn(true); paintCheck(); toast('재고 세기를 켰어요'); },
     ckShare: () => ckShare(),
-    ckStaleOk: (el) => { const p = photoById(el.dataset.p), z = p && p.zones[+el.dataset.z]; if (!z) return; const before = z.checkedAt; markChecked(z); saveAll(); paintCheck(); toast('확인했어요', () => { z.checkedAt = before; saveAll(); if (cur === 'check') paintCheck(); }); },
+    ckStaleOk: (el) => { // 확인한 칸은 목록에서 접히며 빠지고, 되돌리면 그 줄이 빛난다 (11/11)
+        const p = photoById(el.dataset.p), z = p && p.zones[+el.dataset.z]; if (!z) return; const before = z.checkedAt, pid = el.dataset.p, zi = el.dataset.z, gone = goneSnap(el.closest('.ck-line'));
+        markChecked(z); saveAll(); paintCheck(); goneOut(gone);
+        toast('확인했어요', () => { z.checkedAt = before; saveAll(); if (cur === 'check') { paintCheck(); const b = [...document.querySelectorAll('#s-check [data-act=ckStaleOk]')].find(x => x.dataset.p === pid && x.dataset.z === zi); glowBack(b && b.closest('.ck-line')); } });
+    },
     ckHelp: () => { // 탭 네 개를 다 (11/10 — 도움말이 모든 탭에 있게 되어서)
         const steps = ['[세기]에서 지금 개수를 −·+로 맞춰요', "[최소]에 '이만큼은 있어야 한다'는 수를 적어요", '모자란 물건은 [발주 목록]에 모여요 · [목록 복사]로 카톡에 보내요'];
         if (feat('exp')) steps.push(`[유통기한]은 날짜가 가까운 순서예요 · ${EXP_SOON_DAYS}일 안이면 임박`);
