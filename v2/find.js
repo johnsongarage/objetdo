@@ -303,6 +303,7 @@ function renderResult(r) {
     if (it && (it.name !== q || from === 'list' || from === 'move')) facts.push(['물건', esc(it.name)]);
     if (why) facts.push(['', `<span class="why">${esc(why)}</span>`]);
     if (it && it.comment) facts.push(['메모', esc(it.comment)]);
+    else if (it && from !== 'move') facts.push(['메모', `<button type="button" class="r-memo" data-act="go" data-to="#/zone/${encodeURIComponent(p.id)}/${zi}?item=${esc(encodeURIComponent(it.name))}&amp;memo=1">‘맨 앞 줄’처럼 적어 두면 다음엔 더 빨리 찾아요 <b>＋ 메모</b></button>`]); // 메모가 왜 쓸모 있는지 찾는 순간에 (11/11)
     if (it && stockOn() && (isNum(it.qty) || isNum(it.par))) facts.push(['재고', `${isNum(it.qty) ? `${it.qty}개` : '안 셈'}${isNum(it.par) ? ` · 최소 ${it.par}개` : ''}${itemLow(it) ? ` · <span class="why">${it.par - it.qty}개 모자라요</span>` : ''}`]);
     if (it && feat('exp') && it.exp) { const st = expState(it); facts.push(['유통기한', `${esc(it.exp.replace(/-/g, '. '))}${st ? ` · <span class="why">${esc(expLabel(it))}</span>` : ''}`]); }
     facts.push(['확인', `${agoText(z.checkedAt)}${isStale(z) ? ' · <span class="why">점검할 때가 됐어요</span>' : ''}`]);

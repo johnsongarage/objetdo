@@ -222,6 +222,8 @@ button.zn { cursor: pointer; }
 .sheet-card h2 { margin: 0; font-family: var(--serif); font-size: 22px; }
 .sheet-card p { margin: 10px 0 22px; font-size: 15px; color: var(--sub); }
 /* 움직임 (11/10): 알림은 아래에서 쓱 올라오고 내려가며 사라짐 · 확인 창은 바탕이 서서히 + 창이 올라옴 · 닫힐 땐 거꾸로 (app.js ghostOut: 상태는 바로 닫히고 모습만 사라진다) */
+.r-memo { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--sub); text-align: left; cursor: pointer; }
+.r-memo b { margin-left: 4px; font-weight: 500; color: var(--accent); white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; }
 .toast.in { animation: toastIn .24s cubic-bezier(.2, .8, .2, 1); }
 .toast.out { animation: toastOut .17s ease-in forwards; pointer-events: none; }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 18px); } }

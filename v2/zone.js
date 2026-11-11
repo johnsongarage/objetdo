@@ -31,6 +31,8 @@ addCSS(`
 .zz-it { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left; font-size: 17px; cursor: pointer; }
 .zz-it .nm { flex: 1; min-width: 0; }
 .zz-it .nm small { display: block; font-size: 13px; color: var(--sub); }
+.zz-it .nm small.memo-h { color: var(--mute); opacity: .85; }   /* 아직 메모를 안 써 본 사람에게만: 누르면 메모를 쓸 수 있다는 것 (11/11) */
+.zz-memo.zz-new { animation: zzNew 1.6s ease-out; }
 .zz-it .pin { color: var(--accent); margin-right: 4px; }
 .zz-it.open { border-bottom-color: transparent; }
 .zz-card { margin: 0 0 12px; padding: 16px; border: 1px solid var(--line); background: var(--sheet); }
@@ -169,11 +171,12 @@ function zzAskHTML() {
 }
 function zzItemsHTML(z) {
     const items = itemsSorted(z);
-    return items.length ? items.map(it => zzItemHTML(it)).join('') : `<p class="empty">아직 비어 있어요 · 위에 쓰거나 자주 쓰는 물건을 눌러 넣어요</p>`;
+    const hint = !vis().some(d => d.zones.some(oz => oz.items.some(x => x.comment))); // 아직 메모를 하나도 안 썼다 → 메모 없는 줄에 '+ 메모' (11/11)
+    return items.length ? items.map(it => zzItemHTML(it, hint)).join('') : `<p class="empty">아직 비어 있어요 · 위에 쓰거나 자주 쓰는 물건을 눌러 넣어요</p>`;
 }
-function zzItemHTML(it) {
+function zzItemHTML(it, hint) {
     const open = zz.open === it.name, S = stockOn(), E = feat('exp'), low = itemLow(it), st = expState(it);
-    const head = `<button type="button" class="zz-it${open ? ' open' : ''}" data-act="zzOpen" data-n="${esc(it.name)}" aria-expanded="${open}"><span class="nm">${it.pin ? '<span class="pin">★</span>' : ''}${esc(it.name)}${it.comment ? `<small>${esc(it.comment)}</small>` : ''}</span><span>${itemMarks(it)}</span></button>`;
+    const head = `<button type="button" class="zz-it${open ? ' open' : ''}" data-act="zzOpen" data-n="${esc(it.name)}" aria-expanded="${open}"><span class="nm">${it.pin ? '<span class="pin">★</span>' : ''}${esc(it.name)}${it.comment ? `<small>${esc(it.comment)}</small>` : hint && !open ? '<small class="memo-h">＋ 어디쯤 있는지 메모</small>' : ''}</span><span>${itemMarks(it)}</span></button>`;
     if (!open) return head;
     return head + `<div class="zz-card" data-n="${esc(it.name)}" data-pz="${esc(zz.pid)}:${zz.zi}">
         ${S ? `<div class="zz-f"><span>재고</span><span class="zz-step"><button type="button" data-act="zzQty" data-d="-1" aria-label="하나 빼기">−</button><input ${NUM_IN} data-f="qty" value="${isNum(it.qty) ? it.qty : ''}" aria-label="지금 수량"><button type="button" data-act="zzQty" data-d="1" aria-label="하나 더">+</button></span></div>
@@ -228,7 +231,9 @@ function renderZone(r) {
     if (!z) { nav('#/', true); return false; }
     if (!zz || zz.mode !== 'screen' || zz.key !== location.hash) zz = { key: location.hash, pid: String(p.id), zi, open: r.q.get('item') || null, more: false, listening: false, mode: 'screen' };
     paintZone();
+    if (r.q.get('memo') === '1' && zz.open) setTimeout(zzMemoFocus, 60); // 찾은 결과에서 '메모 적기' → 메모 칸에 바로
 }
+function zzMemoFocus() { const f = zzQ('.zz-card [data-f=comment]'); if (!f) return; f.focus(); f.scrollIntoView({ block: 'nearest' }); replay(f.closest('.zz-memo'), 'zz-new'); }
 function paintZone() {
     const c = zzCur(); if (!c) return;
     const { p, z, zi } = c, el = screenEl('zone');
@@ -601,9 +606,10 @@ BEFORE_ROUTE.push((name) => { zsHide(false); if (name !== 'zone' && activeDictat
 window.addEventListener('resize', () => { syncZsH(); });
 Object.assign(ACT, {
     zzDone: () => { const c = zzCur(); if (c) { zzSaveName(); markChecked(c.z); saveAll(); } toast('오늘 확인으로 적었어요'); goBack(c ? `#/map/${encodeURIComponent(c.p.id)}` : '#/'); },
-    zzOpen: (el) => {
+    zzOpen: (el, e) => {
         zz.open = zz.open === el.dataset.n ? null : el.dataset.n; zzRepaint();
         if (zz.open && zz.mode === 'sheet') { const card = zzQ('.zz-card'); if (card) card.scrollIntoView({ block: 'nearest' }); }
+        if (zz.open && e && e.target.closest && e.target.closest('.memo-h')) zzMemoFocus(); // '+ 메모'를 눌렀다 → 메모 칸에 바로
     },
     zzQty: (el) => {
         const c = zzCur(), card = el.closest('.zz-card'), it = c && card && c.z.items.find(x => x.name === card.dataset.n); if (!it) return;
