@@ -340,15 +340,35 @@ const backBtn = (label, fb) => `<button type="button" class="back" data-act="bac
 const V1 = (go, extra) => '../v1.html' + (go ? `#go=${go}${extra ? '&' + extra : ''}` : ''); // 예전 화면(v1) — 11/10부터 기본 주소는 새 화면, v1은 ../v1.html
 const EXT = '<span class="ext" aria-hidden="true">↗</span><span class="sr">(예전 화면에서 열려요)</span>';
 
-let toastTimer = 0, toastUndo = null;
+// 움직임 (11/10): 화면에 생기는 것은 짧게 쓱 나타나고 사라지게. 폰 설정 '동작 줄이기'면 모두 바로
+const RM = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function replay(el, cls) { if (!el || RM()) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); } // 같은 움직임을 다시 (class를 뗐다 붙임)
+// 닫히는 것: 상태는 바로 닫고(다른 코드는 그대로), 보이던 모습만 복사해 사라지는 움직임을 보여 준다
+function ghostOut(el, cls, ms) {
+    if (!el || el.hidden || RM()) return;
+    const g = el.cloneNode(true); g.removeAttribute('id'); g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); // 같은 id가 둘이 되지 않게
+    g.setAttribute('aria-hidden', 'true'); g.style.pointerEvents = 'none'; g.classList.remove('in', 'up'); g.classList.add(cls);
+    el.after(g); setTimeout(() => g.remove(), ms);
+}
+
+let toastTimer = 0, toastOutT = 0, toastUndo = null;
 function toast(msg, undo) {
-    const t = $('#toast');
+    const t = $('#toast'), shown = !t.hidden && !t.classList.contains('out');
     t.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button type="button" data-act="undo">되돌리기</button>' : ''}`;
-    t.hidden = false; toastUndo = undo || null;
-    t.classList.toggle('lift', !!document.querySelector('.screen.on .dock')); // 아래 버튼 줄을 가리지 않게
+    t.hidden = false; toastUndo = undo || null; clearTimeout(toastOutT); t.classList.remove('out');
+    if (!shown) replay(t, 'in'); // 아래에서 쓱 (떠 있던 알림의 글만 바뀔 땐 그대로)
+    toastLift();
     clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, undo ? 6500 : 2600);
 }
-function hideToast() { $('#toast').hidden = true; toastUndo = null; }
+// 아래 버튼 줄·고치기 도구 줄을 가리지 않게 위로 — 화면이 바뀌면 그 화면에 맞게 다시 (11/10: 고치기에서 뜬 알림이 지도에서도 떠 있어 창 버튼을 가렸다)
+function toastLift() { const t = $('#toast'); if (t) t.classList.toggle('lift', !!document.querySelector('.screen.on .dock, .screen.on .ed-tools')); }
+function hideToast() {
+    const t = $('#toast'); toastUndo = null; clearTimeout(toastTimer);
+    if (t.hidden) return;
+    if (RM()) { t.hidden = true; return; }
+    t.classList.remove('in'); t.classList.add('out'); // 아래로 내려가며 사라짐 → 끝나면 숨김 (그사이 새 알림이 오면 toast()가 되살린다)
+    clearTimeout(toastOutT); toastOutT = setTimeout(() => { if (t.classList.contains('out')) { t.hidden = true; t.classList.remove('out'); } }, 170);
+}
 const syncScrolled = () => document.documentElement.classList.toggle('scrolled', window.scrollY > 4);
 window.addEventListener('scroll', syncScrolled, { passive: true });
 
@@ -431,7 +451,7 @@ function route(force) {
     if (!vis().length && !NODATA.has(name)) name = 'intro'; // 지도가 없으면 첫 소개 (만들기·설정 같은 화면은 그대로)
     if (!SCREENS[name]) name = 'home';
     if (SCREENS[name](r) === false) return; // 다른 화면으로 넘겼다
-    show(name);
+    show(name); toastLift();
     const y = popped ? scrollMem.get(key) : 0; popped = false;
     window.scrollTo(0, y || 0); syncScrolled(); syncTopH();
     AFTER_ROUTE.forEach(f => { try { f(name, r); } catch (e) { console.error(e); } });
@@ -566,13 +586,17 @@ try { new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if 
 let sheetOnClose = null;
 function openSheet(html, onClose) { // html = .sheet-card 안쪽
     const sh = $('#sheet');
+    const was = !sh.hidden;
     sh.innerHTML = `<div class="sheet-card" role="dialog" aria-modal="true">${html}</div>`;
     sh.hidden = false; sheetOnClose = onClose || null;
+    if (!was) replay(sh, 'in'); // 바탕은 서서히 · 창은 아래에서 올라옴 (PC는 가운데서 살짝 커지며)
+    if (!toastUndo) hideToast(); // 안내만 하던 알림이 창 버튼을 가리지 않게 (되돌리기 알림은 그대로 — 물건 창과 같다)
     setTimeout(() => { const b = sh.querySelector('input, .btn'); if (b) b.focus(); }, 30);
     return sh.firstElementChild;
 }
 function closeSheet() {
     const sh = $('#sheet'); if (sh.hidden) return;
+    ghostOut(sh, 'out', 180);
     sh.hidden = true; sh.innerHTML = '';
     const f = sheetOnClose; sheetOnClose = null; if (f) f();
 }
