@@ -869,6 +869,7 @@ function loadJsPdf() {
     if (!printJsPdfLoading) printJsPdfLoading = new Promise((resolve, reject) => {
         const sc = document.createElement('script');
         sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        sc.integrity = 'sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=='; sc.crossOrigin = 'anonymous'; sc.referrerPolicy = 'no-referrer'; // 11/12 보안 점검: 이 지문과 다른 파일(바꿔치기된 파일)은 브라우저가 실행하지 않는다
         sc.onload = resolve; sc.onerror = () => { printJsPdfLoading = null; sc.remove(); reject(); };
         document.head.appendChild(sc);
     });

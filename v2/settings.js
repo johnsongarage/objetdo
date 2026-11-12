@@ -110,7 +110,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.12.2'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.12.3'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -805,6 +805,7 @@ function pickRestore() { closeSheet(); fileIn.click(); }
 function readRestoreFile(input) {
     const file = input.files[0]; if (!file) return;
     input.value = ''; // 같은 파일을 다시 골라도 되게
+    if (file.size > 150 * 1048576) { restoreFail(`파일이 너무 커요 (${Math.round(file.size / 1048576)}MB). ‘${APP_NAME}_백업_…pdf’ 파일을 골라 주세요.`); return; } // 11/12 보안 점검: 지도 백업은 보통 몇 MB · 아주 큰 파일을 통째로 읽다 화면이 멈추지 않게
     const reader = new FileReader();
     reader.onload = (e) => {
         let imported = null; try { imported = JSON.parse(extractBackupText(String(e.target.result))); } catch (err) {}
