@@ -14,7 +14,8 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys()
-            .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+            // 지우는 건 오브젯도 자기 옛 캐시만 (11/12 보안 점검: 같은 주소의 다른 앱 — 공정 트래커 등 — 캐시까지 지워 그 앱의 오프라인이 깨졌다)
+            .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && /^(objetdo|udigo)-/.test(k)).map((k) => caches.delete(k))))
             .then(() => self.clients.claim())
     );
 });

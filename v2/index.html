@@ -34,14 +34,16 @@
     // 주소 ?mode=home|store, ?sample=store|home 는 v1과 같은 뜻 (예시 상태도 v1과 같은 sessionStorage 'samplePreview'를 같이 쓴다)
     (function () {
         try {
-            var u = new URLSearchParams(location.search), m = u.get('mode'), s = u.get('sample');
-            if (m === 'home' || m === 'store') localStorage.setItem('useMode', m);
+            var u = new URLSearchParams(location.search), m = u.get('mode'), s = u.get('sample'), saved = localStorage.getItem('useMode');
+            // 예시 링크(?sample=…)는 이미 쓰는 곳이 정해진 폰의 모드를 바꾸지 않는다 (11/12: 인스타·홈페이지 '예시 집' 링크를 매장 사장님이 눌러도 매장 그대로) — 처음 온 폰만 그 모드로 정한다
+            if ((m === 'home' || m === 'store') && !(s && saved)) localStorage.setItem('useMode', m);
             if (s) {
-                var home = s === 'home' || s === 'organizer' || (s !== 'store' && localStorage.getItem('useMode') === 'home');
+                var home = s === 'home' || s === 'organizer' || (s !== 'store' && (m ? m === 'home' : localStorage.getItem('useMode') === 'home'));
                 sessionStorage.setItem('samplePreview', home ? 'organizer' : '1');
             }
             if (m || s) { u.delete('mode'); u.delete('sample'); history.replaceState(history.state, '', location.pathname + (u.toString() ? '?' + u : '') + location.hash); }
-            document.documentElement.dataset.mode = localStorage.getItem('useMode') === 'home' ? 'home' : 'store';
+            var sp = sessionStorage.getItem('samplePreview'); // 예시를 보는 동안은 그 예시의 모드로 보여 준다 (저장된 모드는 그대로 · 예시를 닫으면 돌아온다)
+            document.documentElement.dataset.mode = sp ? (sp === 'organizer' ? 'home' : 'store') : (localStorage.getItem('useMode') === 'home' ? 'home' : 'store');
         } catch (e) { document.documentElement.dataset.mode = 'store'; }
     })();
 </script>
