@@ -61,7 +61,7 @@ function itemMarks(it) { // 물건 이름 옆 작은 표시: 재고 · 유통기
     const out = [];
     if (stockOn() && isNum(it.qty)) out.push(`<span class="mk${itemLow(it) ? ' warn' : ''}">${it.qty}개${isNum(it.par) ? ` / 최소 ${it.par}` : ''}</span>`);
     else if (stockOn() && isNum(it.par)) out.push(`<span class="mk">최소 ${it.par}개</span>`);
-    if (feat('exp') && it.exp) { const st = expState(it); out.push(`<span class="mk${st ? ' warn' : ''}">${st ? expLabel(it) : it.exp.replace(/-/g, '. ')}</span>`); }
+    if (feat('exp') && it.exp) { const st = expState(it); out.push(`<span class="mk${st ? ' warn' : ''}">${st ? expLabel(it) : esc(String(it.exp).replace(/-/g, '. '))}</span>`); }
     return out.join('');
 }
 
