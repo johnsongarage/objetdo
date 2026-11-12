@@ -508,6 +508,98 @@ function buildMasterIndexPages(photos, dateStr, space) {
 }
 
 // ────────────────────────────────────────────────────────────
+// ⑥ 입구 한 장 (11/12, 가르시아 "입구 한 장 양식 만들어줘" ← 지인 "벽 지도가 과하다"): 늘 A4 한 장.
+//   위: 배치도(공간 사진이 있으면) 또는 가구 작은 사진 줄 · 아래: 대표 물건만 가나다순 + 칸 번호(A-3), 큰 글씨 한 줄씩
+//   대표 물건 = 고정한 물건 → 칸마다 자주 찾은 순·적은 순으로 앞에서부터 (칸마다 3개까지), 한 장에 들어가는 만큼. 다 들어가면 전부
+//   메모·초성 줄은 뺀다 (자세한 건 칸 앞 라벨과 앱에). 벽에는 이 한 장 + 칸 라벨이면 되게 — 사진마다 지도는 보관·전달용
+// ────────────────────────────────────────────────────────────
+function printFitText(ctx, s, maxW) { // 한 줄에 안 들어가면 끝을 … 로
+    if (ctx.measureText(s).width <= maxW) return s;
+    let t = s; while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+    return t + '…';
+}
+function doorEntries(photos, cap) { // 한 장에 넣을 물건 고르기 → [{ name, tags }] 가나다순 + 전체 물건 수
+    let picks = {}; try { picks = readJSON('searchPickCounts', {}) || {}; } catch (e) {}
+    const byName = new Map();
+    photos.forEach((d, pi) => d.zones.forEach((z, zi) => {
+        const its = z.items.map((it, k) => ({ name: String(it.name || '').trim(), pin: !!it.pin, n: Number(picks[String(it.name || '').trim()]) || 0, k })).filter(x => x.name);
+        its.sort((a, b) => (b.pin - a.pin) || (b.n - a.n) || (a.k - b.k)); // 칸 안에서: 고정 → 자주 찾은 것 → 먼저 적은 것
+        its.forEach((x, rank) => {
+            const tag = `${photoLetter(pi)}-${zi + 1}`, e = byName.get(x.name);
+            if (!e) byName.set(x.name, { name: x.name, tags: [tag], pin: x.pin, rank, n: x.n });
+            else { if (!e.tags.includes(tag)) e.tags.push(tag); e.pin = e.pin || x.pin; e.rank = Math.min(e.rank, rank); e.n = Math.max(e.n, x.n); }
+        });
+    }));
+    const all = [...byName.values()], total = all.length;
+    let pick = all;
+    if (total > cap) pick = all.filter(e => e.pin || e.rank < 3).sort((a, b) => (b.pin - a.pin) || (a.rank - b.rank) || (b.n - a.n) || a.name.localeCompare(b.name, 'ko')).slice(0, cap);
+    return { entries: pick.sort((a, b) => a.name.localeCompare(b.name, 'ko')), total };
+}
+function buildDoorPage(photos, dateStr, space) {
+    const pageW = printPx(PRINT.pageWmm), pageH = printPx(PRINT.pageHmm), margin = printPx(PRINT.marginMm);
+    const contentW = pageW - margin * 2, colGap = printPx(10), colW = (contentW - colGap) / 2;
+    const { c: canvas, ctx } = printPageCanvas();
+    const nameFont = `600 ${printPx(5.4)}px sans-serif`, rowH = printPx(8.6), gutter = printPx(5.5), limitY = pageH - margin - printPx(10);
+    // 위: 배치도(가구가 이어진 공간 사진이 있으면, 높이 60mm까지) · 가구 줄(작은 사진 + 글자 + 이름, 9개부터는 글자만)
+    let plan = null;
+    if (space && space.zones.some(z => photos.some(d => z.link != null && String(d.id) === String(z.link)))) {
+        const ratio = space.canvas.height / space.canvas.width, ph = Math.min(contentW * ratio, printPx(60)), pw = ph / ratio;
+        plan = { x: margin + (contentW - pw) / 2, w: pw, h: ph };
+    }
+    const thumbs = photos.length <= 8, lcols = thumbs ? (photos.length <= 2 ? Math.max(1, photos.length) : photos.length <= 6 ? 3 : 4) : 4, lgap = printPx(4);
+    const lcellW = (contentW - (lcols - 1) * lgap) / lcols, lthW = thumbs ? printPx(15) : 0, lthH = thumbs ? printPx(11.25) : printPx(6), lrowH = lthH + printPx(2.5);
+    const legendH = photos.length ? Math.ceil(photos.length / lcols) * lrowH + printPx(3) : 0;
+    const sub = '오른쪽 A-3 = A 가구의 3번 칸 · 칸 앞 라벨에서 확인해요';
+    const headEnd = margin + printPx(17) + printPx(7); // drawPrintHead(제목·선·작은 글 한 줄)이 끝나는 곳
+    const listTop = headEnd + (plan ? plan.h + printPx(5) : 0) + legendH + printPx(6);
+    const perCol = Math.max(1, Math.floor((limitY - listTop) / rowH)), cap = perCol * 2;
+    const { entries, total } = doorEntries(photos, cap), cut = total > entries.length;
+
+    let y = drawPrintHead(ctx, '물건 찾아보기', dateStr, cut ? `자주 찾는 물건 ${entries.length}개만 골랐어요 (전체 ${total}개) · ${sub}` : `가나다순 · ${sub}`);
+    if (plan) { drawPrintSpace(ctx, space, photos, plan.x, y, plan.w, plan.h); y += plan.h + printPx(5); }
+    photos.forEach((d, i) => { // 가구 줄
+        const col = i % lcols, row = Math.floor(i / lcols), x = margin + col * (lcellW + lgap), ly = y + row * lrowH, letter = photoLetter(i);
+        if (thumbs) {
+            ctx.fillStyle = PRINT.line; ctx.fillRect(x, ly, lthW, lthH);
+            if (d.img) printCover(ctx, d.img, x, ly, lthW, lthH);
+            ctx.lineWidth = printPx(0.3); ctx.strokeStyle = PRINT.ink; ctx.strokeRect(x, ly, lthW, lthH);
+        }
+        ctx.font = `bold ${printPx(3.6)}px sans-serif`;
+        const bw = Math.max(printPx(5.8), ctx.measureText(letter).width + printPx(2.4)), bh = printPx(5.8), by = thumbs ? ly : ly + (lthH - bh) / 2;
+        ctx.fillStyle = PRINT.ink; ctx.beginPath(); prRoundRect(ctx, x, by, bw, bh, printPx(1)); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(letter, x + bw / 2, by + bh / 2 + 1);
+        ctx.font = `${printPx(3.8)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        const tx = x + (thumbs ? lthW : bw) + printPx(2.4);
+        ctx.fillText(printFitText(ctx, d.title || `#${i + 1}`, x + lcellW - tx), tx, ly + lthH / 2 + 1);
+    });
+    y += legendH;
+    ctx.strokeStyle = PRINT.line; ctx.lineWidth = printPx(0.3); ctx.beginPath(); ctx.moveTo(margin, y + printPx(2)); ctx.lineTo(pageW - margin, y + printPx(2)); ctx.stroke();
+    y = listTop;
+    if (!entries.length) { ctx.font = nameFont; ctx.fillStyle = PRINT.sub; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText('아직 적은 물건이 없어요', margin, y + rowH - printPx(2.4)); }
+    let lastInit = null;
+    entries.forEach((e, k) => {
+        const ci = k < perCol ? 0 : 1, ri = ci ? k - perCol : k, x0 = margin + ci * (colW + colGap), ry = y + ri * rowH, by = ry + rowH / 2;
+        const init = indexInitial(e.name);
+        if (init !== lastInit || ri === 0) { ctx.font = `bold ${printPx(3.6)}px sans-serif`; ctx.fillStyle = '#a08a2a'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(init, x0, by + 1); }
+        lastInit = init;
+        let xr = x0 + colW;
+        const tags = e.tags.length > 2 ? [e.tags[0], e.tags[1], `+${e.tags.length - 2}`] : e.tags;
+        [...tags].reverse().forEach(t => { xr = drawPrintTag(ctx, xr, by, t) - printPx(1.2); });
+        ctx.font = nameFont; ctx.fillStyle = PRINT.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        const nx = x0 + gutter, name = printFitText(ctx, e.name, xr - nx - printPx(4)), nw = ctx.measureText(name).width;
+        ctx.fillText(name, nx, by + 1);
+        const dotFrom = nx + nw + printPx(2), dotTo = xr - printPx(0.8);
+        if (dotTo - dotFrom > printPx(3)) {
+            ctx.save(); ctx.strokeStyle = '#b9b4aa'; ctx.lineWidth = printPx(0.35); ctx.setLineDash([printPx(0.4), printPx(1.2)]); ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(dotFrom, by + printPx(1.4)); ctx.lineTo(dotTo, by + printPx(1.4)); ctx.stroke(); ctx.restore();
+        }
+    });
+    drawPrintFoot(ctx, cut ? `여기 없는 물건 ${total - entries.length}개는 지도를 넣은 폰에서 이름으로 찾아요 · 위치가 바뀌면 다시 뽑기`
+        : `${isHome() ? '방 입구' : '창고 입구'}에 붙여 두세요 · 위치가 바뀌면 앱에서 고치고 다시 뽑기`);
+    return [printOut(canvas)];
+}
+
+// ────────────────────────────────────────────────────────────
 // 🖨 인쇄 양식 (지도형 말고): 칸 라벨 · 큰 글씨 목록 · 점검표. 모두 흑백 프린터에서도 읽히게 검정/회색만 쓴다.
 // photos: 인쇄할 사진들(한 장이면 칸 번호만, 여러 장이면 "A-3"처럼 사진 기호를 붙인다)
 // ────────────────────────────────────────────────────────────
@@ -829,6 +921,7 @@ try { Object.assign(printOpts, JSON.parse(localStorage.getItem('printOpts') || '
 if (![1, 1.35].includes(printOpts.size)) printOpts.size = 1;
 if (!['S', 'M', 'L'].includes(printOpts.label)) printOpts.label = 'M';
 const PRINT_FORMS = {
+    door: { title: '입구 한 장', btn: '입구 한 장', sub: '배치도 + 자주 찾는 물건만 · 늘 A4 한 장 · 벽에는 이 한 장과 칸 라벨이면 돼요', file: '입구한장' },
     map: { title: '사진 지도', btn: '사진 지도', sub: '칸 번호 붙은 사진 + 찾아보기 · 선반 옆에', file: '지도' },
     list: { title: '큰 글씨 목록', btn: '큰 글씨 목록', sub: '사진 없이 큰 표 · 흑백 프린터도 OK', file: '위치목록' },
     check: { title: '위치 점검표', btn: '점검표', sub: '칸 순서대로 있음·없음 체크', file: '점검표' },
@@ -845,6 +938,7 @@ function printChunks() {
     const photos = printPhotos();
     const data = photos.find(d => String(d.id) === String(printPreviewId)) || photos[0], multi = photos.length > 1, i = photos.indexOf(data);
     const all = printScope === 'all' && multi, scope = all ? photos : [data], ds = printDateStr();
+    if (printOpts.form === 'door') return [() => buildDoorPage(photos, ds, printSpace())]; // 늘 모든 가구 사진으로 한 장
     if (printOpts.form === 'list') return [() => buildBigListPages(scope, ds, { sort: printOpts.sort, memo: printOpts.memo, scale: printOpts.size })];
     if (printOpts.form === 'check') return [() => buildCheckPages(scope, ds)];
     if (printOpts.form === 'label') return [() => buildLabelPages(scope, ds, printOpts.label)];
@@ -884,7 +978,7 @@ function dataUrlToFile(url, name) {
 function printCanShare() { return !!navigator.share && window.matchMedia('(pointer: coarse)').matches; }
 // 파일 이름: 매장이름(없으면 앱 이름)_양식[_사진이름]_날짜
 function printFileBase() {
-    const photos = itemPhotos(), F = PRINT_FORMS[printOpts.form] || PRINT_FORMS.map, one = photos.length > 1 && printScope !== 'all' ? photoById(printPreviewId) : null;
+    const photos = itemPhotos(), F = PRINT_FORMS[printOpts.form] || PRINT_FORMS.map, one = photos.length > 1 && printScope !== 'all' && printOpts.form !== 'door' ? photoById(printPreviewId) : null;
     const part = one ? '_' + (one.title || '').replace(/[\\/:*?"<>|\s]+/g, '').slice(0, 20) : '';
     return `${storeFileName() || PRINT_APP_NAME}_${F.file}${part}_${fileDate()}`;
 }
@@ -979,7 +1073,7 @@ function renderPrintPreview(tab) {
     const form = PRINT_FORMS[printOpts.form] ? printOpts.form : 'map', F = PRINT_FORMS[form];
     printOpts.form = form;
     const data = photoById(printPreviewId) || photos[0], i = photos.indexOf(data), all = printScope === 'all' && multi;
-    $('#prMeta').textContent = all ? `사진 ${photos.length}장 전체` : (data.title || `#${i + 1}`);
+    $('#prMeta').textContent = all || (form === 'door' && multi) ? `사진 ${photos.length}장 전체` : (data.title || `#${i + 1}`);
     renderPrintOpts(printOptsHTML(form, photos, all, i));
     // 미리보기·PDF·그림은 양식·범위 모두 보이는 그대로
     const label = form === 'map' ? (all ? '사진 전체' : (data.title || '')) : F.title;
@@ -993,7 +1087,7 @@ function printOptsHTML(form, photos, all, idx) {
     const opt = (k, v, on, text) => seg('prOpt', `data-k="${k}" data-v="${v}"`, on, text);
     let h = row('양식', Object.keys(PRINT_FORMS).map(f => seg('prForm', `data-v="${f}"`, f === form, PRINT_FORMS[f].btn)).join(''))
         + `<p class="pr-sub">${esc(PRINT_FORMS[form].sub)}</p>`;
-    if (photos.length > 1) h += row('사진', seg('prScope', 'data-p=""', all, `전체 ${photos.length}장`)
+    if (photos.length > 1 && form !== 'door') h += row('사진', seg('prScope', 'data-p=""', all, `전체 ${photos.length}장`)
         + photos.map((p, pi) => seg('prScope', `data-p="${esc(p.id)}"`, !all && pi === idx, `<b>${photoLetter(pi)}</b><span>${esc(p.title || `#${pi + 1}`)}</span>`)).join(''), true);
     if (form === 'map') h += row('색', opt('ink', '0', !printOpts.ink, '사진 그대로') + opt('ink', '1', !!printOpts.ink, '잉크 절약'));
     if (form === 'list') h += row('정렬', opt('sort', 'name', printOpts.sort === 'name', '가나다순') + opt('sort', 'zone', printOpts.sort === 'zone', '칸 순서'))
