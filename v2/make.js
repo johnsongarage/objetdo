@@ -19,15 +19,15 @@ addCSS(`
 .tp-far { position: absolute; left: 10%; bottom: 26%; width: 26%; height: 34%; }
 .tp-far2 { position: absolute; right: 12%; bottom: 26%; width: 22%; height: 26%; border: 1px solid var(--ink); }
 .tp-floor { position: absolute; left: 0; right: 0; bottom: 24%; border-top: 1px solid var(--line); }
-.ed-bar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px var(--gut); background: var(--ink); color: #FBF8F3; }
+.ed-bar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 12px 10px var(--gut); background: var(--bar-bg); color: var(--bar-fg); }
 .ed-bar b { display: block; font-size: 16px; font-weight: 500; }
 .ed-bar small { display: block; font-size: 13px; color: rgba(251, 248, 243, .72); }
-.ed-bar button { flex: none; min-height: 44px; padding: 0 16px; border: 1px solid rgba(251, 248, 243, .8); border-radius: 2px; background: none; color: #FBF8F3; font-size: 15px; cursor: pointer; }
+.ed-bar button { flex: none; min-height: 44px; padding: 0 16px; border: 1px solid rgba(251, 248, 243, .8); border-radius: 2px; background: none; color: var(--bar-fg); font-size: 15px; cursor: pointer; }
 .ed-name { display: flex; justify-content: space-between; align-items: baseline; margin-top: 20px; }
 .ed-name .meta { padding-right: 0; }
 .ed-title { display: block; width: 100%; margin: 4px 0 16px; padding: 6px 0 8px; border: 0; border-bottom: 1.5px solid var(--ink); background: transparent; font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--ink); border-radius: 0; }
 .ed-title:focus { outline: 0; }
-.ed-title::placeholder { color: #A69C8E; font-weight: 400; font-family: var(--sans); font-size: 18px; }
+.ed-title::placeholder { color: var(--ph); font-weight: 400; font-family: var(--sans); font-size: 18px; }
 .ed-wrap { position: relative; overflow: auto; margin: 0 calc(-1 * var(--gut)); padding: 0 var(--gut); -webkit-overflow-scrolling: touch; }
 .ed-wrap.zoomed { max-height: 72vh; }
 .ed-ph { position: relative; width: 100%; aspect-ratio: var(--ar); background: var(--hl); border: 1px solid var(--ink); touch-action: pan-x pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -52,7 +52,7 @@ addCSS(`
 .ed-tools { position: sticky; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 24px; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
 .ed-tools button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 56px; border: 0; background: none; font-size: 13px; color: var(--ink); cursor: pointer; border-radius: 2px; }
 .ed-tools button svg { width: 20px; height: 20px; }
-.ed-tools button.on { background: var(--ink); color: #fff; }
+.ed-tools button.on { background: var(--ink); color: var(--on-ink); }
 .ed-tools button.danger { color: var(--accent); }
 .ed-tools button:disabled { opacity: .35; }
 .ed-order { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 12px 14px; border: 1px solid var(--accent); background: var(--accent-soft); font-size: 14px; }
@@ -68,7 +68,7 @@ addCSS(`
 /* AI '확인' 딱지 — '.ed-z i' 처럼 i 전체에 걸면 모서리 손잡이(<i class=ed-h>)까지 못 누른다 (11/10 고침) */
 .ed-z .ed-tag { position: absolute; right: 3px; top: 3px; padding: 1px 5px; font-style: normal; font-size: 11px; line-height: 1.4; background: var(--accent); color: #fff; white-space: nowrap; pointer-events: none; }
 /* 사진 넣는 중 (11/11): 고르는 순간 하던 화면을 덮는다 — 금방 끝나면 안 보이게 0.12초 뒤 서서히 · 새 사진은 쓱 나타난다 */
-.ph-busy { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; background: rgba(245, 241, 234, .94); animation: phBusyIn .2s ease-out .12s both; }
+.ph-busy { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; background: var(--busy); animation: phBusyIn .2s ease-out .12s both; }
 .ph-busy.done { animation: phBusyOut .18s ease-in forwards; }
 .ph-busy > div { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .ph-busy b { font-family: var(--serif); font-size: 20px; } .ph-busy small { font-size: 13px; color: var(--sub); }

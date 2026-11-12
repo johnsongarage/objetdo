@@ -59,7 +59,7 @@ addCSS(`
 .pr-field input { display: block; width: 100%; min-height: 50px; margin-top: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 2px; background: var(--sheet); color: var(--ink); font: inherit; font-size: 17px; -webkit-appearance: none; appearance: none; }
 .pr-field input:focus { outline: none; border-color: var(--ink); }
 /* 크게 보기: 화면 가득 (두 손가락으로 키우기 · 두 번 톡) */
-.pr-viewer { position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; background: #2B2723; color: var(--sheet); }
+.pr-viewer { position: fixed; inset: 0; z-index: 45; display: flex; flex-direction: column; background: #2B2723; color: #FBF8F3; } /* 크게 보기는 두 테마 모두 어두운 판 */
 .pr-vbar { flex: none; display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 12px 8px 20px; font-size: 14px; touch-action: none; }
 .pr-vbar span { flex: 1; font-variant-numeric: tabular-nums; }
 .pr-vbar button { min-height: 44px; padding: 0 14px; border: 1px solid rgba(251, 248, 243, .35); border-radius: 2px; background: none; color: inherit; font-size: 14px; cursor: pointer; }

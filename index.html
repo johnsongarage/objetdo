@@ -7,7 +7,8 @@
      주소 뒤 ?mode=home&sample=1 · #… 는 그대로 넘긴다 (v2가 v1과 같은 뜻으로 읽는다). 예전 화면은 v1.html (데이터는 같은 저장소)
      카톡·검색 미리보기는 스크립트를 실행하지 않고 이 <head> 글자를 그대로 읽어서, 여기에도 적어 둔다 (v1.html · v2/index.html과 같은 글) -->
 <script>location.replace('v2/' + location.search + location.hash);</script>
-<meta name="theme-color" content="#F5F1EA">
+<meta name="theme-color" content="#F5F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1E1B18" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=15">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=15">
@@ -30,7 +31,7 @@
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <noscript><meta http-equiv="refresh" content="0; url=v2/"></noscript>
-<style>html,body{margin:0;height:100%;background:#F5F1EA;color:#2B2723;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}a{color:inherit;font-size:15px}</style>
+<style>@media (prefers-color-scheme: dark){html,body{background:#1E1B18!important;color:#ECE5DA!important}}html,body{margin:0;height:100%;background:#F5F1EA;color:#2B2723;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}a{color:inherit;font-size:15px}</style>
 </head>
 <body>
 <main><b style="font-size:20px">오브젯도</b><span>여는 중…</span><a href="v2/">바로 열기</a></main>

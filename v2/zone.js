@@ -49,11 +49,11 @@ addCSS(`
 .zz-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--line2); }
 .zz-card-foot button { min-height: 44px; border: 0; background: none; font-size: 15px; cursor: pointer; padding: 0; }
 .zz-card-foot .rm { color: var(--accent); }
-.zz-low { color: var(--accent); font-size: 13px; }
+.zz-low { color: var(--warn); font-size: 13px; }
 .zz-more { min-height: 44px; border: 0; background: none; padding: 0; color: var(--accent); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .zz-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; margin-top: 30px; padding-bottom: 26px; }
 .zz-foot button, .zz-foot a { min-height: 44px; border: 0; background: none; padding: 0; font-size: 15px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; color: var(--ink); }
-.zz-foot .danger { color: var(--accent); }
+.zz-foot .danger { color: var(--warn); }
 .hint:empty { display: none; }
 .zz-chips-lab { margin: 12px 0 0; font-size: 12px; letter-spacing: .04em; color: var(--sub); }
 
@@ -62,7 +62,7 @@ addCSS(`
 .zs.up { animation: zsUp .2s ease-out; }
 @keyframes zsUp { from { transform: translateY(26px); opacity: .5; } }
 .zs-head { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 4px 4px var(--gut); }
-.zs-n { flex: none; min-width: 34px; height: 34px; padding: 0 7px; display: flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-family: var(--serif); font-size: 19px; font-weight: 700; }
+.zs-n { flex: none; min-width: 34px; height: 34px; padding: 0 7px; display: flex; align-items: center; justify-content: center; background: var(--accent); color: var(--on-accent); font-family: var(--serif); font-size: 19px; font-weight: 700; }
 .zs-tt { flex: 1; min-width: 0; }
 .zs-name { display: block; width: 100%; margin: 0; padding: 0; border: 0; border-bottom: 1px solid transparent; background: transparent; font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1.35; color: var(--ink); border-radius: 0; }
 .zs-name:focus { outline: 0; border-bottom-color: var(--ink); }
@@ -79,7 +79,7 @@ addCSS(`
 .zs-more { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; margin-top: 22px; }
 .zs-more .danger { margin-left: auto; }
 .zs-more button { min-height: 44px; border: 0; background: none; padding: 0; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; color: var(--sub); cursor: pointer; }
-.zs-more .danger { color: var(--accent); }
+.zs-more .danger { color: var(--warn); }
 .zs-foot { flex: none; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) minmax(0, 1.15fr); gap: 8px; padding: 8px var(--gut) 10px; border-top: 1px solid var(--line); }
 .zs-foot .btn { min-height: 50px; padding: 0 6px; font-size: 15px; white-space: nowrap; }
 /* 창 안을 세 덩어리로 (11/10): 위 '넣기'(옅은 바탕) · 가운데 '이 칸의 물건' · 아래 링크 */
@@ -119,7 +119,7 @@ body.zs-on .toast { bottom: calc(var(--zsh, 50vh) + var(--kb, 0px) + 10px); }
 @keyframes zsDown { to { transform: translateY(44px); opacity: 0; } }
 @keyframes zsSideOut { to { transform: translateX(32px); opacity: 0; } }
 @media (min-width: 1024px) { .zs.zs-out { animation-name: zsSideOut; } body.zs-on .toast.lift { bottom: calc(92px + env(safe-area-inset-bottom)); } }
-.zz-fly { position: fixed; left: 0; top: 0; z-index: 60; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: #FBF8F3; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 16px rgba(36, 30, 26, .22); }
+.zz-fly { position: fixed; left: 0; top: 0; z-index: 60; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: var(--on-ink); font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 16px rgba(36, 30, 26, .22); }
 .zz-it.zz-new { animation: zzNew 1.6s ease-out; }
 @keyframes zzNew { 0% { background: transparent; } 28% { background: var(--accent-soft); } 100% { background: transparent; } }
 #zzCount em.bump { display: inline-block; animation: zzBump .45s ease-out .34s; }

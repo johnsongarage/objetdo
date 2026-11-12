@@ -18,7 +18,7 @@ addCSS(`
 .ck-step { display: flex; align-items: center; justify-content: center; gap: 4px; }
 .ck-step button { width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 2px; background: none; font-size: 19px; cursor: pointer; color: var(--ink); }
 .ck-step input { width: 56px; height: 42px; border: 0; background: transparent; text-align: center; font-family: var(--serif); font-size: 19px; color: var(--ink); }
-.ck-step input.low { color: var(--accent); }
+.ck-step input.low { color: var(--warn); }
 .ck-step input { transition: color .35s ease; }   /* 모자라게 되면 숫자가 빨강으로 스르륵 (11/11) */
 @media (prefers-reduced-motion: reduce) { .ck-step input { transition: none; } }
 .ck-par { width: 46px; height: 42px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: right; font-size: 15px; color: var(--sub); border-radius: 0; }
