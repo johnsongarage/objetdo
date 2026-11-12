@@ -4574,7 +4574,7 @@
         const headerContainer = document.createElement('div'); headerContainer.style.cssText = "margin-bottom: 8px;";
         headerContainer.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
-                <h3 id="title-${data.id}" style="margin:0; font-size:16px; color: var(--accent-text); cursor: pointer; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" onclick="renameImage('${data.id}')">${data.title}</h3>
+                <h3 id="title-${data.id}" style="margin:0; font-size:16px; color: var(--accent-text); cursor: pointer; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" onclick="renameImage('${data.id}')">${escapeHtml(data.title)}</h3>
                 <div style="display: flex; gap: 6px; flex-shrink: 0;">
                     <button type="button" class="photo-more-btn" onclick="openPhotoMenu(event, '${data.id}')" title="사진 메뉴" aria-label="사진 메뉴" aria-haspopup="menu"><i class="ti ti-dots"></i></button>
                 </div>
@@ -6280,7 +6280,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.10.2 · 예전 화면';
+    const APP_VERSION = '베타 2026.11.12.2 · 예전 화면';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6434,13 +6434,70 @@
         document.getElementById('backupChoiceBackdrop').style.display = 'none';
         document.getElementById('backupChoice').style.display = 'none';
     }
+    // 받은 파일 정리 (11/12 보안 점검 · v2/settings.js cleanBackup과 같은 코드 — 고치면 같이): 남이 만든 파일은 그대로 믿지 않는다 — 아는 칸만, 맞는 모양으로만 새로 옮겨 담는다.
+    //   글자: 화면·코드로 읽힐 수 있는 < > " ' ` & \ 는 닮은 전각 글자로 바꾸고 길이를 자른다 (예전 화면 v1이 사진 이름·번호를 그대로 HTML에 넣어,
+    //         이름에 숨긴 스크립트가 v1에서 실행됐다) · 그림: data:image/…;base64 만 (외부 주소면 남의 서버로 요청이 나가 언제 열었는지 새어 나간다)
+    //   번호: 영문·숫자·_- 40자까지, 아니면 새 번호 (가구 잇기 link도 같이) · 숫자 칸은 숫자만 · 모양이 깨진 줄은 버린다 (화면이 멈추지 않게)
+    const SAFE_CH = { '<': '＜', '>': '＞', '"': '＂', "'": '＇', '`': '｀', '&': '＆', '\\': '＼' };
+    function cleanText(v, max, lines) {
+        if (typeof v !== 'string' && typeof v !== 'number') return '';
+        let t = String(v).replace(/[<>"'`&\\]/g, c => SAFE_CH[c]);
+        t = lines ? t.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, ' ') : t.replace(/[\u0000-\u001f\u007f]/g, ' ');
+        return t.trim().slice(0, max);
+    }
+    const okId = v => (typeof v === 'string' || typeof v === 'number') && /^[A-Za-z0-9_-]{1,40}$/.test(String(v)) && !['__proto__', 'constructor', 'prototype'].includes(String(v));
+    const okImg = v => typeof v === 'string' && v.length < 30000000 && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=\s]+$/.test(v);
+    const okNum = v => { const n = typeof v === 'number' ? v : (typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN); return isFinite(n) ? Math.max(-1e9, Math.min(1e13, n)) : null; };
+    const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+    function cleanBackup(o) {
+        if (!isObj(o) || !Array.isArray(o.savedSystemData)) return null;
+        const src = o.savedSystemData.filter(isObj).slice(0, 300), idOf = new Map(); let seq = Date.now();
+        src.forEach(p => { const k = String(p.id); if (idOf.has(k)) return; let id = okId(p.id) ? p.id : null; if (id === null || [...idOf.values()].some(v => String(v) === String(id))) id = String(seq++); idOf.set(k, id); });
+        const used = new Set(), photos = src.map(p => {
+            let id = idOf.get(String(p.id)); if (used.has(String(id))) id = String(seq++); used.add(String(id)); // 같은 번호가 두 번 나오면 뒤의 것은 새 번호
+            const zones = (Array.isArray(p.zones) ? p.zones : []).filter(isObj).slice(0, 400).map(z => {
+                const n = k => okNum(z[k]), nz = { x: n('x') === null ? 0 : n('x'), y: n('y') === null ? 0 : n('y'), w: n('w') === null ? 40 : n('w'), h: n('h') === null ? 40 : n('h'), name: cleanText(z.name, 60), items: [] };
+                nz.items = (Array.isArray(z.items) ? z.items : []).filter(isObj).slice(0, 1000).map(it => {
+                    const ni = { name: cleanText(it.name, 80), comment: cleanText(it.comment, 300, true) };
+                    const q = okNum(it.qty), par = okNum(it.par);
+                    if (q !== null && q >= 0) ni.qty = q;
+                    if (par !== null && par >= 0) ni.par = par;
+                    if (typeof it.exp === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(it.exp)) ni.exp = it.exp;
+                    if (it.pin === true) ni.pin = true;
+                    return ni;
+                }).filter(it => it.name);
+                if (n('checkedAt') !== null) nz.checkedAt = n('checkedAt');
+                if (n('checkedDaysAgo') !== null) nz.checkedDaysAgo = n('checkedDaysAgo');
+                if (z.link != null && idOf.has(String(z.link))) nz.link = idOf.get(String(z.link)); // 없는 사진을 가리키는 잇기는 버린다
+                return nz;
+            });
+            const np = { id, title: cleanText(p.title, 60), imgData: okImg(p.imgData) ? p.imgData : null, zones };
+            if (p.aiPhoto === true) np.aiPhoto = true;
+            if (p.space === true) np.space = true;
+            return np;
+        });
+        const out = { app: 'changgojigi', version: okNum(o.version) || 1, savedSystemData: photos,
+            baseItems: (Array.isArray(o.baseItems) ? o.baseItems : []).map(v => cleanText(v, 80)).filter(Boolean).slice(0, 500),
+            organizerName: cleanText(o.organizerName, 30) };
+        if (typeof o.exportedAt === 'string' && !isNaN(Date.parse(o.exportedAt))) out.exportedAt = o.exportedAt;
+        if (o.useMode === 'home' || o.useMode === 'store') out.useMode = o.useMode;
+        if (Array.isArray(o.stockLog)) out.stockLog = o.stockLog.filter(isObj).slice(-180).map(e => {
+            const q = {}; if (isObj(e.q)) Object.keys(e.q).slice(0, 3000).forEach(k => { const kk = cleanText(k, 80), v = okNum(e.q[k]); if (kk && kk !== '__proto__' && v !== null) q[kk] = v; });
+            return { d: cleanText(e.d, 20), at: okNum(e.at) || 0, q };
+        });
+        if (Array.isArray(o.inboxItems)) out.inboxItems = o.inboxItems.filter(isObj).slice(0, 500).map(x => ({ name: cleanText(x.name, 80), at: okNum(x.at) || Date.now() })).filter(x => x.name);
+        return out;
+    }
+    const RESTORE_MAX = 150 * 1024 * 1024; // 지도 백업은 보통 몇 MB · 이보다 크면 백업 파일이 아니다 (폰이 멈추지 않게 읽기 전에 거른다)
     function importSystemData(input) {
         const file = input.files[0]; if (!file) return;
         input.value = ''; // 같은 파일을 다시 골라도 동작하게
+        if (file.size > RESTORE_MAX) { alert(`파일이 너무 커요 (${Math.round(file.size / 1048576)}MB).\n'${APP_NAME}_백업_…pdf' 파일을 골라 주세요.`); return; }
         const reader = new FileReader();
         reader.onload = function(e) {
             let imported = null; try { imported = JSON.parse(extractBackupText(e.target.result)); } catch (err) {}
             if (!imported || !Array.isArray(imported.savedSystemData) || !imported.baseItems) { alert(`${APP_NAME} 백업 파일이 아니거나 파일이 손상됐어요.\n'${APP_NAME}_백업_…pdf' 파일을 골라 주세요.`); return; }
+            imported = cleanBackup(imported); // 남이 만든 파일일 수 있다: 아는 칸만 맞는 모양으로 (이름 속 스크립트·외부 그림 주소를 막는다)
             if (!confirm("백업 파일로 복구할까요?\n지금 이 폰에 있는 사진·구역·물건이 모두 백업 파일 내용으로 바뀌어요.")) return;
             if (isSamplePreview) { try { sessionStorage.removeItem(SAMPLE_PREVIEW_KEY); } catch (e) {} isSamplePreview = false; }
             safeStorage.setItem('savedSystemData', JSON.stringify(imported.savedSystemData));

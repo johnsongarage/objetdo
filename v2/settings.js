@@ -110,7 +110,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.12.1'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.12.2'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -802,14 +802,70 @@ document.body.appendChild(fileIn);
 fileIn.addEventListener('change', () => readRestoreFile(fileIn));
 let pendingRestore = null;
 function pickRestore() { closeSheet(); fileIn.click(); }
+// 받은 파일 정리 (11/12 보안 점검): 남이 만든 파일은 그대로 믿지 않는다 — 아는 칸만, 맞는 모양으로만 새로 옮겨 담는다.
+//   글자: 화면·코드로 읽힐 수 있는 < > " ' ` & \ 는 닮은 전각 글자로 바꾸고 길이를 자른다 (예전 화면 v1이 사진 이름·번호를 그대로 HTML에 넣어,
+//         이름에 숨긴 스크립트가 v1에서 실행됐다) · 그림: data:image/…;base64 만 (외부 주소면 남의 서버로 요청이 나가 언제 열었는지 새어 나간다)
+//   번호: 영문·숫자·_- 40자까지, 아니면 새 번호 (가구 잇기 link도 같이) · 숫자 칸은 숫자만 · 모양이 깨진 줄은 버린다 (화면이 멈추지 않게)
+const SAFE_CH = { '<': '＜', '>': '＞', '"': '＂', "'": '＇', '`': '｀', '&': '＆', '\\': '＼' };
+function cleanText(v, max, lines) {
+    if (typeof v !== 'string' && typeof v !== 'number') return '';
+    let t = String(v).replace(/[<>"'`&\\]/g, c => SAFE_CH[c]);
+    t = lines ? t.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, ' ') : t.replace(/[\u0000-\u001f\u007f]/g, ' ');
+    return t.trim().slice(0, max);
+}
+const okId = v => (typeof v === 'string' || typeof v === 'number') && /^[A-Za-z0-9_-]{1,40}$/.test(String(v)) && !['__proto__', 'constructor', 'prototype'].includes(String(v));
+const okImg = v => typeof v === 'string' && v.length < 30000000 && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=\s]+$/.test(v);
+const okNum = v => { const n = typeof v === 'number' ? v : (typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN); return isFinite(n) ? Math.max(-1e9, Math.min(1e13, n)) : null; };
+const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+function cleanBackup(o) {
+    if (!isObj(o) || !Array.isArray(o.savedSystemData)) return null;
+    const src = o.savedSystemData.filter(isObj).slice(0, 300), idOf = new Map(); let seq = Date.now();
+    src.forEach(p => { const k = String(p.id); if (idOf.has(k)) return; let id = okId(p.id) ? p.id : null; if (id === null || [...idOf.values()].some(v => String(v) === String(id))) id = String(seq++); idOf.set(k, id); });
+    const used = new Set(), photos = src.map(p => {
+        let id = idOf.get(String(p.id)); if (used.has(String(id))) id = String(seq++); used.add(String(id)); // 같은 번호가 두 번 나오면 뒤의 것은 새 번호
+        const zones = (Array.isArray(p.zones) ? p.zones : []).filter(isObj).slice(0, 400).map(z => {
+            const n = k => okNum(z[k]), nz = { x: n('x') === null ? 0 : n('x'), y: n('y') === null ? 0 : n('y'), w: n('w') === null ? 40 : n('w'), h: n('h') === null ? 40 : n('h'), name: cleanText(z.name, 60), items: [] };
+            nz.items = (Array.isArray(z.items) ? z.items : []).filter(isObj).slice(0, 1000).map(it => {
+                const ni = { name: cleanText(it.name, 80), comment: cleanText(it.comment, 300, true) };
+                const q = okNum(it.qty), par = okNum(it.par);
+                if (q !== null && q >= 0) ni.qty = q;
+                if (par !== null && par >= 0) ni.par = par;
+                if (typeof it.exp === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(it.exp)) ni.exp = it.exp;
+                if (it.pin === true) ni.pin = true;
+                return ni;
+            }).filter(it => it.name);
+            if (n('checkedAt') !== null) nz.checkedAt = n('checkedAt');
+            if (n('checkedDaysAgo') !== null) nz.checkedDaysAgo = n('checkedDaysAgo');
+            if (z.link != null && idOf.has(String(z.link))) nz.link = idOf.get(String(z.link)); // 없는 사진을 가리키는 잇기는 버린다
+            return nz;
+        });
+        const np = { id, title: cleanText(p.title, 60), imgData: okImg(p.imgData) ? p.imgData : null, zones };
+        if (p.aiPhoto === true) np.aiPhoto = true;
+        if (p.space === true) np.space = true;
+        return np;
+    });
+    const out = { app: 'changgojigi', version: okNum(o.version) || 1, savedSystemData: photos,
+        baseItems: (Array.isArray(o.baseItems) ? o.baseItems : []).map(v => cleanText(v, 80)).filter(Boolean).slice(0, 500),
+        organizerName: cleanText(o.organizerName, 30) };
+    if (typeof o.exportedAt === 'string' && !isNaN(Date.parse(o.exportedAt))) out.exportedAt = o.exportedAt;
+    if (o.useMode === 'home' || o.useMode === 'store') out.useMode = o.useMode;
+    if (Array.isArray(o.stockLog)) out.stockLog = o.stockLog.filter(isObj).slice(-180).map(e => {
+        const q = {}; if (isObj(e.q)) Object.keys(e.q).slice(0, 3000).forEach(k => { const kk = cleanText(k, 80), v = okNum(e.q[k]); if (kk && kk !== '__proto__' && v !== null) q[kk] = v; });
+        return { d: cleanText(e.d, 20), at: okNum(e.at) || 0, q };
+    });
+    if (Array.isArray(o.inboxItems)) out.inboxItems = o.inboxItems.filter(isObj).slice(0, 500).map(x => ({ name: cleanText(x.name, 80), at: okNum(x.at) || Date.now() })).filter(x => x.name);
+    return out;
+}
+const RESTORE_MAX = 150 * 1024 * 1024; // 지도 백업은 보통 몇 MB · 이보다 크면 백업 파일이 아니다 (폰이 멈추지 않게 읽기 전에 거른다)
 function readRestoreFile(input) {
     const file = input.files[0]; if (!file) return;
     input.value = ''; // 같은 파일을 다시 골라도 되게
+    if (file.size > RESTORE_MAX) { restoreFail(`파일이 너무 커요 (${Math.round(file.size / 1048576)}MB). ‘${APP_NAME}_백업_…pdf’ 파일을 골라 주세요.`); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
         let imported = null; try { imported = JSON.parse(extractBackupText(String(e.target.result))); } catch (err) {}
         if (!imported || !Array.isArray(imported.savedSystemData) || !imported.baseItems) { restoreFail(`${APP_NAME} 백업 파일이 아니거나 파일이 손상됐어요. ‘${APP_NAME}_백업_…pdf’ 파일을 골라 주세요.`); return; }
-        askRestore(imported);
+        askRestore(cleanBackup(imported));
     };
     reader.onerror = () => restoreFail('파일을 읽지 못했어요. 다시 골라 주세요.');
     reader.readAsText(file);
@@ -878,7 +934,7 @@ async function readPrevMap() {
     if (!ls('prevMapAt')) return null;
     if (!store.db) await store.init();
     if (!store.db) return null;
-    try { const v = await store.tx('readonly', s => s.get(PREV_MAP_KEY)); const o = v ? JSON.parse(v) : null; return o && Array.isArray(o.savedSystemData) ? o : null; } catch (e) { return null; }
+    try { const v = await store.tx('readonly', s => s.get(PREV_MAP_KEY)); const o = v ? JSON.parse(v) : null; return o && Array.isArray(o.savedSystemData) ? cleanBackup(o) : null; } catch (e) { return null; }
 }
 function prevMapBox() { // 백업 화면에 넣는 '넣기 전 지도' 줄 (보관된 게 있을 때만)
     const at = Number(ls('prevMapAt') || 0); if (!at || SAMPLE) return '';
