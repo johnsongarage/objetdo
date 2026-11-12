@@ -110,7 +110,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.12.1'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.12.2'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
