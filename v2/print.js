@@ -938,6 +938,71 @@ function buildBigListPages(photos, dateStr, { sort = 'name', scale = 1, memo = t
     return pages.length > 1 ? pages : pages;
 }
 
+// ④-한 장 (11/12, 가르시아 "점검표도 한 장으로 줄여줘"): 칸마다 한 줄 — 그 칸 물건을 옆으로 나란히 ☐ 체크칸과 함께, 끝에 메모 자리
+//   있으면 ✓, 없거나 옮겼으면 비워 두고 메모. 글자를 4.2mm부터 3mm까지 줄여 보며 한 장에 맞추고, 그래도 넘치면(아주 큰 지도) 여러 장
+function buildCheckFitPages(photos, dateStr) {
+    const pageW = printPx(PRINT.pageWmm), pageH = printPx(PRINT.pageHmm), m = printPx(PRINT.marginMm), W = pageW - m * 2, multi = photos.length > 1;
+    const zones = printZoneList(photos), meas = document.createElement('canvas').getContext('2d');
+    const cLoc = W * 0.27, cMemo = W * 0.2, cItems = W - cLoc - cMemo, top = m + printPx(17) + printPx(7) + printPx(11) + printPx(8), limit = pageH - m - printPx(9);
+    const layout = (fs) => { // 칸마다 물건 줄 나누기 → 줄 높이
+        const lineH = fs * 1.55, box = fs * 0.82, gap = fs * 0.9, pad = fs * 0.55;
+        meas.font = `600 ${fs}px sans-serif`;
+        const rows = zones.map(L => {
+            const lines = [[]]; let x = 0;
+            L.zone.items.map(it => String(it.name || '').trim()).filter(Boolean).forEach(name => {
+                const maxW = cItems - printPx(4) - box - fs * 0.35;
+                let t = name; if (meas.measureText(t).width > maxW) { while (t.length > 1 && meas.measureText(t + '…').width > maxW) t = t.slice(0, -1); t += '…'; }
+                const w = box + fs * 0.35 + meas.measureText(t).width;
+                if (x > 0 && x + w > cItems - printPx(4)) { lines.push([]); x = 0; }
+                lines[lines.length - 1].push({ t, x }); x += w + gap;
+            });
+            return { L, lines, h: Math.max(1, lines.length) * lineH + pad * 2 };
+        });
+        return { fs, lineH, box, pad, rows, total: rows.reduce((a, r) => a + r.h, 0) };
+    };
+    let lay = null;
+    for (const mm of [4.2, 3.9, 3.6, 3.3, 3.0]) { lay = layout(printPx(mm)); if (lay.total <= limit - top) break; }
+    const pages = []; let i = 0;
+    do {
+        const { c, ctx } = printPageCanvas();
+        let y = drawPrintHead(ctx, '위치 점검표', dateStr, '칸 순서대로 걸으며 있으면 ✓ · 없거나 옮겼으면 비워 두고 메모');
+        ctx.font = `${printPx(4.2)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText('점검일', m, y + printPx(5)); ctx.fillText('점검자', m + W / 2, y + printPx(5));
+        ctx.strokeStyle = PRINT.ink; ctx.lineWidth = printPx(0.3);
+        [[m + printPx(14), m + W / 2 - printPx(6)], [m + W / 2 + printPx(14), m + W]].forEach(([a, b]) => { ctx.beginPath(); ctx.moveTo(a, y + printPx(6)); ctx.lineTo(b, y + printPx(6)); ctx.stroke(); });
+        y += printPx(11);
+        const headH = printPx(8);
+        ctx.fillStyle = '#efece6'; ctx.fillRect(m, y, W, headH);
+        ctx.fillStyle = PRINT.ink; ctx.font = `bold ${printPx(3.8)}px sans-serif`; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        ctx.fillText('위치', m + printPx(2), y + headH / 2); ctx.fillText('물건 (있으면 ✓)', m + cLoc + printPx(2), y + headH / 2); ctx.fillText('메모', m + cLoc + cItems + printPx(2), y + headH / 2);
+        y += headH;
+        let prevPhoto = null;
+        while (i < lay.rows.length && (y + lay.rows[i].h <= limit || y === top)) {
+            const r = lay.rows[i], { fs, lineH, box, pad } = lay;
+            if (prevPhoto && prevPhoto !== r.L.photo) { ctx.strokeStyle = PRINT.ink; ctx.lineWidth = printPx(0.45); ctx.beginPath(); ctx.moveTo(m, y); ctx.lineTo(m + W, y); ctx.stroke(); }
+            prevPhoto = r.L.photo;
+            const cy0 = y + pad + lineH / 2;
+            const codeH = Math.max(printPx(4.6), fs * 1.3), codeW = drawPrintCode(ctx, m + printPx(1.5), cy0, codeH, r.L.code);
+            ctx.font = `600 ${Math.round(fs * 0.92)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText(printFitText(ctx, (r.L.zone.name || '') + (multi && r.L.zone === r.L.photo.zones[0] ? ` · ${r.L.photo.title || ''}` : ''), cLoc - codeW - printPx(5)), m + printPx(1.5) + codeW + printPx(1.8), cy0);
+            if (!r.lines[0].length) { ctx.font = `${Math.round(fs * 0.9)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.fillText('(비어 있음)', m + cLoc + printPx(2), cy0); }
+            r.lines.forEach((ln, li) => ln.forEach(({ t, x }) => {
+                const bx = m + cLoc + printPx(2) + x, by = y + pad + li * lineH + lineH / 2;
+                ctx.strokeStyle = PRINT.ink; ctx.lineWidth = printPx(0.35); ctx.strokeRect(bx, by - box / 2, box, box);
+                ctx.font = `600 ${Math.round(fs)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                ctx.fillText(t, bx + box + fs * 0.35, by + 1);
+            }));
+            y += r.h;
+            ctx.strokeStyle = PRINT.line; ctx.lineWidth = printPx(0.3); ctx.beginPath(); ctx.moveTo(m, y); ctx.lineTo(m + W, y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(m + cLoc + cItems, y - r.h); ctx.lineTo(m + cLoc + cItems, y); ctx.stroke(); // 메모 칸 구분선
+            i++;
+        }
+        if (!lay.rows.length) { ctx.font = `${printPx(5)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('아직 만든 구역이 없어요', m, y + printPx(4)); }
+        drawPrintFoot(ctx, `${dateStr} · 점검 후 앱에서 "찾으셨나요?"로 확인하거나 옮긴 곳을 고쳐 주세요`);
+        pages.push(printOut(c));
+    } while (i < lay.rows.length);
+    return pages;
+}
 // ④ 점검표: 칸 순서대로 걸으며 있음/없음에 체크. 점검일·점검자를 적는 칸, 메모는 빈 줄
 function buildCheckPages(photos, dateStr) {
     const pageW = printPx(PRINT.pageWmm), pageH = printPx(PRINT.pageHmm), m = printPx(PRINT.marginMm), multi = photos.length > 1;
@@ -1019,7 +1084,7 @@ function printSpace() { const sp = spacePhotos()[0]; return sp ? printPhotoObj(s
 // 인쇄 양식·옵션 (v1과 같은 키 'printOpts' — 다음에 열어도, v1에서 열어도 같은 값)
 //   label(칸 라벨 크기)만 v2에서 더했다. v1은 모르는 값이라 그냥 두고, 양식이 'label'이면 v1은 사진 지도로 연다
 // ────────────────────────────────────────────────────────────
-let printOpts = { form: 'map', sort: 'name', memo: true, size: 1, ink: false, label: 'A', sign: 'A', lv: 2 }, printScope = 'photo', printPreviewId = null;
+let printOpts = { form: 'map', sort: 'name', memo: true, size: 1, ink: false, label: 'A', sign: 'A', check: 'A', lv: 2 }, printScope = 'photo', printPreviewId = null;
 try {
     const saved = JSON.parse(localStorage.getItem('printOpts') || '{}') || {};
     if (saved.lv !== 2) delete saved.label; // 11/12: 칸 라벨 기본을 '한 장에 모두'로 — 예전에 저장된 크기(보통 6개)도 한 번은 새 기본으로
@@ -1028,6 +1093,7 @@ try {
 if (![1, 1.35].includes(printOpts.size)) printOpts.size = 1;
 if (!['A', 'S', 'M', 'L'].includes(printOpts.label)) printOpts.label = 'A';
 if (!['A', 'L'].includes(printOpts.sign)) printOpts.sign = 'A'; // 가구 표지판: A 한 장에 모두(기본) · L 크게 2개씩(예전)
+if (!['A', 'L'].includes(printOpts.check)) printOpts.check = 'A'; // 점검표: A 한 장에 모두(칸마다 한 줄, 기본) · L 물건마다 한 줄(예전)
 const PRINT_FORMS = {
     door: { title: '입구 한 장', btn: '입구 한 장', sub: '배치도 + 자주 찾는 물건만 · 늘 A4 한 장 · 벽에는 이 한 장과 칸 라벨이면 돼요', file: '입구한장' },
     map: { title: '사진 지도', btn: '사진 지도', sub: '칸 번호 붙은 사진 + 찾아보기 · 선반 옆에', file: '지도' },
@@ -1048,7 +1114,7 @@ function printChunks() {
     const all = printScope === 'all' && multi, scope = all ? photos : [data], ds = printDateStr();
     if (printOpts.form === 'door') return [() => buildDoorPage(photos, ds, printSpace())]; // 늘 모든 가구 사진으로 한 장
     if (printOpts.form === 'list') return [() => buildBigListPages(scope, ds, { sort: printOpts.sort, memo: printOpts.memo, scale: printOpts.size })];
-    if (printOpts.form === 'check') return [() => buildCheckPages(scope, ds)];
+    if (printOpts.form === 'check') return [() => (printOpts.check === 'L' ? buildCheckPages : buildCheckFitPages)(scope, ds)];
     if (printOpts.form === 'label') return [() => buildLabelPages(scope, ds, printOpts.label)];
     if (printOpts.form === 'sign') return [() => (printOpts.sign === 'L' ? buildSignPages : buildSignFitPages)(scope, ds, d => photoLetter(photos.indexOf(d)))];
     if (!all) return [() => buildPrintPages(data, i, ds, multi ? photoLetter(i) : null)];
@@ -1185,7 +1251,7 @@ function renderPrintPreview(tab) {
     renderPrintOpts(printOptsHTML(form, photos, all, i));
     // 미리보기·PDF·그림은 양식·범위 모두 보이는 그대로
     const label = form === 'map' ? (all ? '사진 전체' : (data.title || '')) : F.title;
-    const key = JSON.stringify([form, all, printPreviewId, printOpts.sort, printOpts.memo, printOpts.size, printOpts.ink, printOpts.label, printOpts.sign, storeName(), organizerName(), printDateStr()]);
+    const key = JSON.stringify([form, all, printPreviewId, printOpts.sort, printOpts.memo, printOpts.size, printOpts.ink, printOpts.label, printOpts.sign, printOpts.check, storeName(), organizerName(), printDateStr()]);
     fillPrintPreview(key, label);
     requestAnimationFrame(() => setPrintZoom(printUI.zoom)); // 화면이 보인 뒤 폭에 맞춰 (+ 끝 계산)
 }
@@ -1201,6 +1267,7 @@ function printOptsHTML(form, photos, all, idx) {
     if (form === 'list') h += row('정렬', opt('sort', 'name', printOpts.sort === 'name', '가나다순') + opt('sort', 'zone', printOpts.sort === 'zone', '칸 순서'))
         + row('메모', opt('memo', '1', !!printOpts.memo, '보이기') + opt('memo', '0', !printOpts.memo, '숨기기'))
         + row('글씨', opt('size', '1', printOpts.size === 1, '크게') + opt('size', '1.35', printOpts.size === 1.35, '아주 크게'));
+    if (form === 'check') h += row('모양', opt('check', 'A', printOpts.check === 'A', '한 장에 모두') + opt('check', 'L', printOpts.check === 'L', '물건마다 한 줄'));
     if (form === 'sign') h += row('크기', opt('sign', 'A', printOpts.sign === 'A', '한 장에 모두') + opt('sign', 'L', printOpts.sign === 'L', '크게 · 2개씩'));
     if (form === 'label') h += row('크기', opt('label', 'A', printOpts.label === 'A', '한 장에 모두') + opt('label', 'S', printOpts.label === 'S', '작게 · 12개') + opt('label', 'M', printOpts.label === 'M', '보통 · 6개') + opt('label', 'L', printOpts.label === 'L', '크게 · 4개'));
     // 이름: 매장 이름(종이 위·파일 이름) · 정리 업체(종이 아래) — v1 인쇄 창의 매장 이름 + 설정의 정리 업체 이름
