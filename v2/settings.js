@@ -58,6 +58,8 @@ addCSS(`
 .st-facts small { display: block; font-size: 13px; color: var(--sub); }
 .st-warn { margin-top: 22px; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); font-size: 15px; line-height: 1.65; }
 .st-warn b { color: var(--accent); font-weight: 500; }
+.get-keep { margin-top: 22px; padding: 14px 16px; border-left: 3px solid var(--line); background: var(--sheet); font-size: 15px; line-height: 1.65; color: var(--ink); }
+.get-keep b { font-weight: 500; }
 .get-ext { margin-top: 22px; }
 .get-fine { margin-top: 18px; }
 .get-url { margin-top: 8px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); background: var(--sheet); }
@@ -108,7 +110,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.11.6'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.12.1'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -795,7 +797,7 @@ function drawPrintFoot(ctx, text) {
 // 백업 파일로 복구 (v1 importSystemData와 같은 검사·같은 키). 확인은 알림창 대신 아래 창으로, 끝나면 저장을 기다렸다가 처음 화면으로 다시 연다
 // ────────────────────────────────────────────────────────────
 const fileIn = document.createElement('input');
-fileIn.type = 'file'; fileIn.id = 'stRestoreFile'; fileIn.hidden = true; fileIn.tabIndex = -1; fileIn.setAttribute('aria-hidden', 'true');
+fileIn.type = 'file'; fileIn.accept = 'application/pdf,.pdf,.json,application/json'; fileIn.id = 'stRestoreFile'; fileIn.hidden = true; fileIn.tabIndex = -1; fileIn.setAttribute('aria-hidden', 'true');
 document.body.appendChild(fileIn);
 fileIn.addEventListener('change', () => readRestoreFile(fileIn));
 let pendingRestore = null;
@@ -818,9 +820,10 @@ function restoreFail(msg) {
 }
 function backupMode(imported) { return imported && (imported.useMode === 'home' || imported.useMode === 'store') ? imported.useMode : null; }
 let restoreFromGet = false; // '받은 지도 넣기'(#/get)에서 고른 파일이면 확인 창 말과 끝난 뒤 안내가 다르다
+let restoreFromPrev = false; // '넣기 전 지도로 되돌리기'(백업 화면)
 function askRestore(imported) {
     pendingRestore = imported;
-    restoreFromGet = cur === 'get';
+    restoreFromGet = cur === 'get'; restoreFromPrev = false;
     if (restoreFromGet) { askGetRestore(imported); return; }
     const ps = imported.savedSystemData.filter(p => p && p.id !== 'dummy_root' && Array.isArray(p.zones));
     const items = ps.reduce((n, p) => n + p.zones.reduce((m, z) => m + (Array.isArray(z && z.items) ? z.items.length : 0), 0), 0);
@@ -847,6 +850,7 @@ async function doRestore(btn) {
     flushPending(); // 늦게 도는 저장이 복구한 데이터를 덮어쓰지 않게
     if (SAMPLE) { try { sessionStorage.removeItem('samplePreview'); } catch (e) {} SAMPLE = null; } // 예시를 보다가 복구해도 진짜 데이터로
     if (!store.db) await store.init(); // 예시를 보는 동안엔 저장소를 안 열었다
+    if ((restoreFromGet || restoreFromPrev) && hasSaved()) await keepPrevMap(); // 받은 지도로 바꾸기 전에 쓰던 지도를 이 폰에 따로 보관 (백업 화면을 다녀오지 않게)
     if (!writePhotoData(JSON.stringify(imported.savedSystemData))) { restoring = false; closeSheet(); toast('저장 공간이 부족해 복구하지 못했어요'); return; }
     lsSet('baseItems', JSON.stringify(imported.baseItems));
     if (Array.isArray(imported.stockLog)) lsSet('stockLog', JSON.stringify(imported.stockLog)); else lsDel('stockLog'); // 예전 백업엔 없음
@@ -856,8 +860,42 @@ async function doRestore(btn) {
     if (Array.isArray(imported.inboxItems)) lsSet('inboxItems', JSON.stringify(imported.inboxItems)); else lsDel('inboxItems');
     lsDel('isSampleData'); // 예시를 불러온 적 있는 폰에서 복구한 데이터가 예시로 취급되지 않게
     lsSet('lastBackupAt', String(Date.now())); lsSet('dataChangedAt', '0');
-    if (restoreFromGet) { try { sessionStorage.setItem('gotMap', '1'); } catch (e) {} }
+    if (restoreFromGet || restoreFromPrev) { try { sessionStorage.setItem('gotMap', restoreFromPrev ? 'prev' : '1'); } catch (e) {} }
     reloadHome();
+}
+
+// ────────────────────────────────────────────────────────────
+// 넣기 전 지도 (11/12, 가르시아 "백업 화면 갔다가 다시 와서 고르기 · 너무 번거로워"):
+//   받은 지도를 넣으면 쓰던 지도를 IndexedDB 'prevMap'에 백업과 같은 모양으로 하나만 보관 → 백업 화면에서 되돌리기.
+//   되돌릴 때도 지금 지도를 보관하므로 두 지도 사이를 오갈 수 있다. '모든 데이터 지우기'에서 같이 지운다.
+// ────────────────────────────────────────────────────────────
+const PREV_MAP_KEY = 'prevMap';
+async function keepPrevMap() {
+    if (!store.db) return false;
+    try { await store.tx('readwrite', s => s.put(backupJson(), PREV_MAP_KEY)); lsSet('prevMapAt', String(Date.now())); return true; } catch (e) { return false; }
+}
+async function readPrevMap() {
+    if (!ls('prevMapAt')) return null;
+    if (!store.db) await store.init();
+    if (!store.db) return null;
+    try { const v = await store.tx('readonly', s => s.get(PREV_MAP_KEY)); const o = v ? JSON.parse(v) : null; return o && Array.isArray(o.savedSystemData) ? o : null; } catch (e) { return null; }
+}
+function prevMapBox() { // 백업 화면에 넣는 '넣기 전 지도' 줄 (보관된 게 있을 때만)
+    const at = Number(ls('prevMapAt') || 0); if (!at || SAMPLE) return '';
+    const t = new Date(at);
+    return `<div class="get-send"><b>받은 지도 넣기 전 지도</b><span>${t.getMonth() + 1}월 ${t.getDate()}일 ${p2(t.getHours())}:${p2(t.getMinutes())}에 넣기 전에 쓰던 지도를 이 ${DEV}에 보관해 뒀어요.</span><button type="button" class="btn btn-s" data-act="prevAsk">넣기 전 지도로 되돌리기</button></div>`;
+}
+async function askPrevRestore() {
+    const prev = await readPrevMap();
+    if (!prev) { lsDel('prevMapAt'); toast('보관된 지도가 없어요'); if (cur === 'backup') renderBackup(); return; }
+    pendingRestore = prev; restoreFromGet = false; restoreFromPrev = true;
+    const ps = prev.savedSystemData.filter(p => p && p.id !== 'dummy_root' && Array.isArray(p.zones));
+    const items = ps.reduce((n, p) => n + p.zones.reduce((m, z) => m + (Array.isArray(z && z.items) ? z.items.length : 0), 0), 0);
+    openSheet(`<span class="kick">넣기 전 지도로 되돌리기</span>
+        <h2>넣기 전 지도로 되돌릴까요?</h2>
+        <p>지금 지도는 다시 보관해 둬요. 마음이 바뀌면 여기서 또 바꿀 수 있어요.</p>
+        <p class="st-sum">넣기 전 지도: 사진 ${ps.length}장 · 물건 ${items}개${vis().length ? `<small>지금 지도: 사진 ${vis().length}장 · 물건 ${counts().items}개</small>` : ''}</p>
+        <div class="stack"><button type="button" class="btn btn-p" data-act="stRestoreGo">되돌리기</button><button type="button" class="btn btn-s" data-act="sheetClose">취소</button></div>`, () => { if (!restoring) { pendingRestore = null; restoreFromPrev = false; } });
 }
 
 // ────────────────────────────────────────────────────────────
@@ -909,7 +947,7 @@ function renderGet(r) {
         body = `<span class="kick st-kick">받은 지도 넣기</span>
             <h1 class="h1 st-title">받은 지도 파일을<br>골라 주세요</h1>
             <p class="st-lead">대신 만들어 받은 <b>‘${APP_NAME}_…백업….pdf’</b> 파일 하나면 돼요. 넣은 지도는 ${DEV_HERE}에만 저장돼요.</p>
-            ${has ? `<div class="st-warn" role="note"><b>지금 이 ${DEV}에 쓰던 지도가 있어요.</b> 넣으면 받은 지도로 바뀌어요.<br><button type="button" data-act="go" data-to="#/backup">지금 지도 먼저 백업하기</button></div>` : ''}
+            ${has ? `<div class="st-note get-keep" role="note"><b>지금 쓰던 지도는 자동으로 보관해 둬요.</b> 넣으면 받은 지도로 바뀌고, 쓰던 지도는 설정 → 백업·복구에서 언제든 되돌릴 수 있어요.</div>` : ''}
             <ol class="st-steps">
                 <li><span class="st-n">1</span><div><b>받은 파일을 ${DEV === '컴퓨터' ? '컴퓨터' : '폰'}에 저장해 두기</b><small>${getFileTip()}</small></div></li>
                 <li><span class="st-n">2</span><div><b>아래 [받은 지도 파일 고르기]</b><small>그 PDF 파일을 골라요.</small></div></li>
@@ -926,7 +964,7 @@ function askGetRestore(imported) {
     const has = vis().length > 0 && !SAMPLE;
     openSheet(`<span class="kick">받은 지도 넣기</span>
         <h2>받은 지도를 넣을까요?</h2>
-        <p>${has ? `지금 이 ${DEV}에 있는 지도는 받은 지도로 바뀌어요.` : `이 ${DEV}에 받은 지도를 넣어요.`}</p>
+        <p>${has ? `지금 쓰던 지도는 이 ${DEV}에 보관해 두고, 받은 지도로 바꿔요.` : `이 ${DEV}에 받은 지도를 넣어요.`}</p>
         <p class="st-sum">받은 지도: 사진 ${ps.length}장 · 물건 ${items}개${from}${ps.length ? '' : '<small class="st-red">사진이 없는 파일이에요 · 넣으면 지도가 비어요</small>'}</p>
         <div class="stack"><button type="button" class="btn btn-p" data-act="stRestoreGo">넣기</button><button type="button" class="btn btn-s" data-act="sheetClose">취소</button></div>`, () => { if (!restoring) pendingRestore = null; });
 }
@@ -941,7 +979,7 @@ async function copyGetText(text, done) {
 function getGuideText() {
     return `${APP_NAME} 지도 받는 법\n1) 이 링크를 열어 주세요 (카톡 안이면 오른쪽 위 메뉴에서 ‘다른 브라우저로 열기’)\n${getLink()}\n2) [받은 지도 파일 고르기] → 같이 보내 드린 PDF 파일을 골라요\n3) [넣기]를 누르면 끝이에요 (아이폰은 화면 안내대로 홈 화면에 먼저 추가해 주세요)`;
 }
-AFTER_BOOT.push(() => { let got = null; try { got = sessionStorage.getItem('gotMap'); sessionStorage.removeItem('gotMap'); } catch (e) {} if (got) setTimeout(() => toast('받은 지도를 넣었어요 · 이름으로 찾아보세요'), 500); });
+AFTER_BOOT.push(() => { let got = null; try { got = sessionStorage.getItem('gotMap'); sessionStorage.removeItem('gotMap'); } catch (e) {} if (got) setTimeout(() => toast(got === 'prev' ? '넣기 전 지도로 되돌렸어요' : '받은 지도를 넣었어요 · 이름으로 찾아보세요'), 500); });
 
 // ────────────────────────────────────────────────────────────
 // 모든 데이터 지우기 (v1 resetAll·wipeAllData): 사진·구역·물건과 딸린 기록만 지운다 (쓰는 곳·기능·글자 크기·업체 이름 같은 설정은 남김)
@@ -964,6 +1002,7 @@ function wipeAllData(btn) {
     if (btn) { btn.disabled = true; btn.textContent = '지우는 중…'; }
     flushPending(); // 늦게 도는 저장이 지운 뒤에 다시 쓰지 않게
     WIPE_KEYS.forEach(k => lsDel(k)); // savedSystemData는 옛 기기(localStorage)용
+    lsDel('prevMapAt'); if (store.db) store.tx('readwrite', s => s.delete(PREV_MAP_KEY)).catch(() => {}); // 받은 지도 넣기 전에 보관한 지도도
     if (store.db) { // v1 photoStore.write(null)와 같게: 키를 지우고 '데이터 있음' 표시도 끈다
         store.cache = null; lsSet('hasSavedPhotos', '');
         store.pending = Promise.resolve(store.pending).catch(() => {}).then(() => store.tx('readwrite', s => s.delete(PHOTO_DATA_KEY))).catch(() => {});
@@ -997,6 +1036,7 @@ function renderBackup() {
             ${iphoneWarn()}
             <div class="st-cta">
                 ${SAMPLE ? `<p class="st-fine">지금은 예시를 보고 있어요. 예시는 백업하지 않아요 · 예시를 닫으면 내 지도를 백업할 수 있어요.</p>` : ''}
+                ${prevMapBox()}
                 ${!SAMPLE && n.photos ? `<div class="get-send"><b>대신 만들어 보낼 때</b><span>백업 파일과 같이 이 안내를 보내면, 받는 분은 링크만 열고 파일을 고르면 돼요.</span><button type="button" class="btn btn-s" data-act="getGuide">받는 분께 보낼 안내 복사</button></div>` : ''}
                 <p class="st-fine">백업 파일은 PDF예요. 열면 복구하는 법과 물건 찾아보기가 보여요. 카톡 ‘나와의 채팅’에 보내 두면 ${DEV_OBJ} 바꿀 때 편해요.<br>복구하면 지금 이 ${DEV}의 사진·구역·물건이 백업 내용으로 바뀌어요.</p>
             </div>
@@ -1165,6 +1205,7 @@ Object.assign(ACT, {
     stShare: () => shareBackup(),
     stSave: () => { closeSheet(); exportSystemData(); },
     stRestore: () => pickRestore(),
+    prevAsk: () => askPrevRestore(),
     stRestoreGo: (el) => doRestore(el),
     stResetBk: () => resetAll(true),
     stResetNo: () => resetAll(false),
