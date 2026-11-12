@@ -809,10 +809,60 @@ function readRestoreFile(input) {
     reader.onload = (e) => {
         let imported = null; try { imported = JSON.parse(extractBackupText(String(e.target.result))); } catch (err) {}
         if (!imported || !Array.isArray(imported.savedSystemData) || !imported.baseItems) { restoreFail(`${APP_NAME} 백업 파일이 아니거나 파일이 손상됐어요. ‘${APP_NAME}_백업_…pdf’ 파일을 골라 주세요.`); return; }
-        askRestore(imported);
+        askRestore(cleanBackup(imported));
     };
     reader.onerror = () => restoreFail('파일을 읽지 못했어요. 다시 골라 주세요.');
     reader.readAsText(file);
+}
+// 받은 백업 파일 정리 (11/12 보안 점검): 남이 만든 파일일 수 있어 글자 칸에 코드가 숨어 있을 수 있다.
+//   그리기 전에 모양부터 맞춘다 — 글자는 글자(길이 제한), 숫자는 숫자, 유통기한은 YYYY-MM-DD, 사진은 data:image/…만(밖 주소 X),
+//   사진 번호(id)·가구 연결(link)은 영문·숫자·._- 만 (예전 화면은 id를 onclick 안에 넣는다). 모르는 칸은 그대로 둔다(그리지 않으니까)
+//   v1(예전 화면)에도 같은 함수가 있다 — 고치면 둘 다
+function cleanBackup(b) {
+    const SAFE_ID = /^[A-Za-z0-9._-]{1,64}$/, IMG = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
+    const str = (v, n) => typeof v === 'string' ? v.slice(0, n) : (typeof v === 'number' && isFinite(v) ? String(v) : '');
+    const num = (v) => typeof v === 'number' && isFinite(v) ? v : undefined;
+    const ids = new Map(); let k = 0;
+    const idOf = (v) => {
+        if (typeof v === 'number' && isFinite(v)) return v;
+        const s = String(v == null ? '' : v); if (SAFE_ID.test(s)) return s;
+        if (!ids.has(s)) ids.set(s, 'p' + Date.now().toString(36) + '_' + (k++));
+        return ids.get(s);
+    };
+    const obj = (v) => v && typeof v === 'object' && !Array.isArray(v);
+    const photos = (Array.isArray(b.savedSystemData) ? b.savedSystemData : []).filter(obj).map(p => {
+        const o = Object.assign({}, p);
+        o.id = idOf(p.id); o.title = str(p.title, 100);
+        if (typeof p.imgData === 'string' && IMG.test(p.imgData) && !/[^A-Za-z0-9+/=]/.test(p.imgData.slice(p.imgData.indexOf(',') + 1))) o.imgData = p.imgData; else delete o.imgData;
+        if ('space' in p) o.space = p.space === true;
+        o.zones = (Array.isArray(p.zones) ? p.zones : []).filter(obj).map(z => {
+            const c = Object.assign({}, z);
+            ['x', 'y', 'w', 'h'].forEach(f => { c[f] = num(z[f]) || 0; });
+            c.name = str(z.name, 100);
+            if ('checkedAt' in z) { if (num(z.checkedAt) !== undefined) c.checkedAt = z.checkedAt; else delete c.checkedAt; }
+            if ('link' in z) { if (z.link != null && z.link !== '') c.link = idOf(z.link); else delete c.link; }
+            delete c.bubbleBox; delete c.bubbleMeta; // 예전 화면이 그릴 때 다시 잰다
+            c.items = (Array.isArray(z.items) ? z.items : []).filter(obj).map(it => {
+                const i = Object.assign({}, it);
+                i.name = str(it.name, 100).trim();
+                if ('comment' in it) i.comment = str(it.comment, 300);
+                ['qty', 'par'].forEach(f => { if (f in it) { if (num(it[f]) !== undefined) i[f] = it[f]; else delete i[f]; } });
+                if ('exp' in it) { if (typeof it.exp === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(it.exp)) i.exp = it.exp; else delete i.exp; }
+                if ('pin' in it) i.pin = it.pin === true;
+                return i;
+            }).filter(i => i.name);
+            return c;
+        });
+        return o;
+    });
+    const have = new Set(photos.map(p => String(p.id))); // 없는 사진을 가리키는 가구 연결은 뺀다 (그리다 멈추지 않게)
+    photos.forEach(p => p.zones.forEach(z => { if ('link' in z && !have.has(String(z.link))) delete z.link; }));
+    const out = Object.assign({}, b, { savedSystemData: photos });
+    out.baseItems = (Array.isArray(b.baseItems) ? b.baseItems : []).filter(x => typeof x === 'string').map(x => x.slice(0, 100)).slice(0, 2000);
+    if ('inboxItems' in b) out.inboxItems = (Array.isArray(b.inboxItems) ? b.inboxItems : []).filter(obj).map(x => Object.assign({}, x, { name: str(x.name, 100).trim() })).filter(x => x.name).slice(0, 2000);
+    if ('stockLog' in b) out.stockLog = (Array.isArray(b.stockLog) ? b.stockLog : []).filter(obj).slice(-180);
+    if ('organizerName' in b) out.organizerName = str(b.organizerName, 30);
+    return out;
 }
 function restoreFail(msg) {
     openSheet(`<span class="kick st-red">복구하지 못했어요</span><h2>이 파일로는 복구할 수 없어요</h2><p>${esc(msg)}</p>
@@ -886,7 +936,7 @@ function prevMapBox() { // 백업 화면에 넣는 '넣기 전 지도' 줄 (보�
     return `<div class="get-send"><b>받은 지도 넣기 전 지도</b><span>${t.getMonth() + 1}월 ${t.getDate()}일 ${p2(t.getHours())}:${p2(t.getMinutes())}에 넣기 전에 쓰던 지도를 이 ${DEV}에 보관해 뒀어요.</span><button type="button" class="btn btn-s" data-act="prevAsk">넣기 전 지도로 되돌리기</button></div>`;
 }
 async function askPrevRestore() {
-    const prev = await readPrevMap();
+    let prev = await readPrevMap(); if (prev) prev = cleanBackup(prev);
     if (!prev) { lsDel('prevMapAt'); toast('보관된 지도가 없어요'); if (cur === 'backup') renderBackup(); return; }
     pendingRestore = prev; restoreFromGet = false; restoreFromPrev = true;
     const ps = prev.savedSystemData.filter(p => p && p.id !== 'dummy_root' && Array.isArray(p.zones));
