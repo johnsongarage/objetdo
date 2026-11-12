@@ -82,9 +82,25 @@ addCSS(`
 .zs-more .danger { color: var(--warn); }
 .zs-foot { flex: none; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) minmax(0, 1.15fr); gap: 8px; padding: 8px var(--gut) 10px; border-top: 1px solid var(--line); }
 .zs-foot .btn { min-height: 50px; padding: 0 6px; font-size: 15px; white-space: nowrap; }
-/* 창 안을 세 덩어리로 (11/10): 위 '넣기'(옅은 바탕) · 가운데 '이 칸의 물건' · 아래 링크 */
-.zs-add { margin: 0 calc(-1 * var(--gut)); padding: 2px var(--gut) 14px; background: var(--sheet); border-top: 1px solid var(--line2); border-bottom: 1px solid var(--line); }
-.zs-list-h { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-bottom: 8px; border-bottom: 1.5px solid var(--ink); }
+/* 창 안 순서 (11/12 바꿈, 가르시아 "구역을 누르면 나오는 화면이 직관적으로 안 와닿아 · 치명적이야 바꿔라"):
+   위 '이 칸의 물건'(상자를 열면 안에 든 것부터) · 그 아래 '+ 물건 넣기' 줄 — 누르거나 쓰기 시작하면 후보가 펼쳐진다 · 맨 아래 링크
+   (11/10엔 위 '넣기'(옅은 바탕) · 가운데 목록 — 넣는 사람 기준이라 열어 보는 사람에겐 거꾸로였다) */
+.zs-add { margin-top: 2px; }
+/* 넣기 줄 하나만 창 아래에 붙어 있다 (물건이 많아 목록을 굴려도 늘 보이게 · 안내·자주 쓰는 물건은 그 아래로 이어진다 — 붙는 덩어리가 커서 목록을 가리지 않게) */
+.zs-body .zs-addrow { position: sticky; bottom: 0; z-index: 2; margin: 2px calc(-1 * var(--gut)) 0; padding: 0 var(--gut); background: var(--bg); box-shadow: 0 -12px 12px -14px rgba(36, 30, 26, .35); }
+.zs-addx { padding-bottom: 4px; }
+/* 창 안쪽 아래 여백은 맨 끝 줄로 옮긴다: 여백이 있으면 붙은 넣기 줄 밑 그 틈으로 뒤에 깔린 물건 이름이 비친다 */
+#zsBody { padding-bottom: 0; }
+#zsBody > .zs-more { padding-bottom: 12px; }
+.zs-list-h { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; padding-bottom: 8px; border-bottom: 1.5px solid var(--ink); }
+.field.zz-addrow { border-bottom: 1px dashed var(--line); }
+.field.zz-addrow:focus-within { border-bottom: 1.5px solid var(--ink); }
+.zz-plus { flex: none; width: 22px; margin-right: -4px; font-size: 24px; font-weight: 300; line-height: 1; color: var(--accent); text-align: center; }
+.chip.zz-cand { border-style: dashed; }
+.chip.zz-cand::before { content: '+'; margin-right: 5px; color: var(--accent); font-weight: 600; }
+.zz-it .chev { flex: none; margin-left: 2px; color: var(--mute); font-size: 20px; line-height: 1; transition: transform .15s ease; }
+.zz-it.open .chev { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .zz-it .chev { transition: none; } }
 .zs-list-h b { font-family: var(--serif); font-size: 18px; font-weight: 700; }
 #zzCount em { font-style: normal; font-weight: 400; color: var(--mute); margin-left: 6px; }
 .zs-list-h span { font-size: 12px; color: var(--sub); }
@@ -153,18 +169,19 @@ function zzExample(z) {
     const have = new Set(z.items.map(i => i.name)), exHere = exampleNames(3).filter(n => !have.has(n));
     return (exHere.length ? exHere : (useMode() === 'home' ? ['건전지', '테이프', '가위'] : ['빨대', '컵홀더', '냅킨'])).slice(0, 2).join(', ');
 }
-function zzFieldHTML(z, hint) {
-    const ph = zz.mode === 'sheet' ? '물건 이름 · 쉼표로 여러 개' : `쉼표로 여러 개 · 예: ${zzExample(z)}`; // 창은 좁아서 짧게 (예시는 바로 아래 자주 쓰는 물건이 대신)
-    return `<div class="field"><input id="zzIn" type="search" enterkeyhint="done" autocomplete="off" placeholder="${esc(ph)}" aria-label="넣을 물건 이름"><button type="button" class="icon-btn${zz.listening ? ' on' : ''}" data-act="zzMic" aria-label="말로 넣기">${MIC_SVG}</button></div>
-        <p class="hint" id="zzHint">${hint || ''}</p>
-        <div class="zz-sug rows" id="zzSug"></div>`;
+function zzFieldHTML(z, hint) { return zzFieldRowHTML(z) + zzFieldRestHTML(hint); }
+function zzFieldRestHTML(hint) { return `<p class="hint" id="zzHint">${hint || ''}</p>
+        <div class="zz-sug rows" id="zzSug"></div>`; }
+const zzPh = (z) => zz.mode === 'sheet' ? '물건 넣기 · 쉼표로 여러 개' : `쉼표로 여러 개 · 예: ${zzExample(z)}`; // 창은 좁아서 짧게 (예시는 누르면 펼쳐지는 자주 쓰는 물건이 대신)
+function zzFieldRowHTML(z) {
+    return `<div class="field zz-addrow"><span class="zz-plus" aria-hidden="true">+</span><input id="zzIn" type="search" enterkeyhint="done" autocomplete="off" placeholder="${esc(zzPh(z))}" aria-label="넣을 물건 이름"><button type="button" class="icon-btn${zz.listening ? ' on' : ''}" data-act="zzMic" aria-label="말로 넣기">${MIC_SVG}</button></div>`;
 }
-const zzChip = (n, inbox) => `<button type="button" class="chip" data-act="zzPut" data-n="${esc(n)}">${esc(n)}${inbox.includes(n) ? '<small>자리 미정</small>' : ''}</button>`;
+const zzChip = (n, inbox) => `<button type="button" class="chip zz-cand" data-act="zzPut" data-n="${esc(n)}">${esc(n)}${inbox.includes(n) ? '<small>자리 미정</small>' : ''}</button>`;
 function zzChipsHTML(z) {
     const { inbox, list } = zzCands(z); if (!list.length) return '';
-    if (zz.mode === 'sheet') return `<p class="zz-chips-lab">자주 쓰는 물건 · 누르면 바로 들어가요</p><div class="zs-chips" id="zzChipRow">${list.slice(0, 40).map(n => zzChip(n, inbox)).join('')}</div>`;
+    if (zz.mode === 'sheet') return `<p class="zz-chips-lab">자주 쓰는 물건 · 누르면 이 칸에 넣어요</p><div class="zs-chips" id="zzChipRow">${list.slice(0, 40).map(n => zzChip(n, inbox)).join('')}</div>`;
     const shown = zz.more ? list : list.slice(0, 10);
-    return `<p class="zz-chips-lab">자주 쓰는 물건 · 누르면 바로 들어가요</p><div class="chips" style="margin-top:8px">${shown.map(n => zzChip(n, inbox)).join('')}</div>`
+    return `<p class="zz-chips-lab">자주 쓰는 물건 · 누르면 이 칸에 넣어요</p><div class="chips" style="margin-top:8px">${shown.map(n => zzChip(n, inbox)).join('')}</div>`
         + (list.length > shown.length ? `<button type="button" class="zz-more" data-act="zzMore">${list.length - shown.length}개 더 보기</button>` : '');
 }
 function zzAskHTML() {
@@ -175,11 +192,11 @@ function zzAskHTML() {
 function zzItemsHTML(z) {
     const items = itemsSorted(z);
     const hint = !vis().some(d => d.zones.some(oz => oz.items.some(x => x.comment))); // 아직 메모를 하나도 안 썼다 → 메모 없는 줄에 '+ 메모' (11/11)
-    return items.length ? items.map(it => zzItemHTML(it, hint)).join('') : `<p class="empty">아직 비어 있어요 · 위에 쓰거나 자주 쓰는 물건을 눌러 넣어요</p>`;
+    return items.length ? items.map(it => zzItemHTML(it, hint)).join('') : `<p class="empty">아직 비어 있어요 · 아래 ‘+ 물건 넣기’에 이름을 쓰거나 자주 쓰는 물건을 눌러 넣어요</p>`;
 }
 function zzItemHTML(it, hint) {
     const open = zz.open === it.name, S = stockOn(), E = feat('exp'), low = itemLow(it), st = expState(it);
-    const head = `<button type="button" class="zz-it${open ? ' open' : ''}" data-act="zzOpen" data-n="${esc(it.name)}" aria-expanded="${open}"><span class="nm">${it.pin ? '<span class="pin">★</span>' : ''}${esc(it.name)}${it.comment ? `<small>${esc(it.comment)}</small>` : hint && !open ? '<small class="memo-h">＋ 어디쯤 있는지 메모</small>' : ''}</span><span>${itemMarks(it)}</span></button>`;
+    const head = `<button type="button" class="zz-it${open ? ' open' : ''}" data-act="zzOpen" data-n="${esc(it.name)}" aria-expanded="${open}"><span class="nm">${it.pin ? '<span class="pin">★</span>' : ''}${esc(it.name)}${it.comment ? `<small>${esc(it.comment)}</small>` : hint && !open ? '<small class="memo-h">＋ 어디쯤 있는지 메모</small>' : ''}</span><span>${itemMarks(it)}</span><span class="chev" aria-hidden="true">›</span></button>`;
     if (!open) return head;
     return head + `<div class="zz-card" data-n="${esc(it.name)}" data-pz="${esc(zz.pid)}:${zz.zi}">
         ${S ? `<div class="zz-f"><span>재고</span><span class="zz-step"><button type="button" data-act="zzQty" data-d="-1" aria-label="하나 빼기">−</button><input ${NUM_IN} data-f="qty" value="${isNum(it.qty) ? it.qty : ''}" aria-label="지금 수량"><button type="button" data-act="zzQty" data-d="1" aria-label="하나 더">+</button></span></div>
@@ -194,7 +211,12 @@ function zzBind() {
     const inp = zzQ('#zzIn');
     if (inp) {
         inp.addEventListener('input', () => zzSuggest(inp.value.trim()));
-        inp.addEventListener('focus', () => { if (zz && zz.open) { zz.open = null; zzRepaint(); } }); // 넣으러 오면 고치던 카드는 닫는다
+        inp.addEventListener('focus', () => { // 넣으러 오면 고치던 카드는 닫고, 창에선 자주 쓰는 물건을 펼친다
+            if (!zz) return; const wasClosed = zz.mode === 'sheet' && !zz.adding;
+            if (zz.mode === 'sheet') zz.adding = true;
+            if (zz.open || wasClosed) { zz.open = null; zzRepaint(); }
+            if (wasClosed) { const box = zzQ('#zsBody'); if (box) requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; }); } // 펼친 자주 쓰는 물건이 줄 바로 아래 보이게
+        });
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); const v = inp.value.trim(); if (v) zzAdd(parseTypedItems(v)); else inp.blur(); } });
         inp.addEventListener('paste', (e) => {
             const t = (e.clipboardData || window.clipboardData).getData('text') || '';
@@ -221,9 +243,10 @@ function zzParts() {
     if (meta) meta.textContent = zz.mode === 'sheet' ? `${p.title || '사진'} · ${zi + 1}번 칸 · ${z.checkedAt ? `${agoText(z.checkedAt)} 확인` : '확인 기록 없음'}` : (z.checkedAt ? `${agoText(z.checkedAt)} 확인` : '');
     const cnt = Q('#zzCount'); if (cnt) cnt.innerHTML = `${zz.mode === 'sheet' ? '이 칸의 물건' : '물건'}<em>${z.items.length}</em>`;
     const sth = Q('#zzStockH'); if (sth) sth.textContent = stockOn() && z.items.some(it => isNum(it.qty)) ? '재고' : '';
-    const ask = Q('#zzAsk'); if (ask) ask.innerHTML = zzAskHTML();
+    const adding = zz.mode !== 'sheet' || zz.adding; // 창: '+ 물건 넣기'를 누르기 전엔 후보를 접어 둔다 (들어 있는 물건과 헷갈리지 않게)
+    const ask = Q('#zzAsk'); if (ask) ask.innerHTML = adding ? zzAskHTML() : '';
     const ch = Q('#zzChips');
-    if (ch) { const row = Q('#zzChipRow'), x = row ? row.scrollLeft : 0; ch.innerHTML = zzChipsHTML(z); const r2 = Q('#zzChipRow'); if (r2) r2.scrollLeft = x; }
+    if (ch) { const row = Q('#zzChipRow'), x = row ? row.scrollLeft : 0; ch.innerHTML = adding ? zzChipsHTML(z) : ''; const r2 = Q('#zzChipRow'); if (r2) r2.scrollLeft = x; }
     const items = Q('#zzItems'); if (items) items.innerHTML = zzItemsHTML(z);
 }
 function zzRepaint() { if (!zzShown()) return; const y = window.scrollY; zzParts(); if (zz.mode !== 'sheet') window.scrollTo(0, y); }
@@ -241,19 +264,19 @@ function paintZone() {
     const c = zzCur(); if (!c) return;
     const { p, z, zi } = c, el = screenEl('zone');
     el.innerHTML = `
-        <header class="top">${backBtn('지도', `#/map/${encodeURIComponent(p.id)}`)}<button type="button" class="tlink" data-act="zzDone">완료</button></header>
+        <header class="top">${backBtn('지도', `#/map/${encodeURIComponent(p.id)}`)}<button type="button" class="tlink" data-act="zzDone">확인했어요</button></header>
         <main class="wrap">
             <div class="zz-headrow"><input class="zz-title" id="zzName" type="search" value="${esc(z.name || '')}" placeholder="${zi + 1}번 구역" aria-label="칸 이름" enterkeyhint="done" autocomplete="off"><span class="meta" id="zzMeta"></span></div>
             <p class="zz-sub">${esc(p.title || '사진')} · ${zi + 1}번 칸</p>
             <div class="zz-ph"><button type="button" class="zz-phbtn" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}?zone=${zi}" aria-label="칸 크기·위치 고치기">${photoHTML(p, { hit: zi })}</button></div>
+            <div class="sec-head"><span id="zzCount"></span><span>${stockOn() ? '재고' : ''}</span></div>
+            <div id="zzItems"></div>
             <div class="zz-add">
                 <span class="kick">물건 넣기</span>
                 ${zzFieldHTML(z, '엑셀·메모장 목록을 붙여 넣으면 줄마다 하나씩 들어가요')}
             </div>
             <div id="zzAsk"></div>
             <div id="zzChips"></div>
-            <div class="sec-head"><span id="zzCount"></span><span>${stockOn() ? '재고' : ''}</span></div>
-            <div id="zzItems"></div>
             <div class="zz-foot"><button type="button" data-act="go" data-to="#/edit/${encodeURIComponent(p.id)}?zone=${zi}">칸 크기·위치 고치기 →</button><button type="button" class="danger" data-act="zzDelete">이 칸 지우기</button></div>
         </main>`;
     zzBind(); zzParts();
@@ -337,7 +360,7 @@ function zsShow(p, zi) {
     if (wasOpen && zz && zz.mode === 'sheet' && zz.pid === String(p.id) && zz.zi === zi) { zsReveal(); return; }
     if (activeDictation) activeDictation.stop();
     if (wasOpen) zzSaveName();
-    zz = { key: 'sheet', pid: String(p.id), zi, open: null, more: false, listening: false, mode: 'sheet' };
+    zz = { key: 'sheet', pid: String(p.id), zi, open: null, more: false, listening: false, mode: 'sheet', adding: cur === 'edit' || !(p.zones[zi] && p.zones[zi].items.length) }; // 구역 고치기 중이거나 빈 칸이면 넣기를 펼친 채로
     const spot = wasOpen ? null : zsSpot(); // 창이 열리기 전 그 칸의 화면 높이 (작은 PC는 본문이 한 단으로 바뀐다)
     if (!toastUndo) hideToast(); // 안내만 하던 알림은 치운다 (되돌리기 알림은 그대로)
     const zsc = $('#s-zone'); if (zsc && zsc.firstChild) zsc.innerHTML = ''; // 같은 id가 두 곳에 생기지 않게 (칸 화면은 다시 열 때 새로 그린다)
@@ -415,9 +438,9 @@ function zsReveal() { // 그 칸이 창에 가리지 않게 화면을 살짝 올
 function zsFootHTML(zi, n, inEdit, sp) {
     const last = zi >= n - 1;
     return `<div class="zs-foot">
-            <button type="button" class="btn btn-s" data-act="zsStep" data-d="-1"${zi > 0 ? '' : ' disabled'} aria-label="이전 칸">‹ 이전</button>
-            <button type="button" class="btn btn-p" data-act="zsDone">완료</button>
-            ${inEdit && last ? `<button type="button" class="btn btn-s" data-act="zsDrawNext">${sp ? '새 가구 그리기' : '새 칸 그리기'}</button>` : `<button type="button" class="btn btn-s" data-act="zsStep" data-d="1"${last ? ' disabled' : ''} aria-label="다음 칸">다음 ›</button>`}
+            <button type="button" class="btn btn-s" data-act="zsStep" data-d="-1"${zi > 0 ? '' : ' disabled'} aria-label="이전 칸">‹ 이전 칸</button>
+            <button type="button" class="btn btn-p" data-act="zsDone">${inEdit || sp ? '완료' : '확인했어요'}</button>
+            ${inEdit && last ? `<button type="button" class="btn btn-s" data-act="zsDrawNext">${sp ? '새 가구 그리기' : '새 칸 그리기'}</button>` : `<button type="button" class="btn btn-s" data-act="zsStep" data-d="1"${last ? ' disabled' : ''} aria-label="다음 칸">다음 칸 ›</button>`}
         </div>`;
 }
 // 공간 사진의 네모 = 가구: 물건 넣기 대신 '어느 가구 사진인지' 고른다 (한 가구는 한 네모에만). 없으면 바로 찍어 넣기
@@ -453,13 +476,14 @@ function paintZoneSheet() {
             <button type="button" class="zs-x" data-act="zsX" aria-label="물건 창 닫기">×</button>
         </div>
         <div class="zs-body" id="zsBody">
-            <div class="zs-add">
-                ${zzFieldHTML(z, '')}
+            <div class="zs-list-h"><b id="zzCount"></b><span id="zzStockH"></span></div>
+            <div id="zzItems"></div>
+            <div class="zs-addrow">${zzFieldRowHTML(z)}</div>
+            <div class="zs-addx">
+                ${zzFieldRestHTML('')}
                 <div id="zzAsk"></div>
                 <div id="zzChips"></div>
             </div>
-            <div class="zs-list-h"><b id="zzCount"></b><span id="zzStockH"></span></div>
-            <div id="zzItems"></div>
             <div class="zs-more"><button type="button" data-act="zsFull">크게 보기 · 자세히</button>${inEdit ? '' : `<button type="button" data-act="zsEdit">칸 크기·위치</button>`}<button type="button" class="danger" data-act="zzDelete">이 칸 지우기</button></div>
         </div>
         ${zsFootHTML(zi, n, inEdit)}`;
@@ -485,12 +509,20 @@ document.addEventListener('change', (e) => {
 });
 document.addEventListener('keydown', (e) => { const f = e.target.closest && e.target.closest('.zz-card input[type=search]'); if (f && f.closest('#s-zone, #zsheet') && e.key === 'Enter' && !e.isComposing) f.blur(); });
 
+// 창: 넣기 줄이 창 아래에 붙어 있으면 그 밑에 생긴 안내 글·추천이 창 밖에 숨는다 → 보이게 굴린다 (넣기 줄은 위로 넘어가지 않게, 11/12)
+function zzBelowShow() {
+    const bx = zz && zz.mode === 'sheet' ? zzQ('#zsBody') : null, sug = zzQ('#zzSug'), hint = zzQ('#zzHint'), row = zzQ('.zs-addrow'), x = zzQ('.zs-addx');
+    if (!bx || !sug || !row || !x || !(sug.firstChild || (hint && hint.textContent.trim()))) return;
+    const c0 = bx.getBoundingClientRect().top - bx.scrollTop; // 창 안 내용 맨 위의 화면 위치
+    const want = Math.min(sug.getBoundingClientRect().bottom - c0 - bx.clientHeight + 4, x.getBoundingClientRect().top - c0 - row.offsetHeight);
+    if (want > bx.scrollTop + 1) bx.scrollTop = want;
+}
 function zzSuggest(q) { // 칠 때: 새로 넣기 + 다른 칸에 있는 같은 물건 + 자주 쓰는 물건 중 맞는 것 (v1 renderZmSuggest와 같다)
     const box = zzQ('#zzSug'); if (!box) return;
     if (!q) { box.innerHTML = ''; return; }
     const c = zzCur(); if (!c) return;
     const names = parseTypedItems(q);
-    if (names.length > 1) { box.innerHTML = `<button type="button" class="row" data-act="zzAddTyped"><span><b>${names.length}개 넣기</b><small>${esc(names.join(', '))}</small></span><em>넣기</em></button>`; return; }
+    if (names.length > 1) { box.innerHTML = `<button type="button" class="row" data-act="zzAddTyped"><span><b>${names.length}개 넣기</b><small>${esc(names.join(', '))}</small></span><em>넣기</em></button>`; zzBelowShow(); return; }
     const here = new Set(c.z.items.map(i => i.name)), seen = new Set(here), rows = [];
     const hl = (n) => highlight(n, q);
     if (!here.has(q)) rows.push(`<button type="button" class="row" data-act="zzAddTyped"><span><b>‘${esc(q)}’ 넣기</b><small>새 물건 · 엔터를 눌러도 들어가요</small></span><em>넣기</em></button>`);
@@ -502,7 +534,7 @@ function zzSuggest(q) { // 칠 때: 새로 넣기 + 다른 칸에 있는 같은 
     }); }));
     [...inboxItems().map(x => x.name), ...loadBaseItems()].forEach(n => { if (rows.length >= 5 || seen.has(n) || !findMatchRange(n, q)) return; seen.add(n);
         rows.push(`<button type="button" class="row" data-act="zzPut" data-n="${esc(n)}"><span><b>${hl(n)}</b><small>${inboxItems().some(x => x.name === n) ? '자리 미정' : '자주 쓰는 물건'}</small></span><em>넣기</em></button>`); });
-    box.innerHTML = rows.join('');
+    box.innerHTML = rows.join(''); zzBelowShow();
 }
 // 넣기 (여러 개 한 번에). 이미 있는 이름은 건너뛴다. 되돌리기는 넣은 것·새로 만든 자주 쓰는 물건·자리 미정까지 원래대로
 // 고치던 카드 칸(수량·메모…)이 아직 눌린 채면 먼저 저장 (blur → change)
@@ -546,7 +578,15 @@ function zzAdd(names, label) {
     const inp = zzQ('#zzIn'), from = zzFlyFrom || (inp && label !== 'chip' && label !== 'review' ? { r: inp.getBoundingClientRect() } : null); zzFlyFrom = null;
     if (inp && label !== 'chip') inp.value = '';
     const sug = zzQ('#zzSug'); if (sug && label !== 'chip') sug.innerHTML = '';
-    zzRepaint(); zzFly(added, from);
+    // 넣기 줄이 목록 아래라: 목록이 위로 늘어나도 쓰던 줄(후보를 눌렀으면 후보 줄)은 화면에서 그 자리에 — 이어서 넣게 (11/12)
+    const box = zz.mode === 'sheet' ? zzQ('#zsBody') : null, anchor = label === 'chip' ? zzQ('#zzChips') : inp, a0 = anchor ? anchor.getBoundingClientRect().top : null;
+    zzRepaint();
+    if (anchor && a0 != null && anchor.isConnected) { const d = anchor.getBoundingClientRect().top - a0; if (Math.abs(d) > 1) { if (box) box.scrollTop += d; else window.scrollBy(0, d); } }
+    if (box) { // 창: 넣은 줄이 아래에 붙은 넣기 줄 뒤에 숨지 않게 그만큼 굴린다 (여러 개면 맨 나중 것이 넣기 줄 바로 위에 — 대화창처럼)
+        const addEl = zzQ('.zs-addrow'), row = zzQ(`#zzItems .zz-it[data-n="${CSS.escape(added[added.length - 1])}"]`);
+        if (addEl && row) { const d = row.getBoundingClientRect().bottom - addEl.getBoundingClientRect().top; if (d > 0) box.scrollTop += d + 6; }
+    }
+    zzFly(added, from);
     const first = added.length > 1 ? `${added[0]} 외 ${added.length - 1}개` : added[0];
     toast(`${josa(first, '을', '를')} 넣었어요`, () => {
         c.z.items = c.z.items.filter(i => !added.includes(i.name));
@@ -568,12 +608,12 @@ function zzReview(names, title) {
 function zzMic() {
     const inp = zzQ('#zzIn'), hint = zzQ('#zzHint');
     const ok = dictate({
-        onState: (on) => { if (!zz) return; zz.listening = on; const b = zzQ('[data-act=zzMic]'); if (b) b.classList.toggle('on', on); if (inp) inp.placeholder = on ? '듣고 있어요… 물건 이름을 말하세요' : '물건 이름 · 쉼표로 여러 개'; if (hint && on) hint.textContent = '여러 개도 한 번에 · “빨대, 컵홀더, 냅킨”'; },
+        onState: (on) => { if (!zz) return; zz.listening = on; const b = zzQ('[data-act=zzMic]'), c = zzCur(); if (b) b.classList.toggle('on', on); if (inp && c) inp.placeholder = on ? '듣고 있어요… 물건 이름을 말하세요' : zzPh(c.z); if (hint && on) { hint.textContent = '여러 개도 한 번에 · “빨대, 컵홀더, 냅킨”'; zzBelowShow(); } },
         onText: (t) => { if (inp) inp.value = t; },
-        onFinal: (t) => { if (!zz) return; if (inp) inp.value = ''; const names = parseVoiceItems(t); if (!names.length) { if (hint) hint.textContent = '알아들은 물건이 없어요 · 다시 말해 주세요'; return; } if (!SAMPLE) lsSet('voiceAddCount', String((parseInt(ls('voiceAddCount') || '0', 10) || 0) + 1)); zzReview(names, '알아들은 것'); },
-        onError: (k) => { if (hint) hint.textContent = DICTATE_HELP[k] || ''; if (k === 'broken' && inp) inp.focus(); }
+        onFinal: (t) => { if (!zz) return; if (inp) inp.value = ''; const names = parseVoiceItems(t); if (!names.length) { if (hint) hint.textContent = '알아들은 물건이 없어요 · 다시 말해 주세요'; zzBelowShow(); return; } if (!SAMPLE) lsSet('voiceAddCount', String((parseInt(ls('voiceAddCount') || '0', 10) || 0) + 1)); zzReview(names, '알아들은 것'); },
+        onError: (k) => { if (hint) hint.textContent = DICTATE_HELP[k] || ''; zzBelowShow(); if (k === 'broken' && inp) inp.focus(); }
     });
-    if (!ok) { if (hint) hint.textContent = DICTATE_HELP.broken; if (inp) inp.focus(); }
+    if (!ok) { if (hint) hint.textContent = DICTATE_HELP.broken; if (inp) inp.focus(); zzBelowShow(); }
 }
 function zzRowEl(name) { const box = zzQ('#zzItems'); return box ? [...box.querySelectorAll('.zz-it')].find(b => b.dataset.n === name) || null : null; }
 function zzRemove(name) {
@@ -619,7 +659,15 @@ Object.assign(ACT, {
     zzDone: () => { const c = zzCur(); if (c) { zzSaveName(); markChecked(c.z); saveAll(); } toast('오늘 확인으로 적었어요'); goBack(c ? `#/map/${encodeURIComponent(c.p.id)}` : '#/'); },
     zzOpen: (el, e) => {
         zz.open = zz.open === el.dataset.n ? null : el.dataset.n; zzRepaint();
-        if (zz.open && zz.mode === 'sheet') { const card = zzQ('.zz-card'); if (card) card.scrollIntoView({ block: 'nearest' }); }
+        if (zz.open && zz.mode === 'sheet') {
+            const card = zzQ('.zz-card'), box = zzQ('#zsBody'), bar = zzQ('.zs-addrow');
+            if (card && box && bar) { // 펼친 카드가 창 아래에 붙은 넣기 줄 뒤에 숨지 않게 — 다 안 들어가면 물건 이름 줄부터 보이게
+                const head = card.previousElementSibling || card, top = box.getBoundingClientRect().top, barTop = bar.getBoundingClientRect().top - 6;
+                const hTop = head.getBoundingClientRect().top, cBot = card.getBoundingClientRect().bottom;
+                if (cBot - hTop > barTop - top || hTop < top) box.scrollTop += hTop - top;
+                else if (cBot > barTop) box.scrollTop += cBot - barTop;
+            } else if (card) card.scrollIntoView({ block: 'nearest' });
+        }
         if (zz.open && e && e.target.closest && e.target.closest('.memo-h')) zzMemoFocus(); // '+ 메모'를 눌렀다 → 메모 칸에 바로
     },
     zzQty: (el) => {
