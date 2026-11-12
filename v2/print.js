@@ -717,8 +717,61 @@ function drawPrintCode(ctx, x, cy, h, text) {
     return w;
 }
 
-// ② 칸 라벨: 칸마다 잘라 붙이는 라벨. size: S(3×4=12개) · M(2×3=6개) · L(2×2=4개)
-function buildLabelPages(photos, dateStr, size = 'M') {
+// ②-한 장 (11/12, 가르시아 "칸 라벨도 한 장으로 줄여줘 · 칸 라벨 너무 커"): 모든 칸을 A4 한 장에. 칸 수에 맞춰 라벨 크기를 고른다
+//   18칸까지 60×38mm · 28칸 45×33 · 32칸 45×29 · 45칸 36×26 · 55칸 36×21 · 72칸 30×19 (그보다 많으면 30×19로 여러 장)
+//   라벨 하나: 칸 번호 + 구역 이름 한 줄 · 물건 한 줄씩(고정 → 자주 찾은 것 → 먼저 적은 것 순), 넘치면 "+N개 더" · 사진 이름·날짜 줄은 뺀다(날짜는 종이 위에)
+function buildLabelFitPages(photos, dateStr) {
+    const pageW = printPx(PRINT.pageWmm), pageH = printPx(PRINT.pageHmm), m = printPx(PRINT.marginMm);
+    const labels = printZoneList(photos), n = labels.length, pages = [];
+    const GRIDS = [[3, 6], [4, 7], [4, 8], [5, 9], [5, 11], [6, 12]];
+    const [cols, rows] = GRIDS.find(([c, r]) => c * r >= n) || GRIDS[GRIDS.length - 1], per = cols * rows;
+    const top0 = m + printPx(12) + printPx(5) + printPx(7), bottom = pageH - m - printPx(14);
+    const cw = (pageW - m * 2) / cols, ch = (bottom - top0) / rows, pad = printPx(2.4);
+    let picks = {}; try { picks = readJSON('searchPickCounts', {}) || {}; } catch (e) {}
+    for (let start = 0; start < Math.max(n, 1); start += per) {
+        const { c, ctx } = printPageCanvas();
+        drawPrintHead(ctx, '칸 라벨' + (n > per ? ` (${start / per + 1}/${Math.ceil(n / per)})` : ''), dateStr, '점선을 따라 잘라 칸이나 상자 앞에 붙이세요 · 번호는 입구 한 장·지도와 같아요');
+        ctx.save(); ctx.strokeStyle = '#b9b4aa'; ctx.lineWidth = printPx(0.3); ctx.setLineDash([printPx(1.2), printPx(1.2)]);
+        for (let i = 0; i <= cols; i++) { const x = m + i * cw; ctx.beginPath(); ctx.moveTo(x, top0); ctx.lineTo(x, bottom); ctx.stroke(); }
+        for (let j = 0; j <= rows; j++) { const y = top0 + j * ch; ctx.beginPath(); ctx.moveTo(m, y); ctx.lineTo(pageW - m, y); ctx.stroke(); }
+        ctx.restore();
+        labels.slice(start, start + per).forEach((L, i) => {
+            const x = m + (i % cols) * cw + pad, y = top0 + Math.floor(i / cols) * ch + pad, w = cw - pad * 2, h = ch - pad * 2;
+            // 위: 칸 번호 + 구역 이름 (한 줄)
+            const codeH = Math.max(printPx(4.6), Math.min(printPx(7.5), h * 0.24));
+            const codeW = drawPrintCode(ctx, x, y + codeH / 2, codeH, L.code);
+            ctx.font = `bold ${Math.round(codeH * 0.56)}px sans-serif`; ctx.fillStyle = PRINT.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText(printFitText(ctx, L.zone.name || '이름 없는 구역', w - codeW - printPx(1.6)), x + codeW + printPx(1.6), y + codeH / 2 + 1);
+            const iy = y + codeH + printPx(1.6);
+            ctx.strokeStyle = PRINT.ink; ctx.lineWidth = printPx(0.3); ctx.beginPath(); ctx.moveTo(x, iy - printPx(0.6)); ctx.lineTo(x + w, iy - printPx(0.6)); ctx.stroke();
+            // 물건: 한 줄씩 (긴 이름은 …) · 고정 → 자주 찾은 것 → 먼저 적은 것
+            const names = L.zone.items.map((it, k) => ({ name: String(it.name || '').trim(), pin: !!it.pin, n: Number(picks[String(it.name || '').trim()]) || 0, k }))
+                .filter(t => t.name).sort((a, b) => (b.pin - a.pin) || (b.n - a.n) || (a.k - b.k)).map(t => t.name);
+            const avail = y + h - iy - printPx(0.8);
+            const fs0 = Math.min(printPx(5), codeH * 0.72), fsMin = Math.max(printPx(2.6), fs0 * 0.74); // 라벨이 크면 크게 · 넘치면 3/4까지만 줄이고 나머지는 "+N개 더" (옆 라벨과 글자 크기가 너무 달라지지 않게)
+            let fs = fs0;
+            while (names.length * fs * 1.28 > avail && fs > fsMin) fs = Math.max(fsMin, fs - printPx(0.2));
+            const maxLines = Math.max(1, Math.floor(avail / (fs * 1.28)));
+            let lines = names;
+            if (names.length > maxLines) lines = names.slice(0, maxLines - 1).concat(`+${names.length - (maxLines - 1)}개 더`);
+            ctx.textBaseline = 'top';
+            if (!names.length) { ctx.font = `${Math.round(fs * 0.9)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.fillText('(비어 있음)', x, iy); }
+            lines.forEach((t, li) => {
+                const more = li === lines.length - 1 && t.startsWith('+') && names.length > maxLines;
+                ctx.font = `${more ? 500 : 600} ${Math.round(fs)}px sans-serif`; ctx.fillStyle = more ? PRINT.sub : PRINT.ink;
+                ctx.fillText(more ? t : printFitText(ctx, t, w), x, iy + li * fs * 1.28);
+            });
+        });
+        if (!n) { ctx.font = `${printPx(5)}px sans-serif`; ctx.fillStyle = PRINT.sub; ctx.textAlign = 'left'; ctx.fillText('아직 만든 구역이 없어요', m, top0 + printPx(10)); }
+        drawPrintFoot(ctx, `${dateStr} · 칸이 바뀌면 앱에서 고치고 다시 뽑아 붙이세요`);
+        pages.push(printOut(c));
+    }
+    return pages;
+}
+
+// ② 칸 라벨: 칸마다 잘라 붙이는 라벨. size: A(한 장에 모두, 기본) · S(3×4=12개) · M(2×3=6개) · L(2×2=4개)
+function buildLabelPages(photos, dateStr, size = 'A') {
+    if (size === 'A') return buildLabelFitPages(photos, dateStr);
     const pageW = printPx(PRINT.pageWmm), pageH = printPx(PRINT.pageHmm), m = printPx(PRINT.marginMm);
     const grid = { S: [3, 4], M: [2, 3], L: [2, 2] }[size] || [2, 3], [cols, rows] = grid, per = cols * rows;
     const k = { S: 0.75, M: 1, L: 1.25 }[size] || 1;
@@ -916,10 +969,14 @@ function printSpace() { const sp = spacePhotos()[0]; return sp ? printPhotoObj(s
 // 인쇄 양식·옵션 (v1과 같은 키 'printOpts' — 다음에 열어도, v1에서 열어도 같은 값)
 //   label(칸 라벨 크기)만 v2에서 더했다. v1은 모르는 값이라 그냥 두고, 양식이 'label'이면 v1은 사진 지도로 연다
 // ────────────────────────────────────────────────────────────
-let printOpts = { form: 'map', sort: 'name', memo: true, size: 1, ink: false, label: 'M' }, printScope = 'photo', printPreviewId = null;
-try { Object.assign(printOpts, JSON.parse(localStorage.getItem('printOpts') || '{}')); } catch (e) {}
+let printOpts = { form: 'map', sort: 'name', memo: true, size: 1, ink: false, label: 'A', lv: 2 }, printScope = 'photo', printPreviewId = null;
+try {
+    const saved = JSON.parse(localStorage.getItem('printOpts') || '{}') || {};
+    if (saved.lv !== 2) delete saved.label; // 11/12: 칸 라벨 기본을 '한 장에 모두'로 — 예전에 저장된 크기(보통 6개)도 한 번은 새 기본으로
+    Object.assign(printOpts, saved, { lv: 2 });
+} catch (e) {}
 if (![1, 1.35].includes(printOpts.size)) printOpts.size = 1;
-if (!['S', 'M', 'L'].includes(printOpts.label)) printOpts.label = 'M';
+if (!['A', 'S', 'M', 'L'].includes(printOpts.label)) printOpts.label = 'A';
 const PRINT_FORMS = {
     door: { title: '입구 한 장', btn: '입구 한 장', sub: '배치도 + 자주 찾는 물건만 · 늘 A4 한 장 · 벽에는 이 한 장과 칸 라벨이면 돼요', file: '입구한장' },
     map: { title: '사진 지도', btn: '사진 지도', sub: '칸 번호 붙은 사진 + 찾아보기 · 선반 옆에', file: '지도' },
@@ -1093,7 +1150,7 @@ function printOptsHTML(form, photos, all, idx) {
     if (form === 'list') h += row('정렬', opt('sort', 'name', printOpts.sort === 'name', '가나다순') + opt('sort', 'zone', printOpts.sort === 'zone', '칸 순서'))
         + row('메모', opt('memo', '1', !!printOpts.memo, '보이기') + opt('memo', '0', !printOpts.memo, '숨기기'))
         + row('글씨', opt('size', '1', printOpts.size === 1, '크게') + opt('size', '1.35', printOpts.size === 1.35, '아주 크게'));
-    if (form === 'label') h += row('크기', opt('label', 'S', printOpts.label === 'S', '작게 · 12개') + opt('label', 'M', printOpts.label === 'M', '보통 · 6개') + opt('label', 'L', printOpts.label === 'L', '크게 · 4개'));
+    if (form === 'label') h += row('크기', opt('label', 'A', printOpts.label === 'A', '한 장에 모두') + opt('label', 'S', printOpts.label === 'S', '작게 · 12개') + opt('label', 'M', printOpts.label === 'M', '보통 · 6개') + opt('label', 'L', printOpts.label === 'L', '크게 · 4개'));
     // 이름: 매장 이름(종이 위·파일 이름) · 정리 업체(종이 아래) — v1 인쇄 창의 매장 이름 + 설정의 정리 업체 이름
     const n = storeName(), org = organizerName(), what = isHome() ? '머리글 이름' : '매장 이름';
     const text = [n, org ? `정리 ${org}` : ''].filter(Boolean).join(' · ');
