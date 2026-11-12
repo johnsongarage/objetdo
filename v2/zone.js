@@ -62,7 +62,7 @@ addCSS(`
 .zs.up { animation: zsUp .2s ease-out; }
 @keyframes zsUp { from { transform: translateY(26px); opacity: .5; } }
 .zs-head { flex: none; display: flex; align-items: center; gap: 12px; padding: 10px 4px 4px var(--gut); }
-.zs-n { flex: none; min-width: 34px; height: 34px; padding: 0 7px; display: flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-family: var(--serif); font-size: 19px; font-weight: 700; }
+.zs-n { flex: none; min-width: 34px; height: 34px; padding: 0 7px; display: flex; align-items: center; justify-content: center; background: var(--accent); color: var(--on-accent); font-family: var(--serif); font-size: 19px; font-weight: 700; }
 .zs-tt { flex: 1; min-width: 0; }
 .zs-name { display: block; width: 100%; margin: 0; padding: 0; border: 0; border-bottom: 1px solid transparent; background: transparent; font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1.35; color: var(--ink); border-radius: 0; }
 .zs-name:focus { outline: 0; border-bottom-color: var(--ink); }
@@ -119,7 +119,7 @@ body.zs-on .toast { bottom: calc(var(--zsh, 50vh) + var(--kb, 0px) + 10px); }
 @keyframes zsDown { to { transform: translateY(44px); opacity: 0; } }
 @keyframes zsSideOut { to { transform: translateX(32px); opacity: 0; } }
 @media (min-width: 1024px) { .zs.zs-out { animation-name: zsSideOut; } body.zs-on .toast.lift { bottom: calc(92px + env(safe-area-inset-bottom)); } }
-.zz-fly { position: fixed; left: 0; top: 0; z-index: 60; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: #FBF8F3; font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 16px rgba(36, 30, 26, .22); }
+.zz-fly { position: fixed; left: 0; top: 0; z-index: 60; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: var(--on-ink); font-size: 15px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none; box-shadow: 0 6px 16px rgba(36, 30, 26, .22); }
 .zz-it.zz-new { animation: zzNew 1.6s ease-out; }
 @keyframes zzNew { 0% { background: transparent; } 28% { background: var(--accent-soft); } 100% { background: transparent; } }
 #zzCount em.bump { display: inline-block; animation: zzBump .45s ease-out .34s; }

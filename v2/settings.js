@@ -41,7 +41,7 @@ addCSS(`
 .st-field > span { display: block; font-size: 16px; }
 .st-field small { display: block; font-size: 13px; line-height: 1.5; color: var(--sub); }
 .st-field input { display: block; width: 100%; margin-top: 2px; padding: 10px 0 9px; border: 0; border-bottom: 1.5px solid var(--ink); border-radius: 0; background: transparent; font: inherit; font-size: 17px; color: var(--ink); outline: 0; -webkit-appearance: none; appearance: none; }
-.st-field input::placeholder { color: #A69C8E; }
+.st-field input::placeholder { color: var(--ph); }
 .st-field input:focus-visible { border-bottom-color: var(--accent); }
 .st-note { margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: var(--sub); }
 .st-due { color: var(--accent); }
@@ -110,7 +110,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.12.8'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.12.9'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -147,6 +147,27 @@ function applyFontScale() {
     if (app) app.style.minHeight = v === '1' ? '' : `calc(${window.CSS && CSS.supports && CSS.supports('height', '100dvh') ? '100dvh' : '100vh'} / ${v})`;
 }
 applyFontScale();
+
+// ────────────────────────────────────────────────────────────
+// 화면 밝기 (11/12, 가르시아 "이 서비스 톤에서 다크 테마"): 자동(기기 설정을 따름, 기본) · 밝게 · 어둡게
+//   고른 값은 html[data-theme]로 — 부팅 때 index.html이 먼저 붙인다(밝은 화면이 잠깐 비치지 않게). 브라우저 위 띠 색(theme-color)도 같이
+// ────────────────────────────────────────────────────────────
+const THEMES = [['auto', '자동'], ['light', '밝게'], ['dark', '어둡게']];
+const THEME_BG = { light: '#F5F1EA', dark: '#1E1B18' }; // app.css --bg 와 같은 값
+function themePref() { const v = ls('v2Theme'); return v === 'light' || v === 'dark' ? v : 'auto'; }
+function applyTheme() {
+    const v = themePref(), root = document.documentElement;
+    if (v === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', v);
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = v === 'auto' ? (/dark/.test(m.media || '') ? THEME_BG.dark : THEME_BG.light) : THEME_BG[v]; });
+    const dk = v === 'dark' || (v === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches), sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (sb) sb.content = dk ? 'black' : 'default'; // 아이폰 홈 화면 앱은 다음에 열 때부터 반영될 수 있어요
+}
+applyTheme();
+function pickTheme(v) {
+    if (!THEMES.some(t => t[0] === v)) return;
+    lsSet('v2Theme', v); applyTheme();
+    paintSettings('[data-act="stTheme"][data-v="' + v + '"]');
+}
 
 // ────────────────────────────────────────────────────────────
 // 인쇄물 이름 (v1과 같은 키 · 길이): 매장(머리글) 이름은 인쇄물 머리글·백업 파일 이름에, 정리 업체 이름은 인쇄물·백업 PDF 아래에
@@ -258,7 +279,7 @@ function fillUsage(id, prefix) { // 폰 저장 공간을 얼마나 쓰는지 (�
 const chk = (k, label, sub, on, val) => `<button type="button" class="st-chk" role="checkbox" aria-checked="${on}" data-act="stFeat" data-v="${k}"><span class="st-box">${CHECK_SVG}</span><span class="st-tx">${label}${sub ? `<small>${sub}</small>` : ''}</span>${val ? `<span class="st-val">${val}</span>` : ''}</button>`;
 function renderSettings() {
     const el = screen('settings', '설정'), [lab, fb] = backOf('settings', ['검색', '#/']);
-    const home = useMode() === 'home', ind = currentIndustry(), font = fontScale(), off = statsOff(), due = backupDue();
+    const home = useMode() === 'home', ind = currentIndustry(), font = fontScale(), theme = themePref(), off = statsOff(), due = backupDue();
     let statsId = '';
     if (!off) { const st = readStats(); statsId = st.id; if (!SAMPLE && !ls('statsQueue')) writeStats(st); } // 번호가 열 때마다 바뀌지 않게 (기록표에 적어 두는 번호)
     el.innerHTML = `
@@ -285,6 +306,10 @@ function renderSettings() {
             <section class="st-sec">
                 <h2 class="st-lab"><span>글자 크기</span><small>새 화면 전체가 같이 커져요</small></h2>
                 <div class="st-seg" role="group" aria-label="글자 크기">${FONT_SCALES.map(([v, t, px]) => `<button type="button" aria-pressed="${v === font}" data-act="stFont" data-v="${v}" style="font-size:${px}px">${t}</button>`).join('')}</div>
+            </section>
+            <section class="st-sec">
+                <h2 class="st-lab"><span>화면</span><small>자동은 ${DEV} 설정을 따라요</small></h2>
+                <div class="st-seg" role="group" aria-label="화면 밝기">${THEMES.map(([v, t]) => `<button type="button" aria-pressed="${v === theme}" data-act="stTheme" data-v="${v}">${t}</button>`).join('')}</div>
             </section>
             <section class="st-sec">
                 <h2 class="st-lab">${home ? '인쇄·파일' : '매장'}</h2>
@@ -1251,6 +1276,7 @@ Object.assign(ACT, {
     stInd: (el) => pickIndustry(el.dataset.v),
     stFeat: (el) => toggleFeature(el.dataset.v),
     stFont: (el) => pickFont(el.dataset.v),
+    stTheme: (el) => pickTheme(el.dataset.v),
     stInstall: () => installApp(),
     stBackup: () => startBackup(),
     stShare: () => shareBackup(),

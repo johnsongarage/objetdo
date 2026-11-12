@@ -4,6 +4,31 @@
     --serif: 'Gowun Batang', 'Nanum Myeongjo', 'AppleMyungjo', serif;
     --sans: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
     --gut: 24px;
+    --on-ink: #FBF8F3; --on-accent: #fff; --ph: #A69C8E; --scrim: rgba(36, 30, 26, .45); --toast-link: #F0C9B9; --busy: rgba(245, 241, 234, .94); --bar-bg: #3A3530; --bar-fg: #FBF8F3;
+    color-scheme: light;
+}
+/* 다크 테마 (11/12, 가르시아 "이 서비스 톤에서 다크 테마"): 같은 종이·먹 톤을 밤에 — 따뜻한 먹색 바탕 + 종이색 글자 + 테라코타는 조금 밝게
+   '자동'(기본)은 폰 설정을 따르고, 설정 > 화면에서 밝게·어둡게를 고르면 html[data-theme]가 덮는다 (부팅 때 index.html에서 바로 붙임 — 깜빡임 없게) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #1E1B18; --sheet: #26231F; --ink: #ECE5DA; --sub: #B2A897; --mute: #8E8577;
+        --line: #3B3631; --line2: #312D29; --accent: #D9765F; --accent-soft: #3B2721; --hl: #2D2924;
+        --on-ink: #1E1B18; --on-accent: #1E1B18; --ph: #7C7468; --scrim: rgba(0, 0, 0, .55); --toast-link: #9E3B2A; --busy: rgba(30, 27, 24, .94); --bar-bg: #2C2824; --bar-fg: #ECE5DA;
+    }
+    :root:not([data-theme="light"]) .brand::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='16' y='16' width='11' height='11' fill='%23D9765F'/%3E%3Crect x='4' y='4' width='24' height='24' rx='1.5' fill='none' stroke='%23ECE5DA' stroke-width='3.2'/%3E%3Cpath d='M16 4V28M4 16H28' stroke='%23ECE5DA' stroke-width='3.2'/%3E%3C/svg%3E"); }
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1E1B18; --sheet: #26231F; --ink: #ECE5DA; --sub: #B2A897; --mute: #8E8577;
+    --line: #3B3631; --line2: #312D29; --accent: #D9765F; --accent-soft: #3B2721; --hl: #2D2924;
+    --on-ink: #1E1B18; --on-accent: #1E1B18; --ph: #7C7468; --scrim: rgba(0, 0, 0, .55); --toast-link: #9E3B2A; --busy: rgba(30, 27, 24, .94); --bar-bg: #2C2824; --bar-fg: #ECE5DA;
+}
+:root[data-theme="dark"] .brand::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='16' y='16' width='11' height='11' fill='%23D9765F'/%3E%3Crect x='4' y='4' width='24' height='24' rx='1.5' fill='none' stroke='%23ECE5DA' stroke-width='3.2'/%3E%3Cpath d='M16 4V28M4 16H28' stroke='%23ECE5DA' stroke-width='3.2'/%3E%3C/svg%3E"); }
+/* 사진 위에 그리는 칸·번호·이름표는 두 테마 모두 밝은 값 그대로 (사진은 테마와 상관없이 같은 사진이라 — 밝은 테마에선 바뀌는 것 없음) */
+:is(.zn, .ed-z, .ed-h, .ed-draft, .mg-in, .sp-opt .th) {
+    --bg: #F5F1EA; --sheet: #FBF8F3; --ink: #3A3530; --sub: #6E665C; --mute: #8C8378; --line: #D9D0C2; --line2: #E3DBCE;
+    --accent: #9E3B2A; --accent-soft: #F3E3DC; --hl: #ECE5D9; --on-ink: #FBF8F3; --on-accent: #fff;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; background: var(--bg); scrollbar-gutter: stable; }   /* 스크롤 막대 자리는 늘 비워 둔다 — 윈도 PC에서 긴 탭(세기)·짧은 탭(발주 목록)을 오갈 때 화면이 옆으로 7~8px 밀리지 않게 (11/11). 폰·맥은 막대가 떠 있어 영향 없음 */
@@ -37,7 +62,7 @@ button { font: inherit; color: inherit; }
 
 /* 버튼 */
 .btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 0 18px; border: 1px solid var(--ink); border-radius: 2px; font-size: 16px; font-weight: 500; text-decoration: none; cursor: pointer; text-align: center; }
-.btn-p { background: var(--ink); color: #FBF8F3; }
+.btn-p { background: var(--ink); color: var(--on-ink); }
 .btn-s { background: transparent; color: var(--ink); }
 .btn.split { justify-content: space-between; padding: 0 20px; text-align: left; }
 .btn:disabled { opacity: .4; cursor: default; }
@@ -53,7 +78,7 @@ button { font: inherit; color: inherit; }
 .sbox { display: flex; align-items: center; gap: 10px; border-bottom: 1.5px solid var(--ink); color: var(--sub); }
 .sbox svg { flex: none; width: 21px; height: 21px; }
 .sbox input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 19px; color: var(--ink); padding: 10px 0 12px; -webkit-appearance: none; appearance: none; border-radius: 0; }
-.sbox input::placeholder { color: #A69C8E; }
+.sbox input::placeholder { color: var(--ph); }
 .sbox input::-webkit-search-cancel-button { display: none; }
 .sclear { flex: none; width: 40px; height: 40px; border: 0; background: none; color: var(--sub); font-size: 22px; cursor: pointer; }
 .voice-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
@@ -195,7 +220,7 @@ button.zn { cursor: pointer; }
 .vc .core svg { width: 34px; height: 34px; }
 .is-listening .vc .ring { animation: ring 2.2s ease-out infinite; }
 .is-listening .vc .r2 { animation-delay: .5s; }
-.is-listening .vc .core { background: var(--accent); color: #fff; }
+.is-listening .vc .core { background: var(--accent); color: var(--on-accent); }
 @keyframes ring { 0% { transform: scale(.82); opacity: 1; } 100% { transform: scale(1.06); opacity: 0; } }
 .voice h1 { margin: 30px 0 0; font-family: var(--serif); font-size: 27px; font-weight: 700; }
 .voice .vsub { margin: 6px 0 0; font-size: 15px; color: var(--sub); }
@@ -214,10 +239,10 @@ button.zn { cursor: pointer; }
 .mv-foot .tlink { padding-left: 0; color: var(--ink); }
 
 /* 알림·시트 */
-.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100% - 32px); min-height: 50px; padding: 0 8px 0 18px; background: var(--ink); color: #FBF8F3; border-radius: 2px; font-size: 15px; box-shadow: 0 6px 24px rgba(0, 0, 0, .18); }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100% - 32px); min-height: 50px; padding: 0 8px 0 18px; background: var(--ink); color: var(--on-ink); border-radius: 2px; font-size: 15px; box-shadow: 0 6px 24px rgba(0, 0, 0, .18); }
 .toast span { padding: 12px 10px 12px 0; }
-.toast button { min-height: 44px; padding: 0 12px; border: 0; background: none; color: #F0C9B9; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
-.sheet { position: fixed; inset: 0; z-index: 40; background: rgba(36, 30, 26, .45); display: flex; align-items: flex-end; justify-content: center; }
+.toast button { min-height: 44px; padding: 0 12px; border: 0; background: none; color: var(--toast-link); font-size: 15px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+.sheet { position: fixed; inset: 0; z-index: 40; background: var(--scrim); display: flex; align-items: flex-end; justify-content: center; }
 .sheet-card { width: 100%; max-width: 480px; background: var(--bg); padding: 26px var(--gut) calc(22px + env(safe-area-inset-bottom)); border-top: 1px solid var(--ink); }
 .sheet-card h2 { margin: 0; font-family: var(--serif); font-size: 22px; }
 .sheet-card p { margin: 10px 0 22px; font-size: 15px; color: var(--sub); }
@@ -269,10 +294,10 @@ button.zn { cursor: pointer; }
 .chip small { margin-left: 6px; font-size: 11px; color: var(--accent); }
 .field { display: flex; align-items: center; gap: 10px; border-bottom: 1.5px solid var(--ink); }
 .field input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 17px; color: var(--ink); padding: 12px 0; border-radius: 0; -webkit-appearance: none; appearance: none; }
-.field input::placeholder { color: #A69C8E; }
+.field input::placeholder { color: var(--ph); }
 .icon-btn { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--accent); cursor: pointer; border-radius: 50%; }
 .icon-btn svg { width: 22px; height: 22px; }
-.icon-btn.on { background: var(--accent); color: #fff; }
+.icon-btn.on { background: var(--accent); color: var(--on-accent); }
 .hint { margin: 8px 0 0; font-size: 13px; color: var(--sub); }
 .sec-head { display: flex; justify-content: space-between; align-items: baseline; margin-top: 26px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-size: 13px; letter-spacing: .06em; color: var(--sub); }
 .check-list { margin: 6px 0 18px; padding: 0; list-style: none; max-height: 46vh; overflow: auto; }
@@ -313,7 +338,7 @@ button.zn { cursor: pointer; }
 .vsw::-webkit-scrollbar { display: none; }
 .vsw-l { flex: none; margin-right: 8px; font-size: 12px; letter-spacing: .08em; color: var(--sub); }
 .vsw button { flex: none; min-height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 19px; background: none; font-size: 14px; color: var(--sub); cursor: pointer; white-space: nowrap; }
-.vsw button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: #FBF8F3; }
+.vsw button[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
 .vsw + .title-row { margin-top: 16px; }
 .meta .warn, .mf-meta .warn, .mg-c small .warn, .ml-tx small .warn { color: var(--accent); }
 
@@ -436,11 +461,11 @@ input[type=search]::-webkit-search-cancel-button, input[type=search]::-webkit-se
     .side-more { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line2); }
     .side-a { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; padding: 0 12px; border: 0; border-radius: 2px; background: none; color: var(--ink); font-size: 15px; text-align: left; cursor: pointer; }
     .side-a span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .side-a small { flex: none; min-width: 22px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: #fff; font-size: 12px; line-height: 20px; text-align: center; }
+    .side-a small { flex: none; min-width: 22px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-size: 12px; line-height: 20px; text-align: center; }
     .side-a:hover { background: var(--hl); }
-    .side-a[aria-current="page"] { background: var(--ink); color: #FBF8F3; }
+    .side-a[aria-current="page"] { background: var(--ink); color: var(--on-ink); }
     .side-more .side-a { min-height: 38px; font-size: 14px; color: var(--sub); }
-    .side-more .side-a[aria-current="page"] { color: #FBF8F3; }
+    .side-more .side-a[aria-current="page"] { color: var(--on-ink); }
     .side-add { width: auto; min-height: 46px; margin: 16px 4px 0; font-size: 15px; }
     .side-foot { margin: auto 0 0; padding: 16px 10px 0; font-size: 12px; line-height: 1.8; color: var(--sub); }
     .side-foot a { color: var(--sub); text-underline-offset: 3px; }
