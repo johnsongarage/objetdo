@@ -31,12 +31,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
 <script>
-    // 화면 밝기(설정 > 화면): 밝게·어둡게를 골랐으면 그림을 그리기 전에 붙인다 — 자동이면 그대로 두어 기기 설정을 따른다 (settings.js applyTheme과 같은 값)
+    // 화면 테마(설정 > 화면): 종이·밤·개나리를 골랐으면 그림을 그리기 전에 붙인다 — 자동이면 그대로 두어 기기 설정을 따른다 (settings.js applyTheme과 같은 값)
     try {
         var th = localStorage.getItem('v2Theme');
-        if (th === 'dark' || th === 'light') { document.documentElement.setAttribute('data-theme', th); var mc = document.querySelectorAll('meta[name="theme-color"]'); for (var mi = 0; mi < mc.length; mi++) mc[mi].content = th === 'dark' ? '#1E1B18' : '#F5F1EA'; }
+        if (th === 'dark' || th === 'light' || th === 'yellow') { document.documentElement.setAttribute('data-theme', th); var mc = document.querySelectorAll('meta[name="theme-color"]'); for (var mi = 0; mi < mc.length; mi++) mc[mi].content = th === 'dark' ? '#1E1B18' : th === 'yellow' ? '#FFD93A' : '#F5F1EA'; }
         // 아이폰 홈 화면 앱 맨 위 상태 표시줄: 어두우면 검은 띠·흰 글자 (default는 밝은 띠라 어두운 화면 위에 흰 줄이 생긴다)
-        var dk = th === 'dark' || (th !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches), sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        var dk = th === 'dark' || (th !== 'light' && th !== 'yellow' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches), sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
         if (sb && dk) sb.content = 'black';
     } catch (e) {}
     // v2 1단계 (찾기 화면). 데이터는 v1과 같은 곳·같은 모양을 그대로 쓴다 — 새로 저장하는 형식이 없다.
@@ -56,7 +56,7 @@
         } catch (e) { document.documentElement.dataset.mode = 'store'; }
     })();
 </script>
-<link rel="stylesheet" href="app.css?v=2026.11.12.9">
+<link rel="stylesheet" href="app.css?v=2026.11.12.10">
 </head>
 <body>
 <!-- PC(가로 1024px 이상)에서만 보이는 왼쪽 메뉴 — find.js paintSide가 채운다 -->
@@ -77,15 +77,15 @@
 
 
 <!-- 화면 파일: 고치면 ?v= 를 함께 올린다 (배포 직후 옛 파일과 섞이지 않게) -->
-<script src="app.js?v=2026.11.12.9"></script>
-<script src="domain.js?v=2026.11.12.9"></script>
-<script src="find.js?v=2026.11.12.9"></script>
-<script src="zone.js?v=2026.11.12.9"></script>
-<script src="make.js?v=2026.11.12.9"></script>
-<script src="inbox.js?v=2026.11.12.9"></script>
-<script src="check.js?v=2026.11.12.9"></script>
-<script src="print.js?v=2026.11.12.9"></script>
-<script src="settings.js?v=2026.11.12.9"></script>
+<script src="app.js?v=2026.11.12.10"></script>
+<script src="domain.js?v=2026.11.12.10"></script>
+<script src="find.js?v=2026.11.12.10"></script>
+<script src="zone.js?v=2026.11.12.10"></script>
+<script src="make.js?v=2026.11.12.10"></script>
+<script src="inbox.js?v=2026.11.12.10"></script>
+<script src="check.js?v=2026.11.12.10"></script>
+<script src="print.js?v=2026.11.12.10"></script>
+<script src="settings.js?v=2026.11.12.10"></script>
 <script>boot();</script>
 </body>
 </html>

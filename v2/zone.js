@@ -49,11 +49,11 @@ addCSS(`
 .zz-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--line2); }
 .zz-card-foot button { min-height: 44px; border: 0; background: none; font-size: 15px; cursor: pointer; padding: 0; }
 .zz-card-foot .rm { color: var(--accent); }
-.zz-low { color: var(--accent); font-size: 13px; }
+.zz-low { color: var(--warn); font-size: 13px; }
 .zz-more { min-height: 44px; border: 0; background: none; padding: 0; color: var(--accent); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .zz-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; margin-top: 30px; padding-bottom: 26px; }
 .zz-foot button, .zz-foot a { min-height: 44px; border: 0; background: none; padding: 0; font-size: 15px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; color: var(--ink); }
-.zz-foot .danger { color: var(--accent); }
+.zz-foot .danger { color: var(--warn); }
 .hint:empty { display: none; }
 .zz-chips-lab { margin: 12px 0 0; font-size: 12px; letter-spacing: .04em; color: var(--sub); }
 
@@ -79,7 +79,7 @@ addCSS(`
 .zs-more { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; margin-top: 22px; }
 .zs-more .danger { margin-left: auto; }
 .zs-more button { min-height: 44px; border: 0; background: none; padding: 0; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; color: var(--sub); cursor: pointer; }
-.zs-more .danger { color: var(--accent); }
+.zs-more .danger { color: var(--warn); }
 .zs-foot { flex: none; display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr) minmax(0, 1.15fr); gap: 8px; padding: 8px var(--gut) 10px; border-top: 1px solid var(--line); }
 .zs-foot .btn { min-height: 50px; padding: 0 6px; font-size: 15px; white-space: nowrap; }
 /* 창 안을 세 덩어리로 (11/10): 위 '넣기'(옅은 바탕) · 가운데 '이 칸의 물건' · 아래 링크 */
