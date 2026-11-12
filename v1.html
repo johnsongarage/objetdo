@@ -6280,7 +6280,7 @@
     }
     // ⚙ 설정 맨 아래: 버전 + 내 데이터 요약 (백업이 필요한 양인지, 폰 저장 공간을 얼마나 쓰는지)
     // 버전은 배포할 때 올린다 (YYYY.MM.DD, 같은 날 여러 번이면 뒤에 .2)
-    const APP_VERSION = '베타 2026.11.12.2 · 예전 화면';
+    const APP_VERSION = '베타 2026.11.12.3 · 예전 화면';
     async function syncSettingsFooter() {
         const el = document.getElementById('settingsFooter'); if (!el) return;
         const photos = imageList.filter(d => d.id !== 'dummy_root'), zones = photos.reduce((n, d) => n + d.zones.length, 0), items = photos.reduce((n, d) => n + d.zones.reduce((m, z) => m + z.items.length, 0), 0);
@@ -6487,6 +6487,7 @@
     function importSystemData(input) {
         const file = input.files[0]; if (!file) return;
         input.value = ''; // 같은 파일을 다시 골라도 동작하게
+        if (file.size > 150 * 1048576) { alert(`파일이 너무 커요 (${Math.round(file.size / 1048576)}MB).\n'${APP_NAME}_백업_…pdf' 파일을 골라 주세요.`); return; } // 11/12 보안 점검 (v2와 같게)
         const reader = new FileReader();
         reader.onload = function(e) {
             let imported = null; try { imported = JSON.parse(extractBackupText(e.target.result)); } catch (err) {}
@@ -8556,6 +8557,7 @@ const PRINT_QR_URL = 'https://johnsongarage.co.kr/objetdo/qr/';
         if (!jsPdfLoading) jsPdfLoading = new Promise((resolve, reject) => {
             const sc = document.createElement('script');
             sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            sc.integrity = 'sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=='; sc.crossOrigin = 'anonymous'; sc.referrerPolicy = 'no-referrer'; // 11/12 보안 점검: 지문이 다른 파일은 실행하지 않는다 (v2/print.js와 같게)
             sc.onload = resolve; sc.onerror = () => { jsPdfLoading = null; sc.remove(); reject(); };
             document.head.appendChild(sc);
         });

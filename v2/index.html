@@ -34,18 +34,20 @@
     // 주소 ?mode=home|store, ?sample=store|home 는 v1과 같은 뜻 (예시 상태도 v1과 같은 sessionStorage 'samplePreview'를 같이 쓴다)
     (function () {
         try {
-            var u = new URLSearchParams(location.search), m = u.get('mode'), s = u.get('sample');
-            if (m === 'home' || m === 'store') localStorage.setItem('useMode', m);
+            var u = new URLSearchParams(location.search), m = u.get('mode'), s = u.get('sample'), saved = localStorage.getItem('useMode');
+            // 예시 링크(?sample=…)는 이미 쓰는 곳이 정해진 폰의 모드를 바꾸지 않는다 (11/12: 인스타·홈페이지 '예시 집' 링크를 매장 사장님이 눌러도 매장 그대로) — 처음 온 폰만 그 모드로 정한다
+            if ((m === 'home' || m === 'store') && !(s && saved)) localStorage.setItem('useMode', m);
             if (s) {
-                var home = s === 'home' || s === 'organizer' || (s !== 'store' && localStorage.getItem('useMode') === 'home');
+                var home = s === 'home' || s === 'organizer' || (s !== 'store' && (m ? m === 'home' : localStorage.getItem('useMode') === 'home'));
                 sessionStorage.setItem('samplePreview', home ? 'organizer' : '1');
             }
             if (m || s) { u.delete('mode'); u.delete('sample'); history.replaceState(history.state, '', location.pathname + (u.toString() ? '?' + u : '') + location.hash); }
-            document.documentElement.dataset.mode = localStorage.getItem('useMode') === 'home' ? 'home' : 'store';
+            var sp = sessionStorage.getItem('samplePreview'); // 예시를 보는 동안은 그 예시의 모드로 보여 준다 (저장된 모드는 그대로 · 예시를 닫으면 돌아온다)
+            document.documentElement.dataset.mode = sp ? (sp === 'organizer' ? 'home' : 'store') : (localStorage.getItem('useMode') === 'home' ? 'home' : 'store');
         } catch (e) { document.documentElement.dataset.mode = 'store'; }
     })();
 </script>
-<link rel="stylesheet" href="app.css?v=2026.11.12.2">
+<link rel="stylesheet" href="app.css?v=2026.11.12.3">
 </head>
 <body>
 <!-- PC(가로 1024px 이상)에서만 보이는 왼쪽 메뉴 — find.js paintSide가 채운다 -->
@@ -66,15 +68,15 @@
 
 
 <!-- 화면 파일: 고치면 ?v= 를 함께 올린다 (배포 직후 옛 파일과 섞이지 않게) -->
-<script src="app.js?v=2026.11.12.2"></script>
-<script src="domain.js?v=2026.11.12.2"></script>
-<script src="find.js?v=2026.11.12.2"></script>
-<script src="zone.js?v=2026.11.12.2"></script>
-<script src="make.js?v=2026.11.12.2"></script>
-<script src="inbox.js?v=2026.11.12.2"></script>
-<script src="check.js?v=2026.11.12.2"></script>
-<script src="print.js?v=2026.11.12.2"></script>
-<script src="settings.js?v=2026.11.12.2"></script>
+<script src="app.js?v=2026.11.12.3"></script>
+<script src="domain.js?v=2026.11.12.3"></script>
+<script src="find.js?v=2026.11.12.3"></script>
+<script src="zone.js?v=2026.11.12.3"></script>
+<script src="make.js?v=2026.11.12.3"></script>
+<script src="inbox.js?v=2026.11.12.3"></script>
+<script src="check.js?v=2026.11.12.3"></script>
+<script src="print.js?v=2026.11.12.3"></script>
+<script src="settings.js?v=2026.11.12.3"></script>
 <script>boot();</script>
 </body>
 </html>
