@@ -29,7 +29,8 @@ addCSS(`
 .zz-ask .chips { margin-top: 0; }
 .zz-ask .chip { min-height: 38px; font-size: 14px; }
 .zz-it { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left; font-size: 17px; cursor: pointer; }
-.zz-it .nm { flex: 1; min-width: 0; }
+.zz-it .nm { flex: 1; min-width: 0; position: relative; padding-left: 16px; }
+.zz-it .nm::before { content: ''; position: absolute; left: 2px; top: .66em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }   /* 11/17 가르시아: 물건끼리 구분이 잘 되게 앞에 점 */
 .zz-it .nm small { display: block; font-size: 13px; color: var(--sub); }
 .zz-it .nm small.memo-h { color: var(--mute); opacity: .85; }   /* 아직 메모를 안 써 본 사람에게만: 누르면 메모를 쓸 수 있다는 것 (11/11) */
 .zz-memo.zz-new { animation: zzNew 1.6s ease-out; }
