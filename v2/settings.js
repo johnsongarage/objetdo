@@ -111,7 +111,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.17.4'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.17.5'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -1241,6 +1241,7 @@ function renderGuide(r) {
 // #/service 가격 · 대신 만들기 (가격은 ../price/ 와 똑같이)
 // ────────────────────────────────────────────────────────────
 const DM_URL = 'https://ig.me/m/johnsongarage_';
+const KAKAO_URL = 'https://pf.kakao.com/_fdxkNX/chat'; // 카카오톡 채널 '오브젯도' 채팅 (11/17)
 function renderService() {
     const el = screen('service', '가격 · 대신 만들기'), [lab, fb] = backOf('service', ['메뉴', '#/menu']);
     el.innerHTML = `
@@ -1264,7 +1265,8 @@ function renderService() {
             </div>
             <p class="st-fine">앱은 무료예요. 1곳은 정면 사진 한 장(칸 12개까지)이에요. 집 전체는 사진을 보고 견적을 드려요.</p>
             <div class="st-cta">
-                <a class="btn btn-p" href="${DM_URL}" target="_blank" rel="noopener">DM으로 신청하기</a>
+                <a class="btn btn-p" href="${KAKAO_URL}" target="_blank" rel="noopener">카톡으로 신청하기</a>
+                <a class="btn btn-s" href="${DM_URL}" target="_blank" rel="noopener">인스타 DM으로 신청하기</a>
                 <a class="btn btn-s" href="../price/">가격 자세히 보기</a>
             </div>
         </main>`;
