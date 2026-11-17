@@ -38,7 +38,7 @@ function renderHome() {
     $('#q').placeholder = ex.length ? `이름이나 첫 글자 (${chosungOf(ex[0])})` : '물건 이름';
     const hasReal = ls('hasSavedPhotos') === '1';
     $('#homeStrip').innerHTML = SAMPLE
-        ? `<span>예시 · ${SAMPLE === 'organizer' ? '정리수납 예시 집' : '매장 예시'}</span><button type="button" data-act="sampleExit">${hasReal ? '내 지도로' : '예시 닫기'}</button>`
+        ? `<span>예시 · ${SAMPLE_LABEL ? esc(SAMPLE_LABEL) : SAMPLE === 'organizer' ? '정리수납 예시 집' : '매장 예시'}</span><button type="button" data-act="sampleExit">${hasReal ? '내 지도로' : '예시 닫기'}</button>`
         : storedSample ? '<span>예시 데이터를 보고 있어요</span>'
         // 예전 화면(v1)을 쓰던 폰: 한 번만 알려 준다 (11/10 새 화면이 기본 주소로)
         : hasReal && ls('lookMig2') === '1' && !ls('v2MovedSeen') ? `<span>새 화면으로 바뀌었어요 · 예전 화면은 메뉴 맨 아래</span><button type="button" data-act="movedOk">알겠어요</button>`
@@ -647,10 +647,12 @@ function renderIntro() {
         </main>`;
 }
 function enterSample() {
+    clearSampleFile(); // 기본 예시는 업체 샘플이 아니라 앱 예시로
     try { sessionStorage.setItem('samplePreview', isHome() ? 'organizer' : '1'); } catch (e) { toast('이 브라우저에선 예시를 열 수 없어요'); return; }
     history.replaceState(null, '', location.pathname + '#/'); location.reload();
 }
 function exitSample() {
+    clearSampleFile();
     try { sessionStorage.removeItem('samplePreview'); } catch (e) {}
     history.replaceState(null, '', location.pathname + '#/'); location.reload();
 }
