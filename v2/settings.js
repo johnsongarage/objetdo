@@ -212,6 +212,7 @@ function changeMode(m) {
     applyUseMode(m);
     toast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요');
     if (SAMPLE) { // 예시는 쓰는 곳마다 다르다 (집 → 팬트리·옷장, 매장 → 카페 창고)
+        clearSampleFile();
         try { sessionStorage.setItem('samplePreview', m === 'home' ? 'organizer' : '1'); } catch (e) {}
         setTimeout(() => location.reload(), 600); return;
     }
@@ -925,7 +926,7 @@ async function doRestore(btn) {
     const imported = pendingRestore; if (!imported || restoring) return;
     restoring = true; if (btn) { btn.disabled = true; btn.textContent = '복구하는 중…'; }
     flushPending(); // 늦게 도는 저장이 복구한 데이터를 덮어쓰지 않게
-    if (SAMPLE) { try { sessionStorage.removeItem('samplePreview'); } catch (e) {} SAMPLE = null; } // 예시를 보다가 복구해도 진짜 데이터로
+    if (SAMPLE) { clearSampleFile(); try { sessionStorage.removeItem('samplePreview'); } catch (e) {} SAMPLE = null; } // 예시를 보다가 복구해도 진짜 데이터로
     if (!store.db) await store.init(); // 예시를 보는 동안엔 저장소를 안 열었다
     if ((restoreFromGet || restoreFromPrev) && hasSaved()) await keepPrevMap(); // 받은 지도로 바꾸기 전에 쓰던 지도를 이 폰에 따로 보관 (백업 화면을 다녀오지 않게)
     if (!writePhotoData(JSON.stringify(imported.savedSystemData))) { restoring = false; closeSheet(); toast('저장 공간이 부족해 복구하지 못했어요'); return; }

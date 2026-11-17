@@ -47,8 +47,11 @@
             // 예시 링크(?sample=…)는 이미 쓰는 곳이 정해진 폰의 모드를 바꾸지 않는다 (11/12: 인스타·홈페이지 '예시 집' 링크를 매장 사장님이 눌러도 매장 그대로) — 처음 온 폰만 그 모드로 정한다
             if ((m === 'home' || m === 'store') && !(s && saved)) localStorage.setItem('useMode', m);
             if (s) {
-                var home = s === 'home' || s === 'organizer' || (s !== 'store' && (m ? m === 'home' : localStorage.getItem('useMode') === 'home'));
+                // 업체별 샘플 (11/17): ?sample=영문이름 → v2/samples/이름.json을 집 예시처럼 연다 (저장 없음 · 보기만)
+                var named = /^[a-z0-9-]{2,30}$/.test(s) && s !== 'home' && s !== 'store' && s !== 'organizer';
+                var home = named || s === 'home' || s === 'organizer' || (s !== 'store' && (m ? m === 'home' : localStorage.getItem('useMode') === 'home'));
                 sessionStorage.setItem('samplePreview', home ? 'organizer' : '1');
+                if (named) sessionStorage.setItem('sampleFile', s); else sessionStorage.removeItem('sampleFile');
             }
             if (m || s) { u.delete('mode'); u.delete('sample'); history.replaceState(history.state, '', location.pathname + (u.toString() ? '?' + u : '') + location.hash); }
             var sp = sessionStorage.getItem('samplePreview'); // 예시를 보는 동안은 그 예시의 모드로 보여 준다 (저장된 모드는 그대로 · 예시를 닫으면 돌아온다)
