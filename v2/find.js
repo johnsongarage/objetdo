@@ -65,7 +65,7 @@ function renderHome() {
         + `<button type="button" class="row" data-act="go" data-to="#/print">인쇄물 보기<span class="ar">→</span></button>`;
     $('#homeSpaces').innerHTML = `<span class="kick">사진 ${vis().length}장</span><div class="hs-grid">${vis().map(p => { const sp = isSpace(p), L = sp ? '' : letterOf(p), n = p.zones.reduce((a, z) => a + z.items.length, 0);
         return `<button type="button" class="hs-c" data-act="mapOne" data-p="${esc(p.id)}"><span class="hs-th">${thumbImg(p)}</span><b>${L ? `<em>${esc(L)}</em>` : sp ? '<em class="sp">공간</em>' : ''}${esc(p.title || '사진')}</b><small>${sp ? `가구 ${p.zones.length}` : `구역 ${p.zones.length} · 물건 ${n}`}</small></button>`; }).join('')}</div>`; // PC만 보인다
-    $('#homeFoot').innerHTML = SAMPLE ? '예시는 저장되지 않아요 · 마음껏 눌러 보세요' : `이 ${DEV}에만 저장돼요 · <a href="#/backup" data-act="go" data-to="#/backup">백업 받기</a>`;
+    $('#homeFoot').innerHTML = (SAMPLE ? '예시는 저장되지 않아요 · 마음껏 눌러 보세요' : `이 ${DEV}에만 저장돼요 · <a href="#/backup" data-act="go" data-to="#/backup">백업 받기</a>`) + BIZ_HTML;
     $('#homeNudge').innerHTML = homeNudge();
     syncMicHint();
     renderLive();
@@ -616,7 +616,7 @@ function renderMenu() {
                     : `<button type="button" class="mi" data-act="go" data-to="${href}">${inner}</button>`}</li>`;
             }).join('')}</ul>
         </main>
-        <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 ${DEV}에만 저장돼요 · <a href="${V1()}" data-v1>예전 화면으로 ${EXT}</a></span></footer>`;
+        <footer class="foot"><a href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">써 보니 어떠세요? 의견 보내기 (1분)</a><br><span style="display:block;margin-top:10px">무료 베타 · 가입 없이 이 ${DEV}에만 저장돼요 · <a href="${V1()}" data-v1>예전 화면으로 ${EXT}</a></span>${BIZ_HTML}</footer>`;
 }
 // ── PC 왼쪽 메뉴 (넓은 화면에서만 보인다 · app.css '넓은 화면') ─────────────────
 //   지도가 있는 화면마다 늘 보이는 메뉴: 찾기 · 수납 지도 · 목록 · 자리 미정 · 점검 · 인쇄 + 사진 더 넣기 · 사용법 · 설정 (폰 메뉴와 같은 줄)
@@ -657,7 +657,8 @@ function renderIntro() {
                 <button type="button" class="tlink intro-get" data-act="go" data-to="#/get">대신 만들어 받은 지도 파일이 있어요 →</button>
                 <p class="fine">가입 없이 이 ${DEV}에만 저장돼요.<br>지도 대신 만들기 · 원격 3곳 ₩19,000부터 · <a href="#/service" data-act="go" data-to="#/service">문의</a></p>
             </div>
-        </main>`;
+        </main>
+        <footer class="foot">${BIZ_HTML}</footer>`;
 }
 function enterSample() {
     clearSampleFile(); // 기본 예시는 업체 샘플이 아니라 앱 예시로
