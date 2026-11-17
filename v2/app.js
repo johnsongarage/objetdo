@@ -308,6 +308,8 @@ function highlight(text, query) {
 }
 // 데이터가 있는 기기를 말로 (11/10): PC에서도 '이 폰에만 저장돼요'가 나오던 것 → 폰 · 태블릿 · 컴퓨터
 //   DEV_HERE는 자세한 안내용 — PC는 브라우저마다 따로라 '이 컴퓨터의 이 브라우저'
+// 사업자 정보 (11/17: 카카오톡 채널 심사 — 페이지 맨 아래에 보여야 한다)
+const BIZ_HTML = '<span class="biz">상호 존슨거라지(Johnson Garage) · 대표자명 강훈민<br>사업자등록번호 778-17-02429</span>';
 const DEV = (() => {
     const ua = navigator.userAgent || '', ipad = /iPad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (/iPhone|iPod/i.test(ua) || (/Android/i.test(ua) && /Mobile/i.test(ua))) return '폰';

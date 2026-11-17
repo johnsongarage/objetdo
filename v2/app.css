@@ -118,6 +118,7 @@ mark { background: var(--accent-soft); color: inherit; padding: 0 1px; }
 .foot { padding: 22px var(--gut) 22px; font-size: 13px; color: var(--sub); }
 .foot a { color: var(--accent); text-underline-offset: 3px; }
 .foot.center { text-align: center; }
+.biz { display: block; margin-top: 12px; font-size: 12px; line-height: 1.6; color: var(--mute); }
 
 /* 사진 + 칸 */
 .ph { position: relative; overflow: hidden; background: var(--hl); border: 1px solid var(--ink); margin: 0 auto; width: min(100%, calc(58vh * var(--ar))); aspect-ratio: var(--ar); }
