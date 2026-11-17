@@ -300,7 +300,7 @@ function renderResult(r) {
     }
     let match = null, others = [];
     if (q) { const ms = findSearchMatches(q); match = ms.find(m => m.data === p && m.index === zi) || null; others = ms.filter(m => m !== match).slice(0, 4); }
-    const zm = zoomFor(p, z), canZoom = zm.s > 1.25, zoomOn = false; // 11/17 가르시아: 바로 확대되면 전체 중 어디인지 모름 → 처음엔 사진 전체(그 칸만 빨갛게), 확대는 '이 칸 크게 보기'
+    const zm = zoomFor(p, z), canZoom = zm.s > 1.25, zoomOn = false; // 11/17 가르시아: 바로 확대되면 전체 중 어디인지 모름 → 처음엔 사진 전체(그 칸만 빨갛게) 1.3초 → 그 칸으로 부드럽게 확대 ('사진 전체 보기'로 돌아감)
     rc = { p, zi, z, it, q, from, zm, zoomOn };
     const back = { map: ['지도', `#/map/${encodeURIComponent(p.id)}`], list: ['목록', '#/list'] }[from] || ['다시 찾기', '#/'];
     const right = q ? `${from === 'voice' ? '들은 말' : '찾은 말'} · ${q}` : from === 'move' ? '옮긴 자리' : from === 'map' ? '구역 보기' : (p.title || '');
@@ -348,10 +348,17 @@ function renderResult(r) {
             <div class="dock">${dock}</div>
         </main>`;
     rc.zs = zoomOn ? { s: zm.s, tx: zm.tx, ty: zm.ty } : { s: 1, tx: 0, ty: 0 };
-    rc.pz = attachPinch($('#rPhoto .ph'), $('#rPhoto .ph-in'), rc.zs, () => { const b = $('#zoomBtn'); if (b) b.textContent = rc.zs.s > 1.05 ? '사진 전체 보기' : '이 칸 크게 보기'; });
+    rc.pz = attachPinch($('#rPhoto .ph'), $('#rPhoto .ph-in'), rc.zs, () => { if (!autoZooming) rc.touched = true; const b = $('#zoomBtn'); if (b) b.textContent = rc.zs.s > 1.05 ? '사진 전체 보기' : '이 칸 크게 보기'; });
+    clearTimeout(autoZoomT);
+    if (canZoom) { const mine = rc; autoZoomT = setTimeout(() => { // 그 사이 손가락으로 만졌거나 다른 화면이면 그대로
+        if (rc !== mine || cur !== 'r' || mine.touched || !mine.pz || mine.zs.s > 1.05) return;
+        autoZooming = true; mine.pz.set(zm.s, zm.tx, zm.ty); autoZooming = false;
+    }, 1300); }
 }
+let autoZoomT = 0, autoZooming = false;
 function toggleZoom() {
     if (!rc || !rc.pz) return;
+    rc.touched = true; clearTimeout(autoZoomT);
     if (rc.zs.s > 1.05) rc.pz.set(1, 0, 0); else rc.pz.set(rc.zm.s, rc.zm.tx, rc.zm.ty);
 }
 function actYes() {
