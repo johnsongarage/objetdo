@@ -11,6 +11,7 @@ function renderHome() {
         el.innerHTML = `
             <header class="top"><span class="brand">오브젯도</span><a class="tlink" href="#/menu" data-act="go" data-to="#/menu">메뉴</a></header>
             <div class="strip" id="homeStrip"></div>
+            <div id="homeSample"></div>
             <div id="homeNudge"></div>
             <main class="home wrap">
                 <div>
@@ -20,6 +21,7 @@ function renderHome() {
                     <div class="voice-row" id="voiceRow"><button type="button" class="mic" data-act="voice" aria-label="눌러서 말하기">${ICON.mic}</button><div><b>눌러서 말하기</b><span id="micHint"></span></div></div>
                 </div>
                 <div id="homeRest" style="display:flex;flex-direction:column;gap:30px">
+                    <div id="homeSamplePh"></div>
                     <div class="stats" id="stats"></div>
                     <div id="chipsBox"><span class="kick" id="chipsLabel"></span><div class="chips" id="chips"></div></div>
                     <div class="home-sp" id="homeSpaces"></div>
@@ -37,8 +39,12 @@ function renderHome() {
     const ex = exampleNames(3);
     $('#q').placeholder = ex.length ? `이름이나 첫 글자 (${chosungOf(ex[0])})` : '물건 이름';
     const hasReal = ls('hasSavedPhotos') === '1';
+    // 업체 샘플 링크로 열었으면 (11/17): 무엇을 보는지 한 줄 + 번호 붙은 사진 전체를 먼저
+    const sp0 = SAMPLE_FILE ? itemPhotos()[0] : null;
+    $('#homeSample').innerHTML = sp0 ? `<div class="wrap sample-intro"><p><b>${esc(SAMPLE_ORG || SAMPLE_LABEL || '샘플')}</b> 샘플이에요. 물건 이름을 쳐 보면 아래 사진의 몇 번 칸인지 나와요.</p></div>` : '';
+    $('#homeSamplePh').innerHTML = sp0 ? `<div class="si-ph"><span class="kick">${esc(sp0.title || '사진')} · 번호가 칸이에요</span>${photoHTML(sp0)}</div>` : '';
     $('#homeStrip').innerHTML = SAMPLE
-        ? `<span>예시 · ${SAMPLE === 'organizer' ? '정리수납 예시 집' : '매장 예시'}</span><button type="button" data-act="sampleExit">${hasReal ? '내 지도로' : '예시 닫기'}</button>`
+        ? `<span>예시 · ${SAMPLE_LABEL ? esc(SAMPLE_LABEL) : SAMPLE === 'organizer' ? '정리수납 예시 집' : '매장 예시'}</span><button type="button" data-act="sampleExit">${hasReal ? '내 지도로' : '예시 닫기'}</button>`
         : storedSample ? '<span>예시 데이터를 보고 있어요</span>'
         // 예전 화면(v1)을 쓰던 폰: 한 번만 알려 준다 (11/10 새 화면이 기본 주소로)
         : hasReal && ls('lookMig2') === '1' && !ls('v2MovedSeen') ? `<span>새 화면으로 바뀌었어요 · 예전 화면은 메뉴 맨 아래</span><button type="button" data-act="movedOk">알겠어요</button>`
@@ -294,7 +300,7 @@ function renderResult(r) {
     }
     let match = null, others = [];
     if (q) { const ms = findSearchMatches(q); match = ms.find(m => m.data === p && m.index === zi) || null; others = ms.filter(m => m !== match).slice(0, 4); }
-    const zm = zoomFor(p, z), zoomOn = zm.s > 1.25;
+    const zm = zoomFor(p, z), canZoom = zm.s > 1.25, zoomOn = false; // 11/17 가르시아: 바로 확대되면 전체 중 어디인지 모름 → 처음엔 사진 전체(그 칸만 빨갛게) 1.3초 → 그 칸으로 부드럽게 확대 ('사진 전체 보기'로 돌아감)
     rc = { p, zi, z, it, q, from, zm, zoomOn };
     const back = { map: ['지도', `#/map/${encodeURIComponent(p.id)}`], list: ['목록', '#/list'] }[from] || ['다시 찾기', '#/'];
     const right = q ? `${from === 'voice' ? '들은 말' : '찾은 말'} · ${q}` : from === 'move' ? '옮긴 자리' : from === 'map' ? '구역 보기' : (p.title || '');
@@ -332,20 +338,27 @@ function renderResult(r) {
         <main class="wrap" style="flex:1;display:flex;flex-direction:column">
             <div class="ans"><span class="ans-n">${n}</span><div class="ans-t"><small>${from === 'move' ? '이제 여기예요' : '여기 있어요'}</small><b>${esc(autoZoneName(z.name) ? `${n}번 구역` : z.name)}</b></div></div>
             <p class="where"><b>${L ? `${esc(L)} · ` : ''}${esc(p.title || '사진')}</b>${autoZoneName(z.name) ? `, ${esc(posWords(p, z))}` : ''} ${n}번 칸이에요.</p>
-            <ul class="facts">${facts.map(([k, v]) => `<li><span class="k">${k}</span><span>${v}</span></li>`).join('')}</ul>
             ${way}
             <div class="r-ph"><div id="rPhoto">${photoHTML(p, { hit: zi, zoom: zoomOn ? zm : null })}</div>
-            <div class="ph-tools"><span class="hint" style="margin:0;flex:1">두 손가락으로 벌리면 더 크게</span>${zm.s > 1.25 ? `<button type="button" class="tlink" data-act="zoom" id="zoomBtn">사진 전체 보기</button>` : ''}</div></div>
+            <div class="ph-tools"><span class="hint" style="margin:0;flex:1">두 손가락으로 벌리면 더 크게</span>${canZoom ? `<button type="button" class="tlink" data-act="zoom" id="zoomBtn">이 칸 크게 보기</button>` : ''}</div></div>
+            <ul class="facts">${facts.map(([k, v]) => `<li><span class="k">${k}</span><span>${v}</span></li>`).join('')}</ul>
             ${body}
             ${links ? `<div class="cta">${links}</div>` : ''}
             ${others.length ? `<div class="others"><span class="kick">다른 곳도 있어요</span>${others.map((m, i) => hitHTML(m, q, i)).join('')}</div>` : ''}
             <div class="dock">${dock}</div>
         </main>`;
     rc.zs = zoomOn ? { s: zm.s, tx: zm.tx, ty: zm.ty } : { s: 1, tx: 0, ty: 0 };
-    rc.pz = attachPinch($('#rPhoto .ph'), $('#rPhoto .ph-in'), rc.zs, () => { const b = $('#zoomBtn'); if (b) b.textContent = rc.zs.s > 1.05 ? '사진 전체 보기' : '이 칸 크게 보기'; });
+    rc.pz = attachPinch($('#rPhoto .ph'), $('#rPhoto .ph-in'), rc.zs, () => { if (!autoZooming) rc.touched = true; const b = $('#zoomBtn'); if (b) b.textContent = rc.zs.s > 1.05 ? '사진 전체 보기' : '이 칸 크게 보기'; });
+    clearTimeout(autoZoomT);
+    if (canZoom) { const mine = rc; autoZoomT = setTimeout(() => { // 그 사이 손가락으로 만졌거나 다른 화면이면 그대로
+        if (rc !== mine || cur !== 'r' || mine.touched || !mine.pz || mine.zs.s > 1.05) return;
+        autoZooming = true; mine.pz.set(zm.s, zm.tx, zm.ty); autoZooming = false;
+    }, 1300); }
 }
+let autoZoomT = 0, autoZooming = false;
 function toggleZoom() {
     if (!rc || !rc.pz) return;
+    rc.touched = true; clearTimeout(autoZoomT);
     if (rc.zs.s > 1.05) rc.pz.set(1, 0, 0); else rc.pz.set(rc.zm.s, rc.zm.tx, rc.zm.ty);
 }
 function actYes() {
@@ -647,10 +660,12 @@ function renderIntro() {
         </main>`;
 }
 function enterSample() {
+    clearSampleFile(); // 기본 예시는 업체 샘플이 아니라 앱 예시로
     try { sessionStorage.setItem('samplePreview', isHome() ? 'organizer' : '1'); } catch (e) { toast('이 브라우저에선 예시를 열 수 없어요'); return; }
     history.replaceState(null, '', location.pathname + '#/'); location.reload();
 }
 function exitSample() {
+    clearSampleFile();
     try { sessionStorage.removeItem('samplePreview'); } catch (e) {}
     history.replaceState(null, '', location.pathname + '#/'); location.reload();
 }

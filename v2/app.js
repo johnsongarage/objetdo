@@ -53,6 +53,11 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
 // 예시: v1과 같은 표시(sessionStorage 'samplePreview' = '1' 매장 · 'organizer' 집)를 같이 쓴다. 예시를 보는 동안엔 아무것도 저장하지 않는다
 let SAMPLE = null; try { SAMPLE = sessionStorage.getItem('samplePreview'); } catch (e) {}
+// 업체별 샘플 (11/17): ?sample=영문이름으로 연 샘플은 v2/samples/이름.json (보기만 · 저장 없음). 이름은 위 띠에 보인다
+let SAMPLE_FILE = null; try { SAMPLE_FILE = sessionStorage.getItem('sampleFile'); } catch (e) {}
+if (SAMPLE_FILE && !/^[a-z0-9-]{2,30}$/.test(SAMPLE_FILE)) SAMPLE_FILE = null;
+let SAMPLE_LABEL = '', SAMPLE_ORG = '', SAMPLE_STORE = ''; // 업체 샘플의 종이 이름 (설정 대신 · 11/17)
+function clearSampleFile() { SAMPLE_FILE = null; try { sessionStorage.removeItem('sampleFile'); } catch (e) {} }
 //   설정 같은 '취향'(PREF_KEYS, feat_*)은 예시 중에도 진짜로 저장한다 (v1 safeStorage와 같은 규칙)
 //   물건·기록 같은 '데이터'는 예시 중엔 메모리에만, 그중 MEM_ONLY는 진짜 값을 읽지도 않는다 (예시에 내 자리 미정이 섞이지 않게)
 const PREF_KEYS = new Set(['zmSuggestOpen', 'voiceFallback', 'useMode', 'simpleView', 'stockMode', 'fontDelta', 'bubbleLevel', 'stockField', 'listViewMode', 'voiceUsed', 'tapAgainHint', 'foundWhySeen', 'stockIntroSeen', 'installBannerHiddenUntil', 'backupBannerHiddenUntil', 'iosRestoreHint', 'v2FontScale', 'v2MapView', 'photoTipSeen', 'v2MovedSeen']);
@@ -90,13 +95,16 @@ const isHome = () => SAMPLE ? SAMPLE === 'organizer' : document.documentElement.
 async function loadAll() {
     if (SAMPLE) {
         try {
-            const r = await fetch(SAMPLE === 'organizer' ? 'sample-home.json' : 'sample-store.json');
+            const r = await fetch(SAMPLE_FILE && SAMPLE === 'organizer' ? `samples/${SAMPLE_FILE}.json` : SAMPLE === 'organizer' ? 'sample-home.json' : 'sample-store.json');
             const j = await r.json();
+            if (SAMPLE_FILE && typeof j.sampleLabel === 'string') SAMPLE_LABEL = j.sampleLabel.slice(0, 40);
+            if (SAMPLE_FILE && typeof j.organizerName === 'string') SAMPLE_ORG = j.organizerName.trim().slice(0, 30);
+            if (SAMPLE_FILE && typeof j.storeName === 'string') SAMPLE_STORE = j.storeName.trim().slice(0, 20);
             // 며칠 전 확인은 여는 순간 기준으로 (v1 sampleSystemData와 같다)
             photos = j.savedSystemData.map(p => ({ ...p, zones: p.zones.map(({ checkedDaysAgo, ...z }) => (checkedDaysAgo == null ? z : { ...z, checkedAt: Date.now() - checkedDaysAgo * 86400000 })) }));
             if (Array.isArray(j.baseItems)) memKV.baseItems = JSON.stringify(j.baseItems);
         } catch (e) {
-            photos = []; SAMPLE = null; try { sessionStorage.removeItem('samplePreview'); } catch (x) {}
+            photos = []; SAMPLE = null; clearSampleFile(); try { sessionStorage.removeItem('samplePreview'); } catch (x) {}
             setTimeout(() => toast('예시를 불러오지 못했어요 · 인터넷을 확인해 주세요'), 300);
         }
     }

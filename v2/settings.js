@@ -111,7 +111,7 @@ p.st-sum { margin: 4px 0 20px; padding: 10px 0; border-top: 1px solid var(--line
 `);
 
 const APP_NAME = '오브젯도';
-const APP_VERSION = '베타 2026.11.17.1'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
+const APP_VERSION = '베타 2026.11.17.5'; // 11/10부터 기본 화면 (예전 화면 v1은 '… · 예전 화면') · 배포할 때 올린다
 const SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M8 7l4-4 4 4"></path><path d="M5 11v9h14v-9"></path></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
 const p2 = (n) => String(n).padStart(2, '0');
@@ -173,8 +173,8 @@ function pickTheme(v) {
 // ────────────────────────────────────────────────────────────
 // 인쇄물 이름 (v1과 같은 키 · 길이): 매장(머리글) 이름은 인쇄물 머리글·백업 파일 이름에, 정리 업체 이름은 인쇄물·백업 PDF 아래에
 // ────────────────────────────────────────────────────────────
-function storeName() { return (ls('storeName') || '').trim().slice(0, 20); }
-function organizerName() { return (ls('organizerName') || '').trim().slice(0, 30); }
+function storeName() { if (SAMPLE_FILE && SAMPLE_STORE) return SAMPLE_STORE; return (ls('storeName') || '').trim().slice(0, 20); }
+function organizerName() { if (SAMPLE_FILE && SAMPLE_ORG) return SAMPLE_ORG; return (ls('organizerName') || '').trim().slice(0, 30); }
 function setOrganizerName(v) { lsSet('organizerName', String(v || '').slice(0, 30)); }
 function storeFileName() { return storeName().replace(/[\\/:*?"<>|\s.]+/g, ''); } // 파일 이름에 못 쓰는 글자·띄어쓰기 빼고
 document.addEventListener('input', (e) => {
@@ -212,6 +212,7 @@ function changeMode(m) {
     applyUseMode(m);
     toast(m === 'home' ? '집·정리 모드: 사진 지도 · 검색 · 말로 찾기만 보여요' : '매장 모드: 재고 점검 · 유통기한까지 보여요');
     if (SAMPLE) { // 예시는 쓰는 곳마다 다르다 (집 → 팬트리·옷장, 매장 → 카페 창고)
+        clearSampleFile();
         try { sessionStorage.setItem('samplePreview', m === 'home' ? 'organizer' : '1'); } catch (e) {}
         setTimeout(() => location.reload(), 600); return;
     }
@@ -925,7 +926,7 @@ async function doRestore(btn) {
     const imported = pendingRestore; if (!imported || restoring) return;
     restoring = true; if (btn) { btn.disabled = true; btn.textContent = '복구하는 중…'; }
     flushPending(); // 늦게 도는 저장이 복구한 데이터를 덮어쓰지 않게
-    if (SAMPLE) { try { sessionStorage.removeItem('samplePreview'); } catch (e) {} SAMPLE = null; } // 예시를 보다가 복구해도 진짜 데이터로
+    if (SAMPLE) { clearSampleFile(); try { sessionStorage.removeItem('samplePreview'); } catch (e) {} SAMPLE = null; } // 예시를 보다가 복구해도 진짜 데이터로
     if (!store.db) await store.init(); // 예시를 보는 동안엔 저장소를 안 열었다
     if ((restoreFromGet || restoreFromPrev) && hasSaved()) await keepPrevMap(); // 받은 지도로 바꾸기 전에 쓰던 지도를 이 폰에 따로 보관 (백업 화면을 다녀오지 않게)
     if (!writePhotoData(JSON.stringify(imported.savedSystemData))) { restoring = false; closeSheet(); toast('저장 공간이 부족해 복구하지 못했어요'); return; }

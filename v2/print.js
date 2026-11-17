@@ -93,13 +93,13 @@ function prRoundRect(ctx, x, y, w, h, r) { // v1 drawSafeRoundRect와 같다 (ro
 const PRINT = { pageWmm: 210, pageHmm: 297, marginMm: 14, pxPerMm: 8, ink: '#1a1a18', sub: '#6b6960', line: '#e0dbd0' };
 function printPx(mm) { return Math.round(mm * PRINT.pxPerMm); }
 // 매장 이름 (선택): 인쇄물 머리글 날짜 옆·아래 오른쪽, PDF·백업 파일 이름에 들어간다. 지점이 여러 곳이면 종이·파일을 구분하기 쉽게
-function storeName() { try { return (localStorage.getItem('storeName') || '').trim().slice(0, 20); } catch (e) { return ''; } }
+function storeName() { if (SAMPLE_FILE && SAMPLE_STORE) return SAMPLE_STORE; try { return (localStorage.getItem('storeName') || '').trim().slice(0, 20); } catch (e) { return ''; } }
 function setStoreName(v) {
     try { localStorage.setItem('storeName', String(v || '').slice(0, 20)); } catch (e) {}
 }
 // 정리 업체 이름 (선택): 정리수납 전문가가 고객 집을 정리하고 지도를 넘겨줄 때, 종이·백업 PDF 아래에 "정리 · 이름"으로 남는다
 //   백업 파일에도 넣어서, 고객 폰에서 불러와 다시 뽑아도 그대로 남는다 (모든 데이터 지우기로는 지우지 않는다 — 업체 폰의 설정)
-function organizerName() { try { return (localStorage.getItem('organizerName') || '').trim().slice(0, 30); } catch (e) { return ''; } }
+function organizerName() { if (SAMPLE_FILE && SAMPLE_ORG) return SAMPLE_ORG; try { return (localStorage.getItem('organizerName') || '').trim().slice(0, 30); } catch (e) { return ''; } }
 function setOrganizerName(v) { try { localStorage.setItem('organizerName', String(v || '').slice(0, 30)); } catch (e) {} }
 function printHeadDate(dateStr) { const n = storeName(); return n ? `${n} · ${dateStr}` : dateStr; }
 function storeFileName() { return storeName().replace(/[\\/:*?"<>|\s.]+/g, ''); } // 파일 이름에 못 쓰는 글자·띄어쓰기 빼고
